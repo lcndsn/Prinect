@@ -170,6 +170,10 @@ h1.h1-sub{
     gap:16px;
 }
 
+.tools-grid{
+    grid-template-columns:repeat(2,1fr);
+}
+
 .card{
     position:relative;
     display:flex;
@@ -293,6 +297,7 @@ footer .swatches .y{ background:var(--yellow); }
     .sheet{ padding:44px 16px 32px; }
     .reg{ display:none; }
     footer{ flex-direction:column; gap:14px; text-align:center; }
+    .tools-grid{ grid-template-columns:1fr; }
 }
 
 @media (max-width:380px){

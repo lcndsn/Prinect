@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prinect &middot; Capacidade de Pr&eacute;-impress&atilde;o</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:          #0b0f14;
+    --panel:       #121821;
+    --panel-2:     #0e141c;
+    --card:        #171f2a;
+    --card-hover:  #1b2430;
+    --border:      #232d3a;
+    --border-soft: #1b2430;
+    --text:        #e7ecf1;
+    --text-dim:    #8b97a6;
+    --text-faint:  #57626f;
+    --blue:        #3d9be0;
+    --blue-dim:    #1d5680;
+    --blue-glow:   rgba(61,155,224,0.16);
+    --cyan:        #17b3c4;
+    --magenta:     #dd5183;
+    --yellow:      #e7b93c;
+    --ok:          #3ecf8e;
+    --warn:        #e7b93c;
+    --err:         #ef5f74;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:   'Inter', sans-serif;
+    --font-mono:   'IBM Plex Mono', monospace;
+
+    /* ---------- Design System: tokens ---------- */
+    /* espacamento (escala de 4px) */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-7: 32px; --sp-8: 40px;
+    /* raios de borda */
+    --r-sm: 6px; --r-md: 8px; --r-lg: 10px; --r-pill: 20px;
+    /* sombras (elevacao sutil, uso pontual) */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+    --shadow-md: 0 6px 20px rgba(0,0,0,0.28);
+    /* transicoes */
+    --ease: cubic-bezier(.4,0,.2,1);
+    --dur-fast: .15s;
+    --dur-base: .22s;
+    /* anel de foco (acessibilidade + consistencia visual) */
+    --focus-ring: 0 0 0 3px var(--blue-glow);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Design System: campos de formulario (texto, senha, numero, data, select) ----------
+     Um unico padrao pra toda a aplicacao -- toolbar, busca de cache, comparativo, historico. */
+  input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
+    font-family: var(--font-body); font-size: 0.85rem; color: var(--text);
+    background: var(--card); border: 1px solid var(--border);
+    padding: 9px 11px; border-radius: var(--r-md); outline: none;
+    transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  }
+  input[type="text"]::placeholder, input[type="password"]::placeholder, input[type="number"]::placeholder { color: var(--text-faint); }
+  input[type="text"]:hover, input[type="password"]:hover, input[type="number"]:hover, input[type="date"]:hover, select:hover { border-color: var(--blue-dim); }
+  input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus { border-color: var(--blue); box-shadow: var(--focus-ring); }
+  input.invalid { border-color: var(--err); box-shadow: 0 0 0 3px rgba(239,95,116,0.14); }
+  input[type="date"] { color-scheme: dark; }
+  input:disabled, select:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ---------- Design System: botoes ---------- */
+  .btn-primary, .toolbar button {
+    font-family: var(--font-body); font-weight: 600; font-size: 0.82rem;
+    letter-spacing: 0.02em; text-transform: uppercase;
+    padding: 10px 24px; background: var(--blue); color: #08131c;
+    border: none; border-radius: var(--r-md); cursor: pointer; white-space: nowrap;
+    transition: background var(--dur-fast) var(--ease), transform .05s var(--ease);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover:not(:disabled), .toolbar button:hover:not(:disabled) { background: #57ade8; }
+  .btn-primary:active:not(:disabled), .toolbar button:active:not(:disabled) { transform: translateY(1px); }
+  .btn-primary:disabled, .toolbar button:disabled { background: #3a4552; color: var(--text-faint); cursor: not-allowed; }
+  .btn-primary:focus-visible, .toolbar button:focus-visible,
+  .btn-mini:focus-visible, input:focus-visible, select:focus-visible { box-shadow: var(--focus-ring); }
+
+  .btn-mini {
+    font-family: var(--font-body); font-size: 0.72rem; font-weight: 600; padding: 5px 12px; border-radius: var(--r-sm);
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text); cursor: pointer; margin-right: 6px;
+    transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-mini:hover { border-color: var(--blue-dim); color: var(--blue); background: var(--card-hover); }
+  .btn-mini.danger:hover { border-color: var(--err); color: var(--err); }
+  .btn-mini svg, .btn-primary svg { width: 13px; height: 13px; flex: 0 0 auto; }
+
+  /* ---------- Design System: icones inline (stroke, sem biblioteca externa) ---------- */
+  .icon { width: 15px; height: 15px; flex: 0 0 auto; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-spin { animation: iconspin .9s linear infinite; }
+  @keyframes iconspin { to { transform: rotate(360deg); } }
+
+  .regbar { display: flex; width: 100%; }
+  .regbar span { flex: 1; height: 100%; }
+  .regbar span:nth-child(1) { background: var(--cyan); }
+  .regbar span:nth-child(2) { background: var(--magenta); }
+  .regbar span:nth-child(3) { background: var(--yellow); }
+  .regbar span:nth-child(4) { background: var(--blue); }
+  .regbar.top { height: 3px; }
+  .regbar.sm  { height: 3px; width: 64px; border-radius: 2px; overflow: hidden; opacity: 0.85; }
+
+  header {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    padding: 22px 32px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand .mark { font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; letter-spacing: 0.01em; color: var(--text); }
+  .brand .mark em { font-style: normal; color: var(--blue); }
+  .brand .sub { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.08em; }
+  #versionBadge {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 6px 14px; white-space: nowrap;
+  }
+  #cacheBadge {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 6px 14px; white-space: nowrap;
+  }
+
+  .toolbar {
+    background: var(--panel);
+    padding: 18px 32px;
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+    border-bottom: 1px solid var(--border);
+  }
+  .toolbar label {
+    font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .toolbar-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
+
+  #statusBar {
+    padding: 10px 32px; font-family: var(--font-mono); font-size: 0.78rem;
+    background: var(--card); border-bottom: 1px solid var(--border); color: var(--text-dim);
+    display: none;
+  }
+  #statusBar.ok  { background: rgba(62,207,142,0.08);  border-color: rgba(62,207,142,0.3);  color: var(--ok); }
+  #statusBar.err { background: rgba(239,95,116,0.08);  border-color: rgba(239,95,116,0.3);  color: var(--err); }
+
+  .filter-note {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);
+    padding: 8px 32px; background: var(--panel-2); border-bottom: 1px solid var(--border-soft);
+    display: none;
+  }
+
+  #progressWrap { display: none; padding: 10px 32px 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #progressLabel { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim); }
+  #progressBar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  #progressFill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--blue)); transition: width 0.15s; }
+
+  .main { padding: 8px 32px 40px; }
+
+  .section-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 34px 0 14px; padding-left: 12px; border-left: 3px solid var(--blue);
+  }
+  .section-title-text { display: flex; align-items: center; gap: 10px; }
+  .section-title .icon { color: var(--blue); }
+  .section-title span.label {
+    font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .section-title span.sub {
+    font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-faint); margin-left: 10px; text-transform: none; letter-spacing: 0;
+  }
+
+  .data-note {
+    font-size: 0.8rem; color: var(--text-dim); line-height: 1.55;
+    background: var(--blue-glow); border-left: 3px solid var(--blue);
+    padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 16px;
+  }
+  .data-note strong, .data-note em { color: var(--text); font-style: normal; }
+  .data-note.intro { background: var(--card); border-left-color: var(--text-faint); margin-bottom: 24px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .card {
+    position: relative; background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 18px; text-align: left;
+    transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  }
+  .card:hover { border-color: var(--blue-dim); background: var(--card-hover); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+  .card::before, .card::after { content: ""; position: absolute; width: 9px; height: 9px; opacity: 0.55; }
+  .card::before { top: 7px; left: 7px; border-top: 1.5px solid var(--blue); border-left: 1.5px solid var(--blue); }
+  .card::after  { bottom: 7px; right: 7px; border-bottom: 1.5px solid var(--blue); border-right: 1.5px solid var(--blue); }
+  .card .label {
+    font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+  }
+  .card .value { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .card .sub { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-faint); margin-top: 6px; }
+
+  /* ---------- graficos de barra por dia (sem libs externas) ---------- */
+  .daybars {
+    display: flex; align-items: flex-end; gap: 6px; height: 170px;
+    padding: 18px 14px 10px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; overflow-x: auto; margin-bottom: 24px;
+  }
+  .daybar-col {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    height: 100%; min-width: 32px; flex-shrink: 0; gap: 5px;
+  }
+  .daybar-col .bar {
+    width: 18px; background: linear-gradient(180deg, var(--cyan), var(--blue));
+    border-radius: 3px 3px 0 0; min-height: 2px;
+  }
+  .daybar-col .bar-stack {
+    width: 18px; flex: 1; display: flex; flex-direction: column-reverse;
+    border-radius: 3px 3px 0 0; overflow: hidden; background: var(--border-soft);
+  }
+  .daybar-col .bar-busy { width: 100%; background: linear-gradient(180deg, var(--cyan), var(--blue)); }
+  .daybar-col .bar-extra { width: 100%; background: var(--err); }
+  .daybar-col .val { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim); white-space: nowrap; }
+  .daybar-col .lbl { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-faint); white-space: nowrap; }
+  .legend { display: flex; gap: 18px; margin: -14px 0 20px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .legend i.busy  { background: linear-gradient(180deg, var(--cyan), var(--blue)); }
+  .legend i.idle  { background: var(--border-soft); border: 1px solid var(--border); }
+  .legend i.extra { background: var(--err); }
+
+  ::selection { background: var(--blue-dim); color: #fff; }
+
+  /* ---------- Design System: micro-animacoes (so onde agregam valor) ---------- */
+  @keyframes fadeInPanel { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  #painelDashboard, #painelCache, #painelComparativo, #painelHistorico { animation: fadeInPanel .28s var(--ease); }
+  @media print { #painelDashboard, #painelCache, #painelComparativo, #painelHistorico { animation: none; } }
+
+  #comparativoResultado > *, #historicoResultado > * { animation: fadeInPanel .3s var(--ease); }
+
+  .diag-body { margin-top: 10px; animation: fadeInPanel .25s var(--ease); }
+
+  /* ---------- exportacao em PDF (via window.print) ---------- */
+  .print-header { display: none; }
+  @media print {
+    :root {
+      --bg: #ffffff; --panel: #ffffff; --panel-2: #f4f6f8;
+      --card: #ffffff; --card-hover: #ffffff;
+      --border: #d3d9e0; --border-soft: #e6e9ed;
+      --text: #16202b; --text-dim: #46525f; --text-faint: #6b7683;
+      --blue-glow: rgba(61,155,224,0.10);
+    }
+    body { background: #fff !important; }
+    header, .header-inner, .toolbar, .tabbar, .compare-picker, .cache-search-wrap, .historico-picker,
+    #progressWrap, #activityIndicator, .diag-toggle, .export-bar,
+    button, input, select, .filter-note { display: none !important; }
+    .diag-body { display: none !important; }
+    .print-header {
+      display: block !important; margin-bottom: 22px; padding-bottom: 14px;
+      border-bottom: 2px solid var(--blue);
+    }
+    .print-header .print-brand {
+      font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; color: var(--text);
+    }
+    .print-header .print-brand em { font-style: normal; color: var(--blue); }
+    .print-header .print-meta {
+      font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); margin-top: 4px;
+    }
+    .main, #painelComparativo, #painelHistorico { padding: 0 !important; }
+    .card, .daybars, .cache-table-wrap, table { box-shadow: none !important; }
+
+    /* Tabelas nao podem depender de rolagem horizontal num PDF (documento estatico) --
+       encolhe fonte/espacamento e permite quebra de linha na celula pra caber tudo na pagina. */
+    .cache-table-wrap { overflow: visible !important; }
+    table.cache-table, table.compare-table { width: 100% !important; min-width: 0 !important; table-layout: auto; font-size: 0.68rem; }
+    table.cache-table th, table.compare-table th, table.cache-table td, table.compare-table td {
+      padding: 5px 7px !important; white-space: normal !important; word-break: break-word;
+    }
+
+    /* Quebra de pagina: nada deve comecar numa pagina e terminar na proxima. */
+    .card, .cards, .historico-cards, .compare-cols-note, .data-note,
+    .compare-table, table, tr, .cache-table-wrap {
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    .section-title, .historico-section-title {
+      break-inside: avoid; page-break-inside: avoid;
+      break-after: avoid;  page-break-after: avoid; /* nao fica sozinho no fim da pagina, sem o que vem depois */
+    }
+    /* Tabelas longas (ex: detalhamento diario de varios meses) repetem o cabecalho em cada pagina */
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+
+    /* Graficos de barra em CSS puro nao imprimem de forma confiavel em todos os
+       navegadores -- na impressao/PDF mostramos os mesmos dados em tabela numerica. */
+    .daybars, .legend { display: none !important; }
+    .chart-only-title { display: none !important; }
+    .dashboard-print-table { display: block !important; }
+  }
+  .dashboard-print-table { display: none; }
+  .export-bar { display: flex; gap: 10px; margin: 14px 0 22px; }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--blue);
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex: 0 0 auto;
+    animation: livepulse 1.1s ease-in-out infinite;
+  }
+  @keyframes livepulse {
+    0%, 100% { opacity: 1;    transform: scale(1);   }
+    50%      { opacity: 0.35; transform: scale(0.7); }
+  }
+
+  /* ---------- painel de diagnosticos recolhivel ---------- */
+  .diag-panel { margin-bottom: 20px; }
+  .diag-toggle {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-dim);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; cursor: pointer; transition: color .15s, border-color .15s;
+  }
+  .diag-toggle:hover { color: var(--blue); border-color: var(--blue); }
+  .diag-toggle #diagToggleIcon { font-size: 0.65rem; color: var(--blue); transition: transform var(--dur-fast) var(--ease); }
+
+  /* ---------- abas ---------- */
+  .tabbar {
+    display: flex; gap: 4px; padding: 0 32px; background: var(--panel); border-bottom: 1px solid var(--border);
+  }
+  .tabbar button {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-dim); background: transparent; border: none;
+    padding: 12px 18px; cursor: pointer; border-bottom: 2px solid transparent;
+    transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .tabbar button .icon { opacity: 0.85; }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* ---------- Design System: tabelas (usado em Gerenciar Cache, Comparativo e Historico Mensal) ---------- */
+  .cache-table-wrap {
+    overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: 20px;
+  }
+  table.cache-table, table.compare-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  table.cache-table { min-width: 760px; }
+  table.compare-table { min-width: 640px; }
+  table.cache-table th, table.compare-table th {
+    background: var(--panel-2); color: var(--text-dim); padding: 11px 14px; text-align: left;
+    font-family: var(--font-mono); font-weight: 600; font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.05em; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  table.cache-table td, table.compare-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border-soft); color: var(--text);
+    font-family: var(--font-mono); font-size: 0.78rem; white-space: nowrap;
+  }
+  table.cache-table tbody tr, table.compare-table tbody tr { transition: background var(--dur-fast) var(--ease); }
+  table.cache-table tbody tr:last-child td, table.compare-table tbody tr:last-child td { border-bottom: none; }
+  table.cache-table tbody tr:hover, table.compare-table tbody tr:hover { background: var(--card-hover); }
+  table.cache-table th.sortable { cursor: pointer; user-select: none; transition: color var(--dur-fast) var(--ease); }
+  table.cache-table th.sortable:hover { color: var(--blue); }
+  table.cache-table th .sort-arrow { display: inline-block; margin-left: 5px; color: var(--blue); font-size: 0.68rem; }
+  table.compare-table th.num, table.compare-table td.num { text-align: right; }
+  table.compare-table td.label-col { font-family: var(--font-body); font-weight: 600; color: var(--text); white-space: normal; }
+
+  .cache-search-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .cache-search { flex: 1 1 360px; max-width: 420px; }
+
+  /* ---------- Design System: responsividade ----------
+     Prioridade: notebooks (1024-1440px) e tablets (768-1024px); celular e secundario. */
+  .main { max-width: 1600px; margin: 0 auto; }
+
+  @media (max-width: 1200px) {
+    .cards { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .historico-cards .card { flex: 1 1 150px; }
+  }
+
+  @media (max-width: 1024px) {
+    .header-inner, .toolbar, .main, #statusBar, .filter-note, #progressWrap, .tabbar,
+    #painelCache, #painelComparativo, #painelHistorico { padding-left: 20px; padding-right: 20px; }
+    .compare-side { flex: 1 1 100%; min-width: 0; }
+    .compare-x { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .header-inner { padding: 18px 16px 16px; gap: 12px; }
+    .toolbar { padding: 14px 16px; gap: 12px; }
+    .cards { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .tabbar { overflow-x: auto; }
+    .tabbar button { padding: 10px 12px; font-size: 0.7rem; white-space: nowrap; }
+    .compare-actions { width: 100%; }
+    .compare-actions button { flex: 1; justify-content: center; }
+  }
+
+  @media (max-width: 640px) {
+    .header-inner, .toolbar, .main, #statusBar, .filter-note, #progressWrap, .tabbar { padding-left: 16px; padding-right: 16px; }
+    #cacheBadge { display: none; }
+  }
+
+  /* ---------- aba Comparativo ---------- */
+  .compare-picker {
+    display: flex; flex-wrap: wrap; align-items: stretch; gap: 14px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .compare-side { display: flex; flex-direction: column; gap: 10px; flex: 1 1 260px; min-width: 260px; }
+  .compare-label {
+    font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .compare-range { display: flex; gap: 12px; }
+  .compare-range label {
+    font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    display: flex; flex-direction: column; gap: 5px; flex: 1;
+  }
+  .compare-range input[type="date"] { font-size: 0.8rem; padding: 7px 9px; border-radius: var(--r-sm); }
+  .compare-x {
+    font-family: var(--font-display); font-size: 1.1rem; color: var(--text-faint);
+    align-self: center; padding: 0 2px;
+  }
+  .compare-actions { display: flex; gap: 10px; align-items: flex-end; flex: 0 0 auto; }
+
+  .historico-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .historico-cards .card { flex: 1 1 180px; }
+  .historico-section-title {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin: 30px 0 14px; padding-left: 12px; border-left: 3px solid var(--blue);
+  }
+
+  .compare-cols-note {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);
+    margin-bottom: 14px; display: flex; gap: 22px; flex-wrap: wrap;
+  }
+  .compare-cols-note b { color: var(--text); }
+  .compare-cols-note .dotA::before, .compare-cols-note .dotB::before {
+    content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 7px; vertical-align: middle;
+  }
+  .compare-cols-note .dotA::before { background: var(--cyan); }
+  .compare-cols-note .dotB::before { background: var(--magenta); }
+
+  .compare-badge {
+    display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 0.76rem;
+    padding: 2px 8px; border-radius: 12px;
+  }
+  .compare-badge.up   { color: var(--blue); background: var(--blue-glow); }
+  .compare-badge.down { color: var(--err); background: rgba(239,95,116,0.10); }
+  .compare-badge.flat { color: var(--text-faint); background: var(--border-soft); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <span class="mark">PRIN<em>ECT</em></span>
+      <span class="sub">Capacidade de Pr&eacute;-impress&atilde;o &middot; Conex&atilde;o local</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="cacheBadge">Cache: &mdash;</span>
+      <span id="versionBadge">Vers&atilde;o: &mdash;</span>
+    </div>
+  </div>
+  <div class="regbar top" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+</header>
+
+<div class="print-header" style="display:none">
+  <div class="print-brand">PRIN<em>ECT</em> &middot; KPI</div>
+  <div class="print-meta" id="printMeta"></div>
+</div>
+
+<div class="tabbar">
+  <button id="tabBtnDashboard" class="active" onclick="mudarAba('dashboard')">
+    <svg class="icon" viewBox="0 0 24 24"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+    Dashboard
+  </button>
+  <button id="tabBtnCache" onclick="mudarAba('cache')">
+    <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>
+    Gerenciar Cache
+  </button>
+  <button id="tabBtnComparativo" onclick="mudarAba('comparativo')">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>
+    Comparativo
+  </button>
+  <button id="tabBtnHistorico" onclick="mudarAba('historico')">
+    <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Hist&oacute;rico Mensal
+  </button>
+</div>
+
+<div id="painelDashboard">
+<div class="toolbar">
+  <label>Cliente *
+    <input id="inCliente" type="text" placeholder="ex: Sua Gr&aacute;fica">
+  </label>
+  <label>Servidor
+    <input id="inServer" type="text" value="http://localhost:15011" placeholder="http://SERVIDOR:15011">
+  </label>
+  <label>Contexto
+    <select id="inContext">
+      <option value="PrinectAPILocal">Portal Local (PrinectAPILocal)</option>
+      <option value="PrinectAPI">Portal Standalone (PrinectAPI)</option>
+    </select>
+  </label>
+  <label>Usu&aacute;rio *
+    <input id="inUser" type="text" placeholder="usuario">
+  </label>
+  <label>Senha *
+    <input id="inPass" type="password" placeholder="senha">
+  </label>
+  <label>Desde
+    <input id="inFrom" type="date">
+  </label>
+  <label>At&eacute;
+    <input id="inTo" type="date">
+  </label>
+
+  <div class="toolbar-divider"></div>
+
+  <label>Horas trabalhadas por dia
+    <input id="inHorasDia" type="number" value="8" min="1" max="24" step="0.5" style="width:90px">
+  </label>
+
+  <button id="btnCarregar" onclick="carregar()"><svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg><span id="btnCarregarTexto">Carregar</span></button>
+</div>
+
+<div id="filterNote" class="filter-note"></div>
+<div id="cacheIndicator" class="filter-note" style="display:none"></div>
+<div id="statusBar"></div>
+<div id="progressWrap">
+  <div id="progressLabel"></div>
+  <div id="progressBar"><div id="progressFill"></div></div>
+  <div id="liveBadge" class="live-badge" style="display:none">
+    <span class="live-dot"></span>Gr&aacute;ficos atualizando ao vivo conforme os jobs v&atilde;o sendo processados
+  </div>
+</div>
+<div id="activityIndicator" class="filter-note" style="display:none"></div>
+
+<div class="main" id="main" style="display:none">
+
+  <div class="diag-panel">
+    <button type="button" class="diag-toggle" id="diagToggleBtn" onclick="toggleDiagPanel()">
+      <span id="diagToggleIcon">&#9656;</span> Ver diagn&oacute;sticos e detalhes de c&aacute;lculo
+    </button>
+    <div class="diag-body" id="diagBody" style="display:none">
+      <div class="data-note intro">
+        Estes 5 indicadores v&ecirc;m de duas fontes: os endpoints JSON documentados da PrinectAPI (jobs e chapas) e o
+        <strong>ticket XML de cada job</strong> (fonte n&atilde;o documentada oficialmente, mas necess&aacute;ria pra enxergar
+        quantidade/tempo de PDFs e tempo de grava&ccedil;&atilde;o de chapa). <strong>Todos os jobs do per&iacute;odo selecionado
+        s&atilde;o processados</strong> (se o per&iacute;odo tiver mais jobs do que o "Limite de seguran&ccedil;a", o carregamento
+        para e avisa em vez de mostrar um resultado parcial). <strong>Jobs Criados</strong> conta no dia em que o job foi
+        <em>criado</em>. <strong>P&aacute;ginas de PDF, arquivos de PDF e chapas</strong> contam no dia do <em>primeiro
+        processamento encontrado no ticket</em> (n&atilde;o no dia de cria&ccedil;&atilde;o do job &mdash; importante pra jobs de
+        produ&ccedil;&atilde;o longa, onde o PDF pode ser processado ou a chapa gravada meses depois do job ter sido criado).
+        <strong>Tempo de processamento de PDF e de grava&ccedil;&atilde;o de chapa</strong> seguem a mesma l&oacute;gica: contam
+        no dia em que o <em>processamento realmente aconteceu</em>. O c&aacute;lculo de ocupa&ccedil;&atilde;o usa direto o valor
+        de "Horas trabalhadas por dia" que voc&ecirc; configurar &mdash; aplicado igual em todos os dias do per&iacute;odo. Como
+        o ticket XML pode ser grande, per&iacute;odos longos podem demorar pra carregar na primeira vez (depois fica em cache em
+        mem&oacute;ria enquanto Servidor/Contexto/Usu&aacute;rio/Per&iacute;odo n&atilde;o mudarem).
+      </div>
+      <div class="data-note" id="diagNote" style="display:none"></div>
+      <div class="data-note" id="perfNote" style="display:none"></div>
+      <div class="data-note" id="cacheDiagNote" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="export-bar">
+    <button class="btn-mini" onclick="exportarDashboardCSV()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>Exportar Excel (CSV)</button>
+    <button class="btn-mini" onclick="exportarDashboardPDF()"><svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Exportar PDF</button>
+  </div>
+
+  <div class="section-title">
+    <div class="section-title-text">
+      <svg class="icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span class="label">1. Total de Jobs</span>
+      <span class="sub">quantos jobs por dia</span>
+    </div>
+    <div class="regbar sm" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="label">Total no Per&iacute;odo</div><div class="value" id="kJobsTotal">&mdash;</div></div>
+    <div class="card"><div class="label">M&eacute;dia por Dia (per&iacute;odo todo)</div><div class="value" id="kJobsMedia">&mdash;</div></div>
+    <div class="card"><div class="label">Dia de Maior Volume</div><div class="value" id="kJobsPico">&mdash;</div><div class="sub" id="kJobsPicoSub"></div></div>
+  </div>
+  <div class="daybars" id="barsJobs"></div>
+
+  <div class="section-title">
+    <div class="section-title-text">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      <span class="label">2. Quantidade de PDFs</span>
+      <span class="sub">p&aacute;ginas de PDF por dia</span>
+    </div>
+    <div class="regbar sm" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="label">P&aacute;ginas no Per&iacute;odo</div><div class="value" id="kPdfPaginas">&mdash;</div></div>
+    <div class="card"><div class="label">Arquivos PDF no Per&iacute;odo</div><div class="value" id="kPdfArquivos">&mdash;</div></div>
+    <div class="card"><div class="label">M&eacute;dia de P&aacute;ginas por Dia (per&iacute;odo todo)</div><div class="value" id="kPdfMedia">&mdash;</div></div>
+  </div>
+  <div class="daybars" id="barsPdfPaginas"></div>
+
+  <div class="section-title">
+    <div class="section-title-text">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <span class="label">3. Tempo de Processamento dos PDFs</span>
+      <span class="sub">horas processando PDF por dia, x horas dispon&iacute;veis</span>
+    </div>
+    <div class="regbar sm" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="label">Horas no Per&iacute;odo</div><div class="value" id="kPdfHoras">&mdash;</div></div>
+    <div class="card"><div class="label">Ocupa&ccedil;&atilde;o M&eacute;dia</div><div class="value" id="kPdfOcupacao">&mdash;</div><div class="sub">horas de PDF / horas dispon&iacute;veis</div></div>
+  </div>
+  <div class="legend">
+    <span><i class="busy"></i>ocupado</span>
+    <span><i class="idle"></i>ocioso</span>
+    <span><i class="extra"></i>acima da capacidade</span>
+  </div>
+  <div class="daybars" id="barsPdfHoras"></div>
+
+  <div class="section-title">
+    <div class="section-title-text">
+      <svg class="icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span class="label">4. Quantidade de Chapas</span>
+      <span class="sub">chapas por dia</span>
+    </div>
+    <div class="regbar sm" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="label">Chapas no Per&iacute;odo</div><div class="value" id="kChapasTotal">&mdash;</div></div>
+    <div class="card"><div class="label">M&eacute;dia de Chapas por Dia (per&iacute;odo todo)</div><div class="value" id="kChapasMedia">&mdash;</div></div>
+  </div>
+  <div class="daybars" id="barsChapas"></div>
+
+  <div class="section-title">
+    <div class="section-title-text">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <span class="label">5. Tempo de Processamento das Chapas</span>
+      <span class="sub">horas gravando chapa por dia, x horas dispon&iacute;veis</span>
+    </div>
+    <div class="regbar sm" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="label">Horas no Per&iacute;odo</div><div class="value" id="kChapasHoras">&mdash;</div></div>
+    <div class="card"><div class="label">Ocupa&ccedil;&atilde;o M&eacute;dia</div><div class="value" id="kChapasOcupacao">&mdash;</div><div class="sub">horas de grava&ccedil;&atilde;o / horas dispon&iacute;veis</div></div>
+  </div>
+  <div class="legend">
+    <span><i class="busy"></i>ocupado</span>
+    <span><i class="idle"></i>ocioso</span>
+    <span><i class="extra"></i>acima da capacidade</span>
+  </div>
+  <div class="daybars" id="barsChapasHoras"></div>
+
+  <div class="historico-section-title dashboard-print-table" id="dashboardPrintTableTitle" style="display:none">
+    Detalhamento Di&aacute;rio (vers&atilde;o para PDF/impress&atilde;o)
+  </div>
+  <div id="dashboardPrintTable" class="dashboard-print-table" style="display:none"></div>
+
+</div>
+</div><!-- fim #painelDashboard -->
+
+<div id="painelCache" style="display:none; padding: 24px 32px 40px;">
+  <div class="data-note intro">
+    Cada linha representa um per&iacute;odo j&aacute; consultado (Servidor + Usu&aacute;rio + Desde + At&eacute;), salvo localmente
+    no navegador via IndexedDB. Isso sobrevive a fechar a aba/navegador &mdash; a pr&oacute;xima vez que voc&ecirc; pesquisar o
+    mesmo per&iacute;odo, o carregamento &eacute; instant&acirc;neo, sem nenhuma chamada &agrave; API. Os dados nunca se
+    misturam entre servidores/usu&aacute;rios/per&iacute;odos diferentes &mdash; cada combina&ccedil;&atilde;o &eacute; um
+    registro independente.
+  </div>
+
+  <div class="cards" style="margin-bottom:20px">
+    <div class="card"><div class="label">Per&iacute;odos Salvos</div><div class="value" id="cacheTotalPeriodos">&mdash;</div></div>
+    <div class="card"><div class="label">Jobs Armazenados (total)</div><div class="value" id="cacheTotalJobs">&mdash;</div></div>
+    <div class="card"><div class="label">Espa&ccedil;o Ocupado (estimado)</div><div class="value" id="cacheTotalTamanho">&mdash;</div></div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <button class="btn-mini" onclick="atualizarTelaCache()"><svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar Lista</button>
+    <button class="btn-mini" onclick="exportarCache()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>Exportar Cache</button>
+    <button class="btn-mini" onclick="document.getElementById('inputImportarCache').click()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21V9"/><polyline points="7 13 12 8 17 13"/><line x1="4" y1="4" x2="20" y2="4"/></svg>Importar Cache</button>
+    <button class="btn-mini danger" onclick="limparTodoCache()"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Limpar Todo o Cache</button>
+    <input type="file" id="inputImportarCache" accept=".json" style="display:none" onchange="processarArquivoImportado(event)">
+  </div>
+
+  <div class="cache-search-wrap">
+    <input type="text" id="inBuscaCache" class="cache-search"
+      placeholder="Buscar por cliente, servidor ou usu&aacute;rio..."
+      oninput="filtrarTabelaCache(this.value)">
+    <button class="btn-mini" id="btnLimparBuscaCache" style="display:none" onclick="document.getElementById('inBuscaCache').value=''; filtrarTabelaCache('')">Limpar busca</button>
+  </div>
+
+  <div class="cache-table-wrap">
+    <table class="cache-table" id="tabelaCache">
+      <thead>
+        <tr>
+          <th class="sortable" onclick="ordenarTabelaCache('cliente')">Cliente<span class="sort-arrow" id="arrowCliente"></span></th>
+          <th class="sortable" onclick="ordenarTabelaCache('servidor')">Servidor<span class="sort-arrow" id="arrowServidor"></span></th>
+          <th class="sortable" onclick="ordenarTabelaCache('usuario')">Usu&aacute;rio<span class="sort-arrow" id="arrowUsuario"></span></th>
+          <th class="sortable" onclick="ordenarTabelaCache('periodo')">Per&iacute;odo<span class="sort-arrow" id="arrowPeriodo"></span></th>
+          <th class="sortable" onclick="ordenarTabelaCache('jobs')">Qtd. Jobs<span class="sort-arrow" id="arrowJobs"></span></th>
+          <th class="sortable" onclick="ordenarTabelaCache('data')">&Uacute;ltima Atualiza&ccedil;&atilde;o<span class="sort-arrow" id="arrowData"></span></th>
+          <th class="sortable" onclick="ordenarTabelaCache('tamanho')">Tamanho<span class="sort-arrow" id="arrowTamanho"></span></th>
+          <th>A&ccedil;&otilde;es</th>
+        </tr>
+      </thead>
+      <tbody><tr><td colspan="8" style="text-align:center;color:var(--text-faint)">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="painelComparativo" style="display:none; padding: 24px 32px 40px;">
+  <div class="data-note intro">
+    Compare dois per&iacute;odos j&aacute; carregados. <strong>Todos os dados vêm exclusivamente do cache local
+    (mem&oacute;ria ou IndexedDB)</strong> &mdash; comparar per&iacute;odos nunca gera uma nova chamada &agrave; API.
+    Se um per&iacute;odo que voc&ecirc; quer comparar ainda n&atilde;o foi carregado, v&aacute; primeiro na aba
+    Dashboard (ou Gerenciar Cache) e carregue-o normalmente.
+  </div>
+
+  <div class="compare-picker">
+    <div class="compare-side">
+      <label class="compare-label">Per&iacute;odo A (cache)
+        <select id="selComparA" onchange="configurarRangeComparativo('A')"><option value="">Selecione...</option></select>
+      </label>
+      <div class="compare-range">
+        <label>Recortar de <input type="date" id="inRangeADe" disabled></label>
+        <label>at&eacute; <input type="date" id="inRangeAAte" disabled></label>
+      </div>
+    </div>
+    <span class="compare-x">&times;</span>
+    <div class="compare-side">
+      <label class="compare-label">Per&iacute;odo B (cache)
+        <select id="selComparB" onchange="configurarRangeComparativo('B')"><option value="">Selecione...</option></select>
+      </label>
+      <div class="compare-range">
+        <label>Recortar de <input type="date" id="inRangeBDe" disabled></label>
+        <label>at&eacute; <input type="date" id="inRangeBAte" disabled></label>
+      </div>
+    </div>
+    <div class="compare-actions">
+      <button class="btn-mini" onclick="popularSelectsComparativo()"><svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar Lista</button>
+      <button id="btnComparar" class="btn-primary" onclick="compararPeriodos()"><svg class="icon" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>Comparar</button>
+    </div>
+  </div>
+  <div class="data-note" style="margin-top:-14px;margin-bottom:20px">
+    Voc&ecirc; pode escolher o <strong>mesmo cache</strong> em A e B e recortar datas diferentes dentro dele
+    &mdash; por exemplo, comparar Maio contra Junho de um cache que j&aacute; cobre Janeiro a Junho, sem precisar
+    ter carregado dois per&iacute;odos separados.
+  </div>
+
+  <div id="comparativoAviso" class="filter-note" style="display:none"></div>
+  <div id="comparativoResultado"></div>
+</div>
+
+<div id="painelHistorico" style="display:none; padding: 24px 32px 40px;">
+  <div class="data-note intro">
+    Escolha um cliente e veja a evolu&ccedil;&atilde;o m&ecirc;s a m&ecirc;s. <strong>Tudo vem exclusivamente do
+    cache local</strong> &mdash; o hist&oacute;rico combina automaticamente <em>todos</em> os per&iacute;odos j&aacute;
+    carregados desse cliente (mesmo que tenham sido carregados em caches separados) e agrupa os dias por m&ecirc;s.
+    Nenhuma chamada &agrave; API &eacute; feita aqui.
+  </div>
+
+  <div class="compare-picker">
+    <div class="compare-side" style="flex: 1 1 320px">
+      <label class="compare-label">Cliente
+        <select id="selClienteHistorico"><option value="">Selecione...</option></select>
+      </label>
+    </div>
+    <div class="compare-actions">
+      <button class="btn-mini" onclick="popularSelectClienteHistorico()"><svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar Lista</button>
+      <button id="btnGerarHistorico" class="btn-primary" onclick="gerarHistoricoMensal()"><svg class="icon" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Gerar Hist&oacute;rico</button>
+    </div>
+  </div>
+
+  <div id="historicoAviso" class="filter-note" style="display:none"></div>
+  <div id="historicoResultado"></div>
+</div>
+
+<script>
+let SERVER  = 'http://localhost:15011';
+let CONTEXT = 'PrinectAPILocal';
+let AUTH    = '';
+
+// Controla quantos Jobs sao processados em paralelo no primeiro carregamento (Job Detail +
+// Ticket + Element). O manual da PrinectAPI documenta um limite de 2 requisicoes/segundo
+// no servidor -- usamos um valor moderado por padrao (nao os 8 originalmente sugeridos) pra
+// nao arriscar sobrecarregar esse limite; veja o relatorio tecnico para a explicacao completa.
+// E so uma constante: pode ajustar aqui pra testar outros valores.
+const MAX_CONCURRENT_JOBS = 4;
+
+// Tamanho de pagina usado so pra buscar a LISTAGEM inicial de jobs (/rest/job) --
+// nao afeta nenhum resultado, so quantas chamadas a listagem em si precisa.
+const PAGESIZE_INTERNO = 100;
+
+// Teto de seguranca: se a API devolver mais jobs que isso pro periodo selecionado,
+// o carregamento para e avisa em vez de tentar processar tudo (protege contra o caso
+// real que ja vimos, onde o filtro de data do servidor nao funcionou e devolveu o
+// sistema inteiro). 20000 foi escolhido porque e o mesmo teto que o Prinect Cockpit
+// usa pra exibicao -- nunca vamos tentar processar mais jobs do que o proprio Prinect
+// consegue mostrar de uma vez.
+const LIMITE_SEGURANCA_INTERNO = 20000;
+
+function buildHeaders() {
+  return { 'Accept': 'application/json', 'Authorization': AUTH, 'X-Requested-With': 'XMLHttpRequest' };
+}
+
+function buildHeadersXML() {
+  return { 'Accept': 'application/xml, text/xml, */*', 'Authorization': AUTH, 'X-Requested-With': 'XMLHttpRequest' };
+}
+
+function setStatus(msg, type) {
+  const b = document.getElementById('statusBar');
+  b.textContent = msg;
+  b.className   = type || '';
+  b.style.display = msg ? 'block' : 'none';
+}
+
+function setProgress(label, pct) {
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('progressLabel').textContent  = label;
+  document.getElementById('progressFill').style.width   = (pct || 0) + '%';
+}
+
+function hideProgress() {
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('progressFill').style.width   = '0%';
+  document.getElementById('liveBadge').style.display    = 'none';
+}
+
+function setBusy(busy) {
+  const btn = document.getElementById('btnCarregar');
+  btn.disabled = busy;
+  btn.querySelector('.icon').classList.toggle('icon-spin', busy);
+  document.getElementById('btnCarregarTexto').textContent = busy ? 'Carregando...' : 'Carregar';
+}
+
+function validar(cliente, user, pass) {
+  const inCliente = document.getElementById('inCliente');
+  const inUser    = document.getElementById('inUser');
+  const inPass    = document.getElementById('inPass');
+  inCliente.classList.remove('invalid');
+  inUser.classList.remove('invalid');
+  inPass.classList.remove('invalid');
+  const erros = [];
+  if (!cliente) { inCliente.classList.add('invalid'); erros.push('cliente');   }
+  if (!user)    { inUser.classList.add('invalid');    erros.push('usu\u00e1rio'); }
+  if (!pass)    { inPass.classList.add('invalid');    erros.push('senha');       }
+  return erros.length ? 'Preencha os campos obrigat\u00f3rios: ' + erros.join(', ') + '.' : null;
+}
+
+async function apiFetch(path) {
+  const url = SERVER + '/' + CONTEXT + path;
+  const r   = await fetch(url, { headers: buildHeaders() });
+  if (r.status === 401) throw new Error('Credenciais inv\u00e1lidas (401) \u2014 verifique usu\u00e1rio e senha.');
+  if (r.status === 403) throw new Error('Acesso negado (403) \u2014 usu\u00e1rio sem permiss\u00e3o para este recurso.');
+  if (!r.ok)            throw new Error('Erro ' + r.status + ' ' + r.statusText + ' \u2014 ' + url);
+  return r.json();
+}
+
+async function apiFetchText(path) {
+  const url = SERVER + '/' + CONTEXT + path;
+  const r   = await fetch(url, { headers: buildHeadersXML() });
+  if (r.status === 401) throw new Error('Credenciais inv\u00e1lidas (401).');
+  if (r.status === 403) throw new Error('Acesso negado (403).');
+  if (!r.ok)            throw new Error('Erro ' + r.status + ' ' + r.statusText);
+  return r.text();
+}
+
+function toISO(dateStr, endOfDay) {
+  if (!dateStr) return null;
+  const d    = new Date(dateStr + (endOfDay ? 'T23:59:59' : 'T00:00:00'));
+  const off  = -d.getTimezoneOffset();
+  const sign = off >= 0 ? '+' : '-';
+  const hh   = String(Math.floor(Math.abs(off) / 60)).padStart(2, '0');
+  const mm   = String(Math.abs(off) % 60).padStart(2, '0');
+  const local =
+    d.getFullYear()                          + '-' +
+    String(d.getMonth() + 1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0')       + 'T' +
+    String(d.getHours()).padStart(2,'0')      + ':' +
+    String(d.getMinutes()).padStart(2,'0')    + ':' +
+    String(d.getSeconds()).padStart(2,'0');
+  return local + sign + hh + ':' + mm;
+}
+
+function extractArray(data) {
+  if (Array.isArray(data)) return data;
+  const keys = ['jobs', 'employees', 'activities', 'devices', 'milestoneDefs', 'data'];
+  for (const k of keys) if (Array.isArray(data?.[k])) return data[k];
+  return [];
+}
+
+async function fetchAllPages(basePath, pagesize, onPage, onCall) {
+  const all       = [];
+  const seenKeys  = new Set();
+  let   page      = 0;
+  const MAX_PAGES = 50;
+  while (page < MAX_PAGES) {
+    const sep  = basePath.includes('?') ? '&' : '?';
+    const t0   = performance.now();
+    const data = await apiFetch(basePath + sep + 'page=' + page + '&pagesize=' + pagesize);
+    const items = extractArray(data);
+
+    let novos = 0;
+    items.forEach(item => {
+      const key = (item && item.id !== undefined) ? String(item.id) : JSON.stringify(item);
+      if (!seenKeys.has(key)) { seenKeys.add(key); all.push(item); novos++; }
+    });
+    if (onCall) onCall(performance.now() - t0, items.length - novos);
+
+    if (onPage) onPage(all.length);
+
+    // Se a pagina nao trouxe nenhum item novo, o servidor provavelmente esta
+    // ignorando page/pagesize e devolvendo sempre o mesmo conjunto completo --
+    // continuar so repetiria chamadas identicas ate o teto de seguranca.
+    if (items.length > 0 && novos === 0) break;
+
+    if (items.length < pagesize) break;
+    const total = data?.totalCount ?? data?.total ?? data?.totalItems ?? null;
+    if (total !== null && all.length >= Number(total)) break;
+    page++;
+  }
+  return all;
+}
+
+function diffH(a, b) {
+  if (!a || !b) return null;
+  const d = (new Date(b) - new Date(a)) / 3600000;
+  return isNaN(d) || d < 0 ? null : d;
+}
+
+function set(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v ?? '\u2014';
+}
+
+function pct(n, d) { return d ? Math.round(n / d * 100) + '%' : '\u2014'; }
+
+function isFinished(gs) { return gs && gs.toUpperCase() === 'FINISHED'; }
+
+async function fetchJobElements(jobId) {
+  try {
+    const data = await apiFetch('/rest/job/' + jobId + '/element?query=PLATES');
+    return data?.elements ?? {};
+  } catch(_) { return {}; }
+}
+
+function parseTicketXML(text) {
+  try {
+    const doc = new DOMParser().parseFromString(text, 'application/xml');
+    if (doc.querySelector('parsererror')) return null;
+    return doc;
+  } catch(_) { return null; }
+}
+
+function countPagesFromAttr(value) {
+  if (!value) return 0;
+  const groups = value.split(',').map(g => g.trim()).filter(Boolean);
+  let total = 0;
+  groups.forEach(g => {
+    let a, b;
+    if (g.includes('~')) {
+      const parts = g.split('~').map(Number);
+      if (parts.length === 2) { a = parts[0]; b = parts[1]; }
+    } else if (/^-?\d+\s+-?\d+$/.test(g)) {
+      // algumas instalacoes serializam intervalo de pagina unica como "min max"
+      // com espaco, em vez de "min~max" com til (ex: Pages="0 0")
+      const parts = g.split(/\s+/).map(Number);
+      a = parts[0]; b = parts[1];
+    } else {
+      const n = Number(g);
+      if (!isNaN(n)) { a = n; b = n; }
+    }
+    if (a !== undefined && b !== undefined && !isNaN(a) && !isNaN(b)) {
+      // intervalo invertido (fim < inicio) indica lista vazia/placeholder em algumas
+      // instalacoes (ex: "0~-1"), nao deve ser contado como paginas
+      if (b >= a) total += (b - a) + 1;
+    }
+  });
+  return total;
+}
+
+function extractOrigFiles(doc) {
+  let fileCount = 0, pageCount = 0;
+  if (!doc) return { fileCount, pageCount };
+  const nodes = doc.getElementsByTagName('HDM:OrigFile');
+  for (let i = 0; i < nodes.length; i++) {
+    pageCount += countPagesFromAttr(nodes[i].getAttribute('Pages'));
+    fileCount++;
+  }
+  return { fileCount, pageCount };
+}
+
+const PDF_SEQUENCE_TYPES   = new Set(['Qualify', 'Prepare', 'AssemblePDF']);
+const PLATE_SEQUENCE_TYPES = new Set(['ImpositionProof', 'ImposePDF', 'ImpositionOutput']);
+
+function extractPhaseIntervals(doc, naoClassificados) {
+  const pdfIntervals = [];
+  const plateIntervals = [];
+  if (!doc) return { pdfIntervals, plateIntervals };
+  let nodes = [];
+  try { nodes = doc.querySelectorAll('JDF'); } catch(_) { return { pdfIntervals, plateIntervals }; }
+  nodes.forEach(node => {
+    const seqType = node.getAttribute('HDM:SequenceType');
+    if (!seqType) return;
+    let bucket = null;
+    if (PDF_SEQUENCE_TYPES.has(seqType)) bucket = pdfIntervals;
+    else if (PLATE_SEQUENCE_TYPES.has(seqType)) bucket = plateIntervals;
+    else { naoClassificados[seqType] = (naoClassificados[seqType] || 0) + 1; return; }
+    let runs = [];
+    try { runs = node.querySelectorAll('ProcessRun'); } catch(_) { return; }
+    runs.forEach(pr => {
+      const s = pr.getAttribute('Start');
+      const e = pr.getAttribute('End');
+      if (!s || !e) return;
+      const sd = new Date(s), ed = new Date(e);
+      if (isNaN(sd) || isNaN(ed) || ed < sd) return;
+      const h = (ed - sd) / 3600000;
+      // descarta processo individual com mais de 24h: indicio de job de
+      // demonstracao reaproveitado ao longo de meses, nao processamento real
+      if (h > 24) return;
+      bucket.push({ start: sd, end: ed, startStr: s });
+    });
+  });
+  return { pdfIntervals, plateIntervals };
+}
+
+function earliestDayKey(intervals) {
+  if (!intervals || !intervals.length) return null;
+  let earliest = intervals[0];
+  intervals.forEach(iv => { if (iv.start < earliest.start) earliest = iv; });
+  return earliest.startStr.slice(0, 10);
+}
+
+const MERGE_TOLERANCE_MS = 2 * 60 * 1000; // eventos a ate 2min um do outro contam como a mesma sessao continua
+
+function mergeIntervals(intervals) {
+  if (!intervals.length) return [];
+  const sorted = intervals.slice().sort((a, b) => a.start - b.start);
+  const merged = [{ start: sorted[0].start, end: sorted[0].end, startStr: sorted[0].startStr }];
+  for (let i = 1; i < sorted.length; i++) {
+    const last = merged[merged.length - 1];
+    const cur  = sorted[i];
+    if ((cur.start - last.end) <= MERGE_TOLERANCE_MS) {
+      if (cur.end > last.end) { last.end = cur.end; }
+    } else {
+      merged.push({ start: cur.start, end: cur.end, startStr: cur.startStr });
+    }
+  }
+  return merged;
+}
+
+function buildDayRange(fromStr, toStr) {
+  const days = [];
+  if (!fromStr || !toStr) return days;
+  let cur = new Date(fromStr + 'T00:00:00');
+  const end = new Date(toStr + 'T00:00:00');
+  let guard = 0;
+  while (cur <= end && guard < 730) {
+    days.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
+    guard++;
+  }
+  return days;
+}
+
+function fmtDiaLabel(dateStr) {
+  const dt = new Date(dateStr + 'T00:00:00');
+  return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0');
+}
+
+function renderBarChart(containerId, days, valueKey) {
+  const el = document.getElementById(containerId);
+  const maxVal = Math.max(1, ...days.map(d => d[valueKey] || 0));
+  el.innerHTML = days.map(d => {
+    const v = d[valueKey] || 0;
+    const h = Math.max(Math.round((v / maxVal) * 100), v > 0 ? 3 : 0);
+    return '<div class="daybar-col" title="' + d.date + ': ' + v + '">' +
+      '<div class="val">' + v + '</div>' +
+      '<div class="bar" style="height:' + h + '%"></div>' +
+      '<div class="lbl">' + fmtDiaLabel(d.date) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderIdleChart(containerId, days, hoursKey) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = days.map(d => {
+    const disp  = d.horasDisponiveisDia;
+    const busy  = d[hoursKey] || 0;
+    let busyPct = 0, idlePct = 0, extraPct = 0, valText = formatarHoras(busy);
+    if (disp && disp > 0) {
+      if (busy > disp) {
+        busyPct  = Math.round((disp / disp) * 100);
+        extraPct = 0;
+        valText  = formatarHoras(disp) + ' +' + formatarHoras(busy - disp) + ' extra';
+      } else {
+        busyPct = Math.round((busy / disp) * 100);
+        idlePct = 100 - busyPct;
+      }
+    } else {
+      busyPct = busy > 0 ? 100 : 0;
+    }
+    const overCap = disp && busy > disp;
+    return '<div class="daybar-col" title="' + d.date + ': ' + formatarHoras(busy) + (disp ? (' de ' + formatarHoras(disp) + ' dispon\u00edveis') : '') + '">' +
+      '<div class="val"' + (overCap ? ' style="color:var(--err)"' : '') + '>' + valText + '</div>' +
+      '<div class="bar-stack">' +
+        (overCap ? '<div class="bar-extra" style="height:100%"></div>' : '<div class="bar-busy" style="height:' + busyPct + '%"></div>') +
+      '</div>' +
+      '<div class="lbl">' + fmtDiaLabel(d.date) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ---------- Cache em memoria (dura so enquanto a pagina estiver aberta) ----------
+// Guarda o dado ja agregado por dia (jobs/paginas/chapas/horas), nao os tickets/elements
+// brutos: isso ja satisfaz "recalcular sem tocar REST/ticket/element de novo" e evita
+// manter milhares de tickets XML (as vezes varios MB cada) na memoria do navegador.
+//
+// CACHE_STORE guarda UM cache por periodo simultaneamente (chave = Servidor+Contexto+
+// Usuario+Desde+Ate), entao voltar pra um periodo ja visitado nesta sessao reaproveita
+// os dados na hora, mesmo que outros periodos tenham sido carregados no meio do caminho.
+// CACHE e so um ponteiro pro registro do periodo que esta sendo exibido agora na tela.
+let CACHE_STORE = new Map();
+
+// ---------- Persistencia real (IndexedDB) -- sobrevive a fechar o navegador ----------
+// L1 = CACHE_STORE (memoria, super rapido, dura so a sessao atual)
+// L2 = IndexedDB (um pouco mais lento que memoria, mas ainda muito mais rapido que a API,
+//      e sobrevive a fechar a aba/navegador). carregar() sempre confere L1 primeiro, depois
+//      L2, e so vai pra API se nenhum dos dois tiver o periodo pedido.
+const IDB_NAME  = 'PrinectDashboardDB';
+const IDB_VER   = 1;
+const IDB_STORE = 'periodos';
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) { reject(new Error('IndexedDB n\u00e3o dispon\u00edvel neste navegador')); return; }
+    const req = indexedDB.open(IDB_NAME, IDB_VER);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, { keyPath: 'key' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+async function idbPut(registro) {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(registro);
+      tx.oncomplete = () => resolve();
+      tx.onerror    = () => reject(tx.error);
+    });
+  } catch(e) { console.warn('[Prinect] falha ao salvar no IndexedDB:', e.message); }
+}
+
+async function idbGet(key) {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx  = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror   = () => reject(req.error);
+    });
+  } catch(e) { console.warn('[Prinect] falha ao ler do IndexedDB:', e.message); return null; }
+}
+
+async function idbGetAll() {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx  = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror   = () => reject(req.error);
+    });
+  } catch(e) { console.warn('[Prinect] falha ao listar o IndexedDB:', e.message); return []; }
+}
+
+async function idbDelete(key) {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror    = () => reject(tx.error);
+    });
+  } catch(e) { console.warn('[Prinect] falha ao excluir do IndexedDB:', e.message); }
+}
+
+async function idbClear() {
+  try {
+    const db = await idbOpen();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror    = () => reject(tx.error);
+    });
+  } catch(e) { console.warn('[Prinect] falha ao limpar o IndexedDB:', e.message); }
+}
+
+function estimarTamanho(registro) {
+  try { return JSON.stringify(registro).length; } catch(_) { return 0; }
+}
+
+function formatarBytes(bytes) {
+  if (!bytes) return '0 KB';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+let SESSION_STATS = { cacheHits: 0, tempoEconomizadoMs: 0, chamadasEvitadasCache: 0, jobsReaproveitadosCache: 0 };
+let APELIDOS_PENDENTES = new Map(); // chave -> apelido a restaurar apos a proxima busca fresca desse periodo
+let CACHE = {
+  key: null,
+  timestampCarregado: null,
+  days: null,
+  toProcessLength: 0,
+  jobsDescartados: 0, jobsProcessados: 0,
+  ticketsOk: 0, ticketsFalhaFetch: 0, ticketsFalhaParse: 0,
+  jobsComOrigFile: 0, jobsComToolTypeRun: 0,
+  toolTypesNaoClassificados: {},
+  foraDoPeriodo: 0,
+  perf: null
+};
+let RUNTIME = { lastFetchMs: null, lastRecalcMs: null, origem: null };
+
+// ---------- Etapa 4: utilitarios genericos de exportacao (CSV/Excel e PDF) ----------
+// CSV com separador ";" (padrao Excel em pt-BR, onde "," e separador decimal) e BOM UTF-8
+// (garante acentuacao correta ao abrir no Excel). Nao depende de nenhuma biblioteca externa.
+function arrayParaCSV(linhas) {
+  return linhas.map(linha => linha.map(celula => {
+    let texto = (celula === null || celula === undefined) ? '' : String(celula);
+    if (/[";\n]/.test(texto)) texto = '"' + texto.replace(/"/g, '""') + '"';
+    return texto;
+  }).join(';')).join('\r\n');
+}
+
+function baixarArquivo(conteudo, nomeArquivo, mimeType) {
+  const blob = new Blob([conteudo], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = nomeArquivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function nomeArquivoSeguro(texto) {
+  return (texto || 'export').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+}
+
+// PDF = impressao do navegador (Ctrl+P / "Salvar como PDF"), sem depender de nenhuma
+// biblioteca externa -- funciona 100% offline, igual o resto do sistema.
+function prepararImpressao(titulo) {
+  document.getElementById('printMeta').textContent = titulo + ' \u2014 gerado em ' + new Date().toLocaleString('pt-BR');
+}
+
+function exportarComoPDF(titulo) {
+  prepararImpressao(titulo);
+  window.print();
+}
+
+function buildCacheKey(cliente, server, context, user, fromStr, toStr) {
+  return [cliente, server, context, user, fromStr, toStr].join('||');
+}
+
+async function atualizarIndicadorCache() {
+  const el = document.getElementById('cacheIndicator');
+  if (!el) return;
+  const cliente = document.getElementById('inCliente').value.trim();
+  const server  = (document.getElementById('inServer').value || '').replace(/\/$/, '');
+  const context = document.getElementById('inContext').value || '';
+  const user    = document.getElementById('inUser').value.trim();
+  const fromStr = document.getElementById('inFrom').value;
+  const toStr   = document.getElementById('inTo').value;
+  const chaveAtual = buildCacheKey(cliente, server, context, user, fromStr, toStr);
+
+  let entry = CACHE_STORE.get(chaveAtual) || null;
+  let origemCache = entry ? 'mem\u00f3ria' : null;
+  if (!entry) {
+    entry = await idbGet(chaveAtual);
+    if (entry) origemCache = 'IndexedDB';
+  }
+
+  const totalPeriodosSalvos = (await idbGetAll()).length;
+  if (totalPeriodosSalvos === 0 && CACHE_STORE.size === 0) {
+    el.innerHTML = '<span class="badge warn">Cache: sem dados carregados ainda</span>';
+    el.style.display = 'block';
+    return;
+  }
+  const dataFmt = entry ? new Date(entry.timestampCarregado).toLocaleString('pt-BR') : '\u2014';
+  el.innerHTML =
+    (entry
+      ? '<span class="badge ok">Cache: ATIVO para este per\u00edodo (' + origemCache + ')</span> &middot; carregado em <strong>' + dataFmt + '</strong> &middot; Jobs neste per\u00edodo: <strong>' + entry.toProcessLength + '</strong>'
+      : '<span class="badge warn">Cache: n\u00e3o h\u00e1 dados deste per\u00edodo ainda \u2014 ser\u00e1 consultado da API</span>'
+    ) + ' &middot; per\u00edodos salvos localmente: <strong>' + totalPeriodosSalvos + '</strong>';
+  el.style.display = 'block';
+}
+
+function toggleDiagPanel() {
+  const body = document.getElementById('diagBody');
+  const icon = document.getElementById('diagToggleIcon');
+  const aberto = body.style.display !== 'none';
+  body.style.display = aberto ? 'none' : 'block';
+  icon.innerHTML = aberto ? '&#9656;' : '&#9662;';
+}
+
+function mudarAba(nome) {
+  const dash     = document.getElementById('painelDashboard');
+  const cache    = document.getElementById('painelCache');
+  const comp     = document.getElementById('painelComparativo');
+  const hist     = document.getElementById('painelHistorico');
+  const btnDash  = document.getElementById('tabBtnDashboard');
+  const btnCache = document.getElementById('tabBtnCache');
+  const btnComp  = document.getElementById('tabBtnComparativo');
+  const btnHist  = document.getElementById('tabBtnHistorico');
+
+  dash.style.display = (nome === 'dashboard')   ? 'block' : 'none';
+  cache.style.display = (nome === 'cache')       ? 'block' : 'none';
+  comp.style.display  = (nome === 'comparativo') ? 'block' : 'none';
+  hist.style.display  = (nome === 'historico')   ? 'block' : 'none';
+
+  btnDash.classList.toggle('active', nome === 'dashboard');
+  btnCache.classList.toggle('active', nome === 'cache');
+  btnComp.classList.toggle('active', nome === 'comparativo');
+  btnHist.classList.toggle('active', nome === 'historico');
+
+  if (nome === 'cache')       atualizarTelaCache();
+  if (nome === 'comparativo') popularSelectsComparativo();
+  if (nome === 'historico')   popularSelectClienteHistorico();
+}
+
+// ---------- Tabela de gerenciamento de cache: dados + estado de ordenacao ----------
+// Guarda a ultima lista buscada do IndexedDB pra poder reordenar na tela sem reler
+// o IndexedDB a cada clique de cabecalho -- so re-renderiza a partir daqui.
+let CACHE_TABLE_REGISTROS = [];
+let CACHE_TABLE_SORT = { col: 'data', asc: false }; // padrao: mais recente primeiro (comportamento ja existente)
+let CACHE_TABLE_FILTRO = ''; // texto de busca (cliente, servidor, usuario ou apelido)
+
+function filtrarTabelaCache(texto) {
+  CACHE_TABLE_FILTRO = (texto || '').trim().toLowerCase();
+  document.getElementById('btnLimparBuscaCache').style.display = CACHE_TABLE_FILTRO ? 'inline-block' : 'none';
+  renderizarTabelaCache();
+}
+
+function registroBateComBusca(r) {
+  if (!CACHE_TABLE_FILTRO) return true;
+  const p = extrairPartesCache(r);
+  const apelido = (r.apelido || '').toLowerCase();
+  return p.cliente.toLowerCase().includes(CACHE_TABLE_FILTRO) ||
+         p.servidor.toLowerCase().includes(CACHE_TABLE_FILTRO) ||
+         p.usuario.toLowerCase().includes(CACHE_TABLE_FILTRO) ||
+         apelido.includes(CACHE_TABLE_FILTRO);
+}
+
+function extrairPartesCache(r) {
+  const partes = (r.key || '').split('||'); // cliente, servidor, contexto, usuario, desde, ate
+  return {
+    cliente: partes[0] || '',
+    servidor: partes[1] || '',
+    usuario: partes[3] || '',
+    desde: partes[4] || '',
+    ate: partes[5] || ''
+  };
+}
+
+function valorOrdenavelCache(r, col) {
+  const p = extrairPartesCache(r);
+  switch (col) {
+    case 'cliente':  return p.cliente.toLowerCase();
+    case 'servidor': return p.servidor.toLowerCase();
+    case 'usuario':  return p.usuario.toLowerCase();
+    case 'periodo':  return p.desde; // string AAAA-MM-DD ordena corretamente como data
+    case 'jobs':     return r.toProcessLength || 0;
+    case 'tamanho':  return estimarTamanho(r);
+    case 'data':
+    default:         return r.timestampCarregado ? new Date(r.timestampCarregado).getTime() : 0;
+  }
+}
+
+function ordenarTabelaCache(col) {
+  if (CACHE_TABLE_SORT.col === col) {
+    CACHE_TABLE_SORT.asc = !CACHE_TABLE_SORT.asc;
+  } else {
+    CACHE_TABLE_SORT.col = col;
+    // Texto comeca ascendente (A-Z); numeros/data comecam descendente (maior/mais recente primeiro)
+    CACHE_TABLE_SORT.asc = (col === 'cliente' || col === 'servidor' || col === 'usuario' || col === 'periodo');
+  }
+  renderizarTabelaCache();
+}
+
+function atualizarSetasCabecalhoCache() {
+  const mapa = { cliente: 'arrowCliente', servidor: 'arrowServidor', usuario: 'arrowUsuario', periodo: 'arrowPeriodo', jobs: 'arrowJobs', data: 'arrowData', tamanho: 'arrowTamanho' };
+  Object.entries(mapa).forEach(([col, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (CACHE_TABLE_SORT.col === col) ? (CACHE_TABLE_SORT.asc ? '\u25b2' : '\u25bc') : '';
+  });
+}
+
+function renderizarTabelaCache() {
+  const tbody = document.querySelector('#tabelaCache tbody');
+  const registros = CACHE_TABLE_REGISTROS.filter(registroBateComBusca);
+
+  if (!CACHE_TABLE_REGISTROS.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-faint)">Nenhum per\u00edodo salvo ainda</td></tr>';
+    set('cacheTotalPeriodos', 0);
+    set('cacheTotalJobs', 0);
+    set('cacheTotalTamanho', '0 KB');
+    atualizarSetasCabecalhoCache();
+    return;
+  }
+
+  if (!registros.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-faint)">Nenhum resultado para "' +
+      CACHE_TABLE_FILTRO.replace(/</g, '&lt;') + '"</td></tr>';
+    set('cacheTotalPeriodos', 0);
+    set('cacheTotalJobs', 0);
+    set('cacheTotalTamanho', '0 KB');
+    atualizarSetasCabecalhoCache();
+    return;
+  }
+
+  const { col, asc } = CACHE_TABLE_SORT;
+  const ordenados = registros.slice().sort((a, b) => {
+    const va = valorOrdenavelCache(a, col), vb = valorOrdenavelCache(b, col);
+    let cmp;
+    if (typeof va === 'number' && typeof vb === 'number') cmp = va - vb;
+    else cmp = String(va).localeCompare(String(vb));
+    return asc ? cmp : -cmp;
+  });
+
+  let totalJobs = 0, totalBytes = 0;
+  tbody.innerHTML = '';
+  ordenados.forEach(r => {
+    const p        = extrairPartesCache(r);
+    const cliente  = p.cliente || '\u2014';
+    const servidor = p.servidor || '\u2014';
+    const usuario  = p.usuario || '\u2014';
+    const periodo  = (p.desde || '?') + ' a ' + (p.ate || '?');
+    const tamanho  = estimarTamanho(r);
+    totalJobs  += r.toProcessLength || 0;
+    totalBytes += tamanho;
+    const dataFmt  = r.timestampCarregado ? new Date(r.timestampCarregado).toLocaleString('pt-BR') : '\u2014';
+    const keyEsc   = r.key.replace(/'/g, "\\'");
+    tbody.innerHTML += '<tr>' +
+      '<td class="label-col">' + cliente + '</td>' +
+      '<td>' + servidor + '</td>' +
+      '<td>' + usuario + '</td>' +
+      '<td>' + periodo + '</td>' +
+      '<td>' + (r.toProcessLength || 0) + '</td>' +
+      '<td>' + dataFmt + '</td>' +
+      '<td>' + formatarBytes(tamanho) + '</td>' +
+      '<td>' +
+        '<button class="btn-mini" onclick="visualizarPeriodoCache(\'' + keyEsc + '\')">Visualizar</button>' +
+        '<button class="btn-mini" onclick="atualizarPeriodoCache(\'' + keyEsc + '\')">Atualizar</button>' +
+        '<button class="btn-mini danger" onclick="excluirPeriodoCache(\'' + keyEsc + '\')">Excluir</button>' +
+      '</td>' +
+    '</tr>';
+  });
+
+  set('cacheTotalPeriodos', registros.length);
+  set('cacheTotalJobs', totalJobs.toLocaleString('pt-BR'));
+  set('cacheTotalTamanho', formatarBytes(totalBytes));
+  atualizarSetasCabecalhoCache();
+}
+
+async function atualizarTelaCache() {
+  const tbody = document.querySelector('#tabelaCache tbody');
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-faint)">Carregando...</td></tr>';
+  CACHE_TABLE_REGISTROS = await idbGetAll();
+  renderizarTabelaCache();
+}
+
+// ---------- Aba Comparativo: le exclusivamente do cache (memoria/IndexedDB), nunca chama a API ----------
+
+function labelPeriodoComparativo(r) {
+  const p = extrairPartesCache(r);
+  const nome = p.cliente || (r.apelido || '').trim() || '\u2014';
+  return nome + ' \u2014 ' + p.desde + ' a ' + p.ate + ' (' + p.servidor.replace(/^https?:\/\//, '') + ' / ' + p.usuario + ')';
+}
+
+async function popularSelectsComparativo() {
+  const selA = document.getElementById('selComparA');
+  const selB = document.getElementById('selComparB');
+  const valorAtualA = selA.value;
+  const valorAtualB = selB.value;
+
+  const registros = await idbGetAll();
+  registros.sort((a, b) => labelPeriodoComparativo(a).localeCompare(labelPeriodoComparativo(b)));
+
+  const opcoesHtml = '<option value="">Selecione...</option>' + registros.map(r => {
+    const keyEsc = (r.key || '').replace(/"/g, '&quot;');
+    return '<option value="' + keyEsc + '">' + labelPeriodoComparativo(r).replace(/</g, '&lt;') + '</option>';
+  }).join('');
+
+  selA.innerHTML = opcoesHtml;
+  selB.innerHTML = opcoesHtml;
+  if (registros.some(r => r.key === valorAtualA)) selA.value = valorAtualA;
+  if (registros.some(r => r.key === valorAtualB)) selB.value = valorAtualB;
+
+  // Reconfigura o recorte de datas de acordo com o que ficou selecionado (ou desabilita se nada selecionado)
+  await configurarRangeComparativo('A');
+  await configurarRangeComparativo('B');
+
+  const aviso = document.getElementById('comparativoAviso');
+  if (!registros.length) {
+    aviso.textContent = 'Nenhum per\u00edodo salvo no cache ainda \u2014 carregue ao menos um per\u00edodo na aba Dashboard antes de comparar.';
+    aviso.style.display = 'block';
+  } else {
+    // Basta 1 cache salvo: da pra comparar dois recortes de data diferentes dentro dele mesmo.
+    aviso.style.display = 'none';
+  }
+}
+
+async function fetchEntradaCache(key) {
+  if (!key) return null;
+  return CACHE_STORE.get(key) || await idbGet(key);
+}
+
+async function configurarRangeComparativo(lado) {
+  const sel   = document.getElementById('selCompar' + lado);
+  const inDe  = document.getElementById('inRange' + lado + 'De');
+  const inAte = document.getElementById('inRange' + lado + 'Ate');
+  const key   = sel.value;
+
+  if (!key) {
+    inDe.disabled = true; inAte.disabled = true;
+    inDe.value = ''; inAte.value = '';
+    inDe.removeAttribute('min'); inDe.removeAttribute('max');
+    inAte.removeAttribute('min'); inAte.removeAttribute('max');
+    return;
+  }
+
+  const entry = await fetchEntradaCache(key);
+  const datas = (entry && entry.days ? entry.days.map(d => d.date) : []).filter(Boolean).sort();
+  if (!datas.length) {
+    inDe.disabled = true; inAte.disabled = true;
+    return;
+  }
+
+  const min = datas[0], max = datas[datas.length - 1];
+  inDe.min = min; inDe.max = max; inDe.value = min; inDe.disabled = false;
+  inAte.min = min; inAte.max = max; inAte.value = max; inAte.disabled = false;
+}
+
+// Mesma matematica de processarKPIs (secao 1-5 do Dashboard), mas sem exigir/gravar
+// horasDia por fora: usa o horasDisponiveisDia que ja esta salvo em cada dia do cache
+// (o mesmo valor usado quando aquele periodo foi calculado/exibido da ultima vez), e
+// sem mutar o array (o Dashboard e quem e dono do CACHE.days, o comparativo so le).
+function calcularKPIsComparativo(days) {
+  const diasComPdfH   = days.filter(d => d.pdfHours > 0);
+  const diasComChapaH = days.filter(d => d.plateHours > 0);
+
+  const totalJobs   = days.reduce((a, d) => a + d.jobs, 0);
+  const totalPag    = days.reduce((a, d) => a + d.pdfPages, 0);
+  const totalArq    = days.reduce((a, d) => a + d.pdfFiles, 0);
+  const totalChapas = days.reduce((a, d) => a + d.plates, 0);
+  const totalPdfH   = days.reduce((a, d) => a + d.pdfHours, 0);
+  const totalChapaH = days.reduce((a, d) => a + d.plateHours, 0);
+  const totalHorasDisponiveis = days.reduce((a, d) => a + (d.horasDisponiveisDia || 0), 0);
+
+  const ocupPdf   = diasComPdfH.map(d => d.horasDisponiveisDia ? Math.min(1, d.pdfHours / d.horasDisponiveisDia) : null).filter(v => v !== null);
+  const ocupChapa = diasComChapaH.map(d => d.horasDisponiveisDia ? Math.min(1, d.plateHours / d.horasDisponiveisDia) : null).filter(v => v !== null);
+
+  return {
+    totalJobs, totalPag, totalArq, totalChapas, totalPdfH, totalChapaH,
+    ocupPdfPct:   ocupPdf.length   ? Math.round(ocupPdf.reduce((a,b)=>a+b,0) / ocupPdf.length * 100)     : null,
+    ocupChapaPct: ocupChapa.length ? Math.round(ocupChapa.reduce((a,b)=>a+b,0) / ocupChapa.length * 100) : null,
+    // Eficiencia e Tempo Medio sao agregados simples derivados dos mesmos totais acima,
+    // exclusivos da aba Comparativo -- nao alteram nenhum KPI das secoes 1 a 5.
+    eficienciaJobsPorHora: totalHorasDisponiveis > 0 ? (totalJobs / totalHorasDisponiveis) : null,
+    tempoMedioPorJobH: totalJobs > 0 ? ((totalPdfH + totalChapaH) / totalJobs) : null
+  };
+}
+
+function formatarIndicadorComparativo(diff) {
+  if (diff === null || diff === undefined || isNaN(diff)) return '<span class="compare-badge flat">\u2014</span>';
+  if (Math.abs(diff) < 1e-9) return '<span class="compare-badge flat">= igual</span>';
+  return diff > 0
+    ? '<span class="compare-badge up">\u2191 subiu</span>'
+    : '<span class="compare-badge down">\u2193 caiu</span>';
+}
+
+function linhaComparativo(label, valA, valB, formatador) {
+  const fmt = formatador || (v => (v === null || v === undefined) ? '\u2014' : v);
+  const temAmbos = valA !== null && valA !== undefined && valB !== null && valB !== undefined;
+  const diff = temAmbos ? (valB - valA) : null;
+  const diffPct = (temAmbos && valA) ? (diff / Math.abs(valA) * 100) : (temAmbos && valB === valA ? 0 : null);
+  const diffTexto = diff === null ? '\u2014' : (diff > 0 ? '+' : (diff < 0 ? '\u2212' : '')) + fmt(Math.abs(diff));
+  const diffPctTexto = diffPct === null ? '\u2014' : (diffPct > 0 ? '+' : '') + diffPct.toFixed(1) + '%';
+  return '<tr>' +
+    '<td class="label-col">' + label + '</td>' +
+    '<td class="num">' + fmt(valA) + '</td>' +
+    '<td class="num">' + fmt(valB) + '</td>' +
+    '<td class="num">' + diffTexto + '</td>' +
+    '<td class="num">' + diffPctTexto + '</td>' +
+    '<td>' + formatarIndicadorComparativo(diff) + '</td>' +
+  '</tr>';
+}
+
+async function compararPeriodos() {
+  const keyA = document.getElementById('selComparA').value;
+  const keyB = document.getElementById('selComparB').value;
+  const deA  = document.getElementById('inRangeADe').value;
+  const ateA = document.getElementById('inRangeAAte').value;
+  const deB  = document.getElementById('inRangeBDe').value;
+  const ateB = document.getElementById('inRangeBAte').value;
+  const aviso = document.getElementById('comparativoAviso');
+  const resultado = document.getElementById('comparativoResultado');
+
+  if (!keyA || !keyB) {
+    aviso.textContent = 'Selecione os dois per\u00edodos (A e B) antes de comparar.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+  if (!deA || !ateA || !deB || !ateB) {
+    aviso.textContent = 'Defina o recorte de datas (De / At\u00e9) dos dois lados antes de comparar.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+  if (deA > ateA || deB > ateB) {
+    aviso.textContent = 'Em cada lado, a data "De" precisa ser anterior (ou igual) \u00e0 data "At\u00e9".';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+  // So bloqueia se for exatamente o mesmo cache E o mesmo recorte de datas (nada pra comparar).
+  // Mesmo cache com recortes de data diferentes (ex: Maio x Junho do mesmo periodo) e permitido.
+  if (keyA === keyB && deA === deB && ateA === ateB) {
+    aviso.textContent = 'Voc\u00ea selecionou o mesmo cache com o mesmo recorte de datas nos dois lados. Mude o recorte de A ou B (ou escolha outro cache) para comparar.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+
+  const entryA = await fetchEntradaCache(keyA);
+  const entryB = await fetchEntradaCache(keyB);
+  if (!entryA || !entryB) {
+    aviso.textContent = 'Um dos per\u00edodos selecionados n\u00e3o foi encontrado no cache local.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+
+  // Clona os dias antes de filtrar/calcular -- a aba Comparativo so LE o cache, nunca deve
+  // alterar o objeto que o Dashboard/IndexedDB estao usando.
+  const diasA = JSON.parse(JSON.stringify(entryA.days || [])).filter(d => d.date >= deA && d.date <= ateA);
+  const diasB = JSON.parse(JSON.stringify(entryB.days || [])).filter(d => d.date >= deB && d.date <= ateB);
+
+  if (!diasA.length || !diasB.length) {
+    aviso.textContent = 'N\u00e3o h\u00e1 dias do cache dentro do recorte de datas escolhido em ' + (!diasA.length ? 'A' : 'B') + '.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+  aviso.style.display = 'none';
+
+  const kA = calcularKPIsComparativo(diasA);
+  const kB = calcularKPIsComparativo(diasB);
+
+  const inteiro = v => (v === null || v === undefined) ? '\u2014' : v.toLocaleString('pt-BR');
+  const horas   = v => (v === null || v === undefined) ? '\u2014' : formatarHoras(v);
+  const pct     = v => (v === null || v === undefined) ? '\u2014' : v + '%';
+  const eficienciaFmt = v => (v === null || v === undefined) ? '\u2014' : v.toFixed(2) + ' jobs/h';
+
+  const nomeA = extrairPartesCache(entryA).cliente || (entryA.apelido || '').trim() || '\u2014';
+  const nomeB = extrairPartesCache(entryB).cliente || (entryB.apelido || '').trim() || '\u2014';
+  const labelA = nomeA + ' \u2014 ' + deA + ' a ' + ateA;
+  const labelB = nomeB + ' \u2014 ' + deB + ' a ' + ateB;
+
+  // Guarda os dados (nao o HTML) pra exportacao em CSV/Excel -- valores brutos, sem
+  // formatacao visual, pra abrir e recalcular numa planilha se o cliente quiser.
+  const linhaCSV = (label, valA, valB) => {
+    const temAmbos = valA !== null && valA !== undefined && valB !== null && valB !== undefined;
+    const diff = temAmbos ? (valB - valA) : '';
+    const diffPct = (temAmbos && valA) ? (diff / Math.abs(valA) * 100).toFixed(1) : '';
+    return [label, (valA === null || valA === undefined) ? '' : valA, (valB === null || valB === undefined) ? '' : valB, diff, diffPct];
+  };
+  RUNTIME.comparativoCSV = [
+    ['Indicador', 'Valor A (' + labelA + ')', 'Valor B (' + labelB + ')', 'Diferen\u00e7a', 'Diferen\u00e7a %'],
+    linhaCSV('Jobs', kA.totalJobs, kB.totalJobs),
+    linhaCSV('Arquivos de PDF', kA.totalArq, kB.totalArq),
+    linhaCSV('P\u00e1ginas de PDF', kA.totalPag, kB.totalPag),
+    linhaCSV('Chapas', kA.totalChapas, kB.totalChapas),
+    linhaCSV('Tempo de Processamento de PDF (h)', kA.totalPdfH, kB.totalPdfH),
+    linhaCSV('Tempo de Grava\u00e7\u00e3o de Chapa (h)', kA.totalChapaH, kB.totalChapaH),
+    linhaCSV('Ocupa\u00e7\u00e3o PDF (%)', kA.ocupPdfPct, kB.ocupPdfPct),
+    linhaCSV('Ocupa\u00e7\u00e3o Chapa (%)', kA.ocupChapaPct, kB.ocupChapaPct),
+    linhaCSV('Efici\u00eancia (jobs/hora)', kA.eficienciaJobsPorHora, kB.eficienciaJobsPorHora),
+    linhaCSV('Tempo M\u00e9dio de Processamento por Job (h)', kA.tempoMedioPorJobH, kB.tempoMedioPorJobH)
+  ];
+  RUNTIME.comparativoTitulo = 'Comparativo \u2014 A: ' + labelA + ' \u00d7 B: ' + labelB;
+
+  resultado.innerHTML =
+    '<div class="export-bar">' +
+      '<button class="btn-mini" onclick="exportarComparativoCSV()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>Exportar Excel (CSV)</button>' +
+      '<button class="btn-mini" onclick="exportarComparativoPDF()"><svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Exportar PDF</button>' +
+    '</div>' +
+    '<div class="compare-cols-note">' +
+      '<span class="dotA"><b>A:</b> ' + labelA.replace(/</g, '&lt;') + '</span>' +
+      '<span class="dotB"><b>B:</b> ' + labelB.replace(/</g, '&lt;') + '</span>' +
+    '</div>' +
+    '<div class="cache-table-wrap">' +
+      '<table class="compare-table">' +
+        '<thead><tr>' +
+          '<th>Indicador</th><th class="num">Valor A</th><th class="num">Valor B</th>' +
+          '<th class="num">Diferen\u00e7a</th><th class="num">Diferen\u00e7a %</th><th>Tend\u00eancia</th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          linhaComparativo('Jobs', kA.totalJobs, kB.totalJobs, inteiro) +
+          linhaComparativo('Arquivos de PDF', kA.totalArq, kB.totalArq, inteiro) +
+          linhaComparativo('P\u00e1ginas de PDF', kA.totalPag, kB.totalPag, inteiro) +
+          linhaComparativo('Chapas', kA.totalChapas, kB.totalChapas, inteiro) +
+          linhaComparativo('Tempo de Processamento de PDF', kA.totalPdfH, kB.totalPdfH, horas) +
+          linhaComparativo('Tempo de Grava\u00e7\u00e3o de Chapa', kA.totalChapaH, kB.totalChapaH, horas) +
+          linhaComparativo('Ocupa\u00e7\u00e3o PDF (m\u00e9dia)', kA.ocupPdfPct, kB.ocupPdfPct, pct) +
+          linhaComparativo('Ocupa\u00e7\u00e3o Chapa (m\u00e9dia)', kA.ocupChapaPct, kB.ocupChapaPct, pct) +
+          linhaComparativo('Efici\u00eancia (jobs por hora dispon\u00edvel)', kA.eficienciaJobsPorHora, kB.eficienciaJobsPorHora, eficienciaFmt) +
+          linhaComparativo('Tempo M\u00e9dio de Processamento por Job', kA.tempoMedioPorJobH, kB.tempoMedioPorJobH, horas) +
+        '</tbody>' +
+      '</table>' +
+    '</div>' +
+    '<div class="data-note" style="margin-top:16px">' +
+      '<strong>Efici\u00eancia</strong> = total de jobs \u00f7 total de horas dispon\u00edveis no per\u00edodo (dias &times; horas trabalhadas por dia configurada quando o per\u00edodo foi carregado). ' +
+      '<strong>Tempo M\u00e9dio de Processamento por Job</strong> = (horas de PDF + horas de chapa) \u00f7 total de jobs do per\u00edodo. ' +
+      'Ambos s\u00e3o agregados exclusivos desta aba, calculados em cima dos mesmos totais j\u00e1 validados nas se\u00e7\u00f5es 1 a 5 do Dashboard \u2014 nenhum KPI existente foi alterado.' +
+    '</div>';
+}
+
+function exportarComparativoCSV() {
+  if (!RUNTIME.comparativoCSV) { alert('Fa\u00e7a uma compara\u00e7\u00e3o antes de exportar.'); return; }
+  const nome = 'prinect-comparativo-' + new Date().toISOString().slice(0, 10) + '.csv';
+  baixarArquivo('\uFEFF' + arrayParaCSV(RUNTIME.comparativoCSV), nome, 'text/csv;charset=utf-8');
+}
+
+function exportarComparativoPDF() {
+  if (!RUNTIME.comparativoTitulo) { alert('Fa\u00e7a uma compara\u00e7\u00e3o antes de exportar.'); return; }
+  exportarComoPDF(RUNTIME.comparativoTitulo);
+}
+
+// ---------- Aba Historico Mensal: combina TODOS os caches de um cliente e agrupa por mes ----------
+// Le exclusivamente do IndexedDB, nunca chama a API.
+
+async function popularSelectClienteHistorico() {
+  const sel = document.getElementById('selClienteHistorico');
+  const valorAtual = sel.value;
+  const registros = await idbGetAll();
+
+  const clientesPorChave = new Map(); // chave normalizada (minusculo) -> nome de exibicao
+  registros.forEach(r => {
+    const p = extrairPartesCache(r);
+    const nome = p.cliente || (r.apelido || '').trim();
+    if (!nome) return;
+    const chaveNorm = nome.toLowerCase();
+    if (!clientesPorChave.has(chaveNorm)) clientesPorChave.set(chaveNorm, nome);
+  });
+
+  const nomes = [...clientesPorChave.values()].sort((a, b) => a.localeCompare(b));
+  sel.innerHTML = '<option value="">Selecione...</option>' + nomes.map(n => {
+    const esc = n.replace(/"/g, '&quot;');
+    return '<option value="' + esc + '">' + n.replace(/</g, '&lt;') + '</option>';
+  }).join('');
+  if (nomes.some(n => n.toLowerCase() === (valorAtual || '').toLowerCase())) sel.value = valorAtual;
+
+  const aviso = document.getElementById('historicoAviso');
+  if (!nomes.length) {
+    aviso.textContent = 'Nenhum cliente encontrado no cache ainda \u2014 carregue ao menos um per\u00edodo na aba Dashboard.';
+    aviso.style.display = 'block';
+  } else {
+    aviso.style.display = 'none';
+  }
+}
+
+function fmtMesLabel(mesStr) { // 'AAAA-MM' -> 'MM/AAAA'
+  const [ano, mes] = mesStr.split('-');
+  return mes + '/' + ano;
+}
+
+function renderBarChartMensal(containerId, linhas, getter, formatarValor) {
+  const el = document.getElementById(containerId);
+  const fmt = formatarValor || (v => v.toLocaleString('pt-BR'));
+  const valores = linhas.map(l => getter(l.k) || 0);
+  const maxVal = Math.max(1, ...valores);
+  el.innerHTML = linhas.map(l => {
+    const v = getter(l.k) || 0;
+    const h = Math.max(Math.round((v / maxVal) * 100), v > 0 ? 3 : 0);
+    return '<div class="daybar-col" title="' + fmtMesLabel(l.mes) + ': ' + fmt(v) + '">' +
+      '<div class="val">' + fmt(v) + '</div>' +
+      '<div class="bar" style="height:' + h + '%"></div>' +
+      '<div class="lbl">' + fmtMesLabel(l.mes) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderOcupacaoMensal(containerId, linhas, getter) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = linhas.map(l => {
+    const v = getter(l.k);
+    const semDados = (v === null || v === undefined);
+    const pct = semDados ? 0 : v;
+    return '<div class="daybar-col" title="' + fmtMesLabel(l.mes) + ': ' + (semDados ? 'sem dados no m\u00eas' : pct + '%') + '">' +
+      '<div class="val">' + (semDados ? '\u2014' : pct + '%') + '</div>' +
+      '<div class="bar-stack"><div class="bar-busy" style="height:' + pct + '%"></div></div>' +
+      '<div class="lbl">' + fmtMesLabel(l.mes) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function gerarHistoricoMensal() {
+  const clienteSel = document.getElementById('selClienteHistorico').value;
+  const aviso = document.getElementById('historicoAviso');
+  const resultado = document.getElementById('historicoResultado');
+
+  if (!clienteSel) {
+    aviso.textContent = 'Selecione um cliente antes de gerar o hist\u00f3rico.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+
+  const registros = await idbGetAll();
+  const doCliente = registros.filter(r => {
+    const p = extrairPartesCache(r);
+    const nome = p.cliente || (r.apelido || '').trim();
+    return nome.toLowerCase() === clienteSel.toLowerCase();
+  });
+
+  if (!doCliente.length) {
+    aviso.textContent = 'Nenhum cache encontrado para "' + clienteSel + '".';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+
+  // Combina os dias de TODOS os caches desse cliente (podem ser periodos diferentes,
+  // carregados em momentos diferentes). Se duas fontes tiverem o mesmo dia, fica o
+  // dado do carregamento mais recente (timestampCarregado maior).
+  const porData = new Map(); // date -> { day, ts }
+  doCliente.forEach(r => {
+    const ts = r.timestampCarregado ? new Date(r.timestampCarregado).getTime() : 0;
+    (r.days || []).forEach(d => {
+      const atual = porData.get(d.date);
+      if (!atual || ts >= atual.ts) porData.set(d.date, { day: d, ts });
+    });
+  });
+
+  const diasTodos = [...porData.values()].map(x => x.day).sort((a, b) => a.date.localeCompare(b.date));
+  if (!diasTodos.length) {
+    aviso.textContent = 'O(s) cache(s) desse cliente n\u00e3o t\u00eam dias armazenados.';
+    aviso.style.display = 'block';
+    resultado.innerHTML = '';
+    return;
+  }
+
+  // Agrupa por mes (AAAA-MM), clonando antes (a aba Historico so LE o cache, nunca altera)
+  const porMes = new Map();
+  diasTodos.forEach(d => {
+    const dClone = JSON.parse(JSON.stringify(d));
+    const mes = dClone.date.slice(0, 7);
+    if (!porMes.has(mes)) porMes.set(mes, []);
+    porMes.get(mes).push(dClone);
+  });
+
+  const meses = [...porMes.keys()].sort();
+  const linhas = meses.map(mes => {
+    const diasDoMes = porMes.get(mes);
+    return { mes, diasNoMes: diasDoMes.length, k: calcularKPIsComparativo(diasDoMes) };
+  });
+
+  aviso.style.display = 'none';
+
+  const inteiro = v => (v === null || v === undefined) ? '\u2014' : v.toLocaleString('pt-BR');
+  const horas   = v => (v === null || v === undefined) ? '\u2014' : formatarHoras(v);
+  const pct     = v => (v === null || v === undefined) ? '\u2014' : v + '%';
+  const eficienciaFmt = v => (v === null || v === undefined) ? '\u2014' : v.toFixed(2) + ' jobs/h';
+
+  const totalJobsGeral = linhas.reduce((a, l) => a + l.k.totalJobs, 0);
+  const totalCachesUsados = doCliente.length;
+
+  RUNTIME.historicoCSV = [
+    ['M\u00eas', 'Jobs', 'Arquivos PDF', 'P\u00e1ginas PDF', 'Chapas', 'Tempo PDF (h)', 'Tempo Chapa (h)',
+     'Ocupa\u00e7\u00e3o PDF (%)', 'Ocupa\u00e7\u00e3o Chapa (%)', 'Efici\u00eancia (jobs/hora)', 'Tempo M\u00e9dio/Job (h)']
+  ].concat(linhas.map(l => [
+    fmtMesLabel(l.mes), l.k.totalJobs, l.k.totalArq, l.k.totalPag, l.k.totalChapas,
+    l.k.totalPdfH.toFixed(3), l.k.totalChapaH.toFixed(3),
+    (l.k.ocupPdfPct === null ? '' : l.k.ocupPdfPct), (l.k.ocupChapaPct === null ? '' : l.k.ocupChapaPct),
+    (l.k.eficienciaJobsPorHora === null ? '' : l.k.eficienciaJobsPorHora.toFixed(2)),
+    (l.k.tempoMedioPorJobH === null ? '' : l.k.tempoMedioPorJobH.toFixed(3))
+  ]));
+  RUNTIME.historicoTitulo = 'Hist\u00f3rico Mensal \u2014 ' + clienteSel;
+
+  let html = '';
+
+  html += '<div class="export-bar">' +
+    '<button class="btn-mini" onclick="exportarHistoricoCSV()"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>Exportar Excel (CSV)</button>' +
+    '<button class="btn-mini" onclick="exportarHistoricoPDF()"><svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Exportar PDF</button>' +
+  '</div>';
+
+  html += '<div class="historico-cards">' +
+    '<div class="card"><div class="label">Cliente</div><div class="value" style="font-size:1.1rem">' + clienteSel.replace(/</g, '&lt;') + '</div></div>' +
+    '<div class="card"><div class="label">Meses com Dados</div><div class="value">' + linhas.length + '</div></div>' +
+    '<div class="card"><div class="label">Jobs no Per\u00edodo Todo</div><div class="value">' + totalJobsGeral.toLocaleString('pt-BR') + '</div></div>' +
+    '<div class="card"><div class="label">Caches Combinados</div><div class="value">' + totalCachesUsados + '</div></div>' +
+  '</div>';
+
+  if (linhas.length < 2) {
+    html += '<div class="data-note" style="margin-bottom:20px">Esse cliente ainda tem dados de apenas um m\u00eas no cache. ' +
+      'Carregue mais per\u00edodos na aba Dashboard para ver a evolu\u00e7\u00e3o mensal.</div>';
+  }
+
+  html += '<div class="historico-section-title chart-only-title">Jobs por M\u00eas</div>' +
+    '<div class="daybars" id="histBarJobs"></div>';
+
+  html += '<div class="historico-section-title chart-only-title">Ocupa\u00e7\u00e3o PDF por M\u00eas (m\u00e9dia %)</div>' +
+    '<div class="daybars" id="histBarOcupPdf"></div>';
+
+  html += '<div class="historico-section-title chart-only-title">Ocupa\u00e7\u00e3o Chapa por M\u00eas (m\u00e9dia %)</div>' +
+    '<div class="daybars" id="histBarOcupChapa"></div>';
+
+  html += '<div class="historico-section-title">Detalhamento Mensal</div>' +
+    '<div class="cache-table-wrap">' +
+      '<table class="compare-table">' +
+        '<thead><tr>' +
+          '<th>M\u00eas</th><th class="num">Jobs</th><th class="num">Arquivos PDF</th><th class="num">P\u00e1ginas PDF</th>' +
+          '<th class="num">Chapas</th><th class="num">Tempo PDF</th><th class="num">Tempo Chapa</th>' +
+          '<th class="num">Ocupa\u00e7\u00e3o PDF</th><th class="num">Ocupa\u00e7\u00e3o Chapa</th>' +
+          '<th class="num">Efici\u00eancia</th><th class="num">Tempo M\u00e9dio/Job</th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          linhas.map(l => '<tr>' +
+            '<td class="label-col">' + fmtMesLabel(l.mes) + '</td>' +
+            '<td class="num">' + inteiro(l.k.totalJobs) + '</td>' +
+            '<td class="num">' + inteiro(l.k.totalArq) + '</td>' +
+            '<td class="num">' + inteiro(l.k.totalPag) + '</td>' +
+            '<td class="num">' + inteiro(l.k.totalChapas) + '</td>' +
+            '<td class="num">' + horas(l.k.totalPdfH) + '</td>' +
+            '<td class="num">' + horas(l.k.totalChapaH) + '</td>' +
+            '<td class="num">' + pct(l.k.ocupPdfPct) + '</td>' +
+            '<td class="num">' + pct(l.k.ocupChapaPct) + '</td>' +
+            '<td class="num">' + eficienciaFmt(l.k.eficienciaJobsPorHora) + '</td>' +
+            '<td class="num">' + horas(l.k.tempoMedioPorJobH) + '</td>' +
+          '</tr>').join('') +
+        '</tbody>' +
+      '</table>' +
+    '</div>' +
+    '<div class="data-note" style="margin-top:16px">' +
+      'Este hist\u00f3rico combina automaticamente todos os caches j\u00e1 carregados para <strong>' + clienteSel.replace(/</g, '&lt;') + '</strong> ' +
+      '(mesmo que tenham sido carregados como per\u00edodos separados) e agrupa os dias por m\u00eas de calend\u00e1rio. ' +
+      'Se dois caches tiverem o mesmo dia, prevalece o dado do carregamento mais recente. Todos os KPIs por m\u00eas usam a mesma matem\u00e1tica j\u00e1 validada nas se\u00e7\u00f5es 1 a 5 do Dashboard.' +
+    '</div>';
+
+  resultado.innerHTML = html;
+
+  renderBarChartMensal('histBarJobs', linhas, k => k.totalJobs);
+  renderOcupacaoMensal('histBarOcupPdf', linhas, k => k.ocupPdfPct);
+  renderOcupacaoMensal('histBarOcupChapa', linhas, k => k.ocupChapaPct);
+}
+
+function exportarHistoricoCSV() {
+  if (!RUNTIME.historicoCSV) { alert('Gere um hist\u00f3rico antes de exportar.'); return; }
+  const nome = 'prinect-historico-mensal-' + nomeArquivoSeguro(document.getElementById('selClienteHistorico').value) +
+    '-' + new Date().toISOString().slice(0, 10) + '.csv';
+  baixarArquivo('\uFEFF' + arrayParaCSV(RUNTIME.historicoCSV), nome, 'text/csv;charset=utf-8');
+}
+
+function exportarHistoricoPDF() {
+  if (!RUNTIME.historicoTitulo) { alert('Gere um hist\u00f3rico antes de exportar.'); return; }
+  exportarComoPDF(RUNTIME.historicoTitulo);
+}
+
+async function excluirPeriodoCache(key) {
+  if (!confirm('Excluir esse per\u00edodo do cache local? Da pr\u00f3xima vez ser\u00e1 necess\u00e1rio consultar a API de novo.')) return;
+  CACHE_STORE.delete(key);
+  await idbDelete(key);
+  atualizarIndicadorCache();
+  atualizarTelaCache();
+}
+
+async function limparTodoCache() {
+  if (!confirm('Limpar TODO o cache local? Isso vai apagar todos os per\u00edodos salvos de todos os servidores/usu\u00e1rios.')) return;
+  CACHE_STORE.clear();
+  await idbClear();
+  atualizarIndicadorCache();
+  atualizarTelaCache();
+}
+
+async function exportarCache() {
+  const registros = await idbGetAll();
+  if (!registros.length) { alert('N\u00e3o h\u00e1 nenhum per\u00edodo salvo pra exportar.'); return; }
+  const blob = new Blob([JSON.stringify(registros, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'prinect-cache-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function processarArquivoImportado(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const texto     = await file.text();
+    const registros = JSON.parse(texto);
+    if (!Array.isArray(registros)) throw new Error('o arquivo n\u00e3o \u00e9 uma lista de per\u00edodos v\u00e1lida');
+    let importados = 0;
+    for (const r of registros) {
+      if (!r || !r.key || !r.days) continue; // validacao minima de formato
+      // o JSON guarda datas como texto -- reidrata pra objeto Date, igual um cache recem-buscado
+      r.timestampCarregado = r.timestampCarregado ? new Date(r.timestampCarregado) : new Date();
+      await idbPut(r);
+      CACHE_STORE.set(r.key, r);
+      importados++;
+    }
+    atualizarIndicadorCache();
+    atualizarTelaCache();
+    alert(importados + ' per\u00edodo(s) importado(s) com sucesso.');
+  } catch(e) {
+    alert('Erro ao importar arquivo: ' + e.message);
+  }
+  event.target.value = ''; // permite selecionar o mesmo arquivo de novo depois, se precisar
+}
+
+async function visualizarPeriodoCache(key) {
+  let entry = CACHE_STORE.get(key) || await idbGet(key);
+  if (!entry) { alert('Per\u00edodo n\u00e3o encontrado no cache.'); return; }
+  CACHE = entry;
+  CACHE_STORE.set(key, entry);
+
+  const partes = key.split('||');
+  document.getElementById('inCliente').value = partes[0] || '';
+  document.getElementById('inServer').value  = partes[1] || '';
+  document.getElementById('inContext').value = partes[2] || '';
+  document.getElementById('inUser').value    = partes[3] || '';
+  document.getElementById('inFrom').value    = partes[4] || '';
+  document.getElementById('inTo').value      = partes[5] || '';
+
+  const horasDia = parseFloat(document.getElementById('inHorasDia').value) || 8;
+  const kpis = processarKPIs(CACHE.days, horasDia);
+
+  mudarAba('dashboard');
+  renderizarDashboard(CACHE.days, kpis);
+  RUNTIME.origem = 'CACHE (visualiza\u00e7\u00e3o sem login)';
+  montarDiagnosticoTicket();
+  montarPainelPerformance();
+  atualizarPainelDiagnosticoExtra();
+  atualizarIndicadorCache();
+  setStatus('Visualizando dados salvos/importados \u2014 nenhuma conex\u00e3o com o servidor foi feita.', 'ok');
+  document.getElementById('main').style.display = 'block';
+}
+
+async function atualizarPeriodoCache(key) {
+  const partes = key.split('||');
+  const cliente = partes[0], server = partes[1], context = partes[2], user = partes[3], fromStr = partes[4], toStr = partes[5];
+  document.getElementById('inCliente').value = cliente;
+  document.getElementById('inServer').value  = server;
+  document.getElementById('inContext').value = context;
+  document.getElementById('inUser').value    = user;
+  document.getElementById('inFrom').value    = fromStr;
+  document.getElementById('inTo').value      = toStr;
+  const existente = CACHE_STORE.get(key) || await idbGet(key);
+  if (existente && existente.apelido) APELIDOS_PENDENTES.set(key, existente.apelido);
+  CACHE_STORE.delete(key);
+  await idbDelete(key);
+  mudarAba('dashboard');
+  atualizarIndicadorCache();
+  setStatus('Campos preenchidos com o per\u00edodo selecionado \u2014 informe a senha e clique em Carregar pra buscar os dados atualizados da API.', '');
+}
+
+function montarDiagnosticoTicket() {
+  const diagNote = document.getElementById('diagNote');
+  const naoClassSample = Object.entries(CACHE.toolTypesNaoClassificados)
+    .sort((a,b) => b[1]-a[1]).slice(0,10)
+    .map(([k,v]) => k + ' (' + v + 'x)').join(', ') || '\u2014';
+  diagNote.innerHTML =
+    '<strong>Diagn\u00f3stico do ticket XML:</strong> ' + CACHE.toProcessLength + ' job(s) devolvido(s) pela API \u2014 ' +
+    '<strong>' + CACHE.jobsDescartados + '</strong> descartado(s) antes de buscar ticket/element (nem cria\u00e7\u00e3o nem modifica\u00e7\u00e3o caem no per\u00edodo), ' +
+    '<strong>' + CACHE.jobsProcessados + '</strong> processado(s) por completo.<br>' +
+    '<strong>' + CACHE.foraDoPeriodo + '</strong> n\u00e3o contribu\u00edram com nenhum indicador dentro do per\u00edodo selecionado, ' +
+    '<strong>' + CACHE.ticketsOk + '</strong> ticket(s) lido(s) com sucesso, ' +
+    '<strong>' + CACHE.ticketsFalhaFetch + '</strong> falha(s) ao buscar (rede/permiss\u00e3o), ' +
+    '<strong>' + CACHE.ticketsFalhaParse + '</strong> falha(s) ao interpretar o XML.<br>' +
+    'Desses, <strong>' + CACHE.jobsComOrigFile + '</strong> job(s) tinham arquivos de PDF identific\u00e1veis (HDM:OrigFile) e ' +
+    '<strong>' + CACHE.jobsComToolTypeRun + '</strong> job(s) tinham etapas de processamento reconhec\u00edveis (HDM:SequenceType).<br>' +
+    'Tipos de etapa encontrados mas n\u00e3o classificados em PDF nem Chapa (amostra): ' + naoClassSample +
+    (CACHE.ticketsFalhaFetch > 0 ? '<br><br>H\u00e1 falhas ao buscar o ticket \u2014 abra o Console do navegador (F12) pra ver a mensagem de erro exata de cada job.' : '') +
+    (CACHE.ticketsOk > 0 && CACHE.jobsComOrigFile === 0 ? '<br><br>Os tickets foram lidos, mas nenhum continha HDM:OrigFile \u2014 pode ser que essa instala\u00e7\u00e3o gere o ticket de um jeito diferente do exemplo que usamos.' : '');
+  diagNote.style.display = 'block';
+}
+
+function montarPainelPerformance() {
+  const perf = CACHE.perf;
+  const perfNote = document.getElementById('perfNote');
+  if (!perf) { perfNote.style.display = 'none'; return; }
+
+  const chamadasFeitas = perf.callsJob + perf.callsJobDetail + perf.callsElement + perf.callsTicket;
+  const chamadasEconomizadas = CACHE.jobsDescartados * 2;
+  const timeRestTotal = perf.timeJobList + perf.timeJobDetail + perf.timeElement + perf.timeTicket;
+
+  const endpoints = [
+    { nome: '/job (listagem)', calls: perf.callsJob,       tempo: perf.timeJobList   },
+    { nome: '/job/{id}',       calls: perf.callsJobDetail, tempo: perf.timeJobDetail },
+    { nome: '/element',        calls: perf.callsElement,   tempo: perf.timeElement   },
+    { nome: '/ticket',         calls: perf.callsTicket,    tempo: perf.timeTicket    }
+  ];
+  const maisTempo    = endpoints.reduce((a, b) => (b.tempo > a.tempo ? b : a));
+  const maisChamadas = endpoints.reduce((a, b) => (b.calls > a.calls ? b : a));
+  const mediaTexto = endpoints.map(e =>
+    e.nome + ': ' + (e.calls ? (e.tempo / e.calls).toFixed(0) : '0') + 'ms/chamada (' + e.calls + ' chamada(s), ' + (e.tempo/1000).toFixed(1) + 's no total)'
+  ).join(' &middot; ');
+
+  perfNote.innerHTML =
+    '<strong>Diagn\u00f3stico de performance (\u00faltima consulta REST):</strong> tempo total ' + ((RUNTIME.lastFetchMs||0)/1000).toFixed(1) + 's \u2014 ' +
+    CACHE.toProcessLength + ' job(s) encontrado(s), <strong>' + CACHE.jobsDescartados + '</strong> descartado(s) antecipadamente, ' +
+    '<strong>' + CACHE.jobsProcessados + '</strong> processado(s) por completo' +
+    (perf.duplicatasListagem > 0 ? ' \u2014 <strong>' + perf.duplicatasListagem + '</strong> duplicata(s) detectada(s) e descartada(s) direto na pagina\u00e7\u00e3o da listagem' : '') +
+    (perf.duplicatasRemovidas > 0 ? ' (+' + perf.duplicatasRemovidas + ' duplicata(s) extra removida(s) depois)' : '') + '.<br>' +
+    'Chamadas HTTP: <strong>' + chamadasFeitas + '</strong> no total \u2014 ' +
+    perf.callsJob + ' em /job (listagem), ' + perf.callsJobDetail + ' em /job/{id}, ' +
+    perf.callsElement + ' em /element, ' + perf.callsTicket + ' em /ticket.<br>' +
+    '<strong>~' + chamadasEconomizadas + '</strong> chamada(s) de /ticket + /element economizadas ao descartar jobs sem sinal de atividade no per\u00edodo ' +
+    '(' + (CACHE.jobsDescartados > 0 ? Math.round(chamadasEconomizadas / (chamadasFeitas + chamadasEconomizadas) * 100) : 0) + '% a menos do que sem esse descarte).<br><br>' +
+    '<strong>Tempo m\u00e9dio por endpoint:</strong> ' + mediaTexto + '.<br>' +
+    '<strong>Endpoint que mais consumiu tempo:</strong> ' + maisTempo.nome + ' (' + (maisTempo.tempo/1000).toFixed(1) + 's, ' + Math.round(maisTempo.tempo/(timeRestTotal||1)*100) + '% do tempo de rede).<br>' +
+    '<strong>Endpoint com mais chamadas:</strong> ' + maisChamadas.nome + ' (' + maisChamadas.calls + ' chamada(s)).<br>' +
+    '<strong>Endpoint que poderia desaparecer:</strong> nenhum hoje \u2014 /ticket \u00e9 a \u00fanica fonte dos 2 KPIs de tempo (processamento de PDF e grava\u00e7\u00e3o de chapa), e /element \u00e9 a \u00fanica fonte de chapas.<br><br>' +
+    'Tempo gasto: ' + (timeRestTotal/1000).toFixed(1) + 's em rede (REST), ' +
+    (perf.timeXml/1000).toFixed(1) + 's interpretando XML, ' + (perf.timeRender).toFixed(0) + 'ms renderizando os gr\u00e1ficos.';
+  perfNote.style.display = 'block';
+}
+
+function atualizarPainelDiagnosticoExtra() {
+  const el = document.getElementById('cacheDiagNote');
+  if (!el) return;
+  el.innerHTML =
+    '<strong>Cache e reprocessamento:</strong> origem dos dados exibidos agora: <strong>' + (RUNTIME.origem || '\u2014') + '</strong> &middot; ' +
+    'per\u00edodos em mem\u00f3ria nesta sess\u00e3o: <strong>' + CACHE_STORE.size + '</strong>.<br>' +
+    'Tempo da \u00faltima consulta REST: ' + (RUNTIME.lastFetchMs !== null ? (RUNTIME.lastFetchMs/1000).toFixed(1) + 's' : '\u2014 (nenhuma consulta feita ainda nesta sess\u00e3o)') + ' &middot; ' +
+    'Tempo do \u00faltimo rec\u00e1lculo: ' + (RUNTIME.lastRecalcMs !== null ? RUNTIME.lastRecalcMs.toFixed(1) + 'ms' : '\u2014') + '.<br>' +
+    'Em mem\u00f3ria agora (per\u00edodo exibido): <strong>' + (CACHE.toProcessLength || 0) + '</strong> job(s) &middot; <strong>' + (CACHE.ticketsOk || 0) + '</strong> ticket(s) lido(s) &middot; ' +
+    '<strong>' + (CACHE.perf ? CACHE.perf.callsElement : 0) + '</strong> element(s) consultado(s).<br><br>' +
+    '<strong>Economia acumulada por cache nesta sess\u00e3o:</strong> <strong>' + SESSION_STATS.cacheHits + '</strong> reaproveitamento(s) de per\u00edodo j\u00e1 carregado &middot; ' +
+    '<strong>~' + SESSION_STATS.chamadasEvitadasCache + '</strong> chamada(s) HTTP evitadas &middot; ' +
+    '<strong>~' + formatarDuracao(SESSION_STATS.tempoEconomizadoMs) + '</strong> de tempo de rede evitado &middot; ' +
+    '<strong>' + SESSION_STATS.jobsReaproveitadosCache + '</strong> job(s) reaproveitado(s) sem nova consulta.';
+  el.style.display = 'block';
+}
+
+// ---------- Camada 1: busca na API (unica que faz chamadas REST) ----------
+function formatarDuracao(ms) {
+  if (ms === null || ms === undefined || isNaN(ms) || ms < 0) return '\u2014';
+  const s = ms / 1000;
+  if (s < 60) return s.toFixed(0) + 's';
+  const min = Math.floor(s / 60);
+  const rest = Math.round(s % 60);
+  return min + 'min ' + rest + 's';
+}
+
+// Converte horas decimais (ex: 7.74) para o formato h/min (ex: "7h 44min"),
+// respeitando base 60 em vez de mostrar fracao decimal de hora.
+function formatarHoras(decimalHoras) {
+  if (decimalHoras === null || decimalHoras === undefined || isNaN(decimalHoras)) return '\u2014';
+  const totalMin = Math.round(decimalHoras * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0 && m === 0) return '0min';
+  if (h === 0) return m + 'min';
+  if (m === 0) return h + 'h';
+  return h + 'h ' + m + 'min';
+}
+
+// Pipeline de decisao explicito: antes de qualquer chamada cara (ticket/element),
+// pergunta se ela e realmente necessaria pra algum KPI. Um job so precisa de
+// ticket+element se sua criacao OU sua ultima modificacao caem no periodo
+// selecionado -- sem isso, nenhum indicador vai usar o resultado dessas chamadas.
+function decidirPipelineJob(det, fromISO, toISOStr) {
+  const criacao      = det.creationDate ? new Date(det.creationDate) : null;
+  const modificado   = det.lastModified ? new Date(det.lastModified) : null;
+  const criacaoDentro = !!criacao    && (!fromISO || criacao    >= new Date(fromISO)) && (!toISOStr || criacao    <= new Date(toISOStr));
+  const modifDentro   = !!modificado && (!fromISO || modificado >= new Date(fromISO)) && (!toISOStr || modificado <= new Date(toISOStr));
+  return { criacaoDentro, modifDentro, precisaTicketElement: criacaoDentro || modifDentro };
+}
+
+function atualizarIndicadorAtividade(info) {
+  const el = document.getElementById('activityIndicator');
+  if (!el) return;
+  if (!info) { el.style.display = 'none'; return; }
+  el.innerHTML =
+    'Etapa atual: <strong>' + info.etapa + '</strong> (' + info.endpoint + ') &middot; ' +
+    'Processado: <strong>' + info.feito + '</strong> de <strong>' + info.total + '</strong> &middot; ' +
+    'Tempo m\u00e9dio por job: ' + (info.avgMsPerJob !== null ? info.avgMsPerJob.toFixed(0) + 'ms' : 'calculando...') + ' &middot; ' +
+    'Tempo restante estimado: ' + (info.etaMs !== null ? formatarDuracao(info.etaMs) : 'calculando...');
+  el.style.display = 'block';
+}
+
+async function buscarDadosDaAPI(fromStr, toStr, limit, pagesize, horasDia) {
+  try {
+    const ver  = await apiFetch('/rest/version');
+    const vStr = ver?.version ?? ver?.data?.version ?? '\u2014';
+    document.getElementById('versionBadge').textContent =
+      'Vers\u00e3o: ' + (typeof vStr === 'object' ? JSON.stringify(vStr) : vStr);
+  } catch(_) {
+    document.getElementById('versionBadge').textContent = 'Vers\u00e3o: \u2014';
+  }
+
+  const perf = {
+    t0: performance.now(),
+    callsJob: 0, callsJobDetail: 0, callsElement: 0, callsTicket: 0,
+    timeJobList: 0, timeJobDetail: 0, timeElement: 0, timeTicket: 0,
+    timeXml: 0, timeRender: 0,
+    duplicatasRemovidas: 0, duplicatasListagem: 0
+  };
+
+  let jobPath    = '/rest/job';
+  const fromISO  = toISO(fromStr, false);
+  const toISOStr = toISO(toStr, true);
+  if (fromISO) jobPath += '?modifiedSince=' + encodeURIComponent(fromISO);
+
+  setStatus('Buscando jobs...', '');
+  const jobListRaw = await fetchAllPages(jobPath, pagesize, (n) => {
+    setProgress('Buscando jobs \u2014 ' + n + ' carregados at\u00e9 agora...', 0);
+  }, (ms, dups) => { perf.callsJob++; perf.timeJobList += ms; perf.duplicatasListagem += dups; });
+
+  // A listagem de /rest/job nao tem creationDate (so vem no detalhe de cada job),
+  // entao a trava de seguranca aqui usa a contagem bruta devolvida pela API.
+  // Se o modifiedSince estiver sendo respeitado pelo servidor, esse numero ja vem
+  // proximo do real; se nao estiver, e exatamente esse caso que a trava evita.
+  if (jobListRaw.length > limit) {
+    throw new Error(
+      'A API devolveu ' + jobListRaw.length + ' job(s) para esse per\u00edodo, acima do limite de seguran\u00e7a (' + limit + '). ' +
+      'Isso pode indicar que o servidor n\u00e3o filtrou por data (retornando todos os jobs do sistema). ' +
+      'Aumente o "Limite de seguran\u00e7a" ou reduza o per\u00edodo (Desde/At\u00e9) e clique em Carregar novamente.'
+    );
+  }
+
+  const idsVistos = new Set();
+  const toProcess = [];
+  jobListRaw.forEach(j => {
+    if (idsVistos.has(j.id)) { perf.duplicatasRemovidas++; return; }
+    idsVistos.add(j.id);
+    toProcess.push(j);
+  });
+
+  const estimMin = Math.ceil((toProcess.length * 3) / 2 / 60);
+  const parts = [];
+  if (fromStr) parts.push('de ' + fromStr);
+  if (toStr)   parts.push('at\u00e9 ' + toStr);
+  parts.push('jobs devolvidos pela API: ' + toProcess.length);
+  parts.push('estimativa m\u00e1xima: ~' + estimMin + ' min (piora se nada for descartado; o descarte antecipado deve reduzir bastante)');
+  document.getElementById('filterNote').textContent   = parts.join(' \u2014 ');
+  document.getElementById('filterNote').style.display = 'block';
+
+  const dayRangeArr = buildDayRange(fromStr, toStr || new Date().toISOString().slice(0, 10));
+  const dayMap = {};
+  dayRangeArr.forEach(d => {
+    dayMap[d] = { date: d, jobs: 0, pdfFiles: 0, pdfPages: 0, pdfHours: 0, plates: 0, plateHours: 0 };
+  });
+
+  let ticketsOk = 0, ticketsFalhaFetch = 0, ticketsFalhaParse = 0;
+  let jobsComOrigFile = 0, jobsComToolTypeRun = 0, toolTypesNaoClassificados = {};
+  let foraDoPeriodo = 0, jobsDescartados = 0, jobsProcessados = 0;
+
+  const tLoop0 = performance.now();
+  let ultimoRenderParcial = performance.now();
+  let jobsFeitos = 0;
+
+  // Processa UM job por completo (Job Detail -> decisao -> Ticket -> Element).
+  // E exatamente a mesma logica de negocio que existia no loop sequencial antes;
+  // so mudou quem chama essa funcao (agora varios workers em paralelo, nao um
+  // for-loop sozinho). JS e single-threaded: os incrementos em variaveis
+  // compartilhadas (contadores, dayMap) executam de forma atomica entre pontos
+  // de await, entao nao ha condicao de corrida mesmo com varios workers ativos.
+  async function processarUmJob(j) {
+    let det = j;
+    const tDet0 = performance.now();
+    try { const d = await apiFetch('/rest/job/' + j.id); det = d?.job ?? d; } catch(_) {}
+    perf.callsJobDetail++; perf.timeJobDetail += performance.now() - tDet0;
+
+    let contribuiu = false;
+
+    // Pipeline de decisao: so segue pra ticket/element se algum KPI realmente for usar o resultado
+    const decisao = decidirPipelineJob(det, fromISO, toISOStr);
+
+    // 1. Jobs criados: conta no dia de criacao, so se a criacao cair dentro do periodo selecionado
+    if (decisao.criacaoDentro) {
+      const dkCriacao = det.creationDate.slice(0, 10);
+      if (dayMap[dkCriacao]) { dayMap[dkCriacao].jobs++; contribuiu = true; }
+    }
+
+    if (!decisao.precisaTicketElement) {
+      jobsDescartados++;
+      if (!contribuiu) foraDoPeriodo++;
+      return;
+    }
+
+    jobsProcessados++;
+
+    let doc = null;
+    let txt = null;
+    const tTicket0 = performance.now();
+    try {
+      txt = await apiFetchText('/rest/job/' + j.id + '/ticket');
+    } catch(e) {
+      ticketsFalhaFetch++;
+      console.warn('[Prinect] falha ao buscar ticket do job ' + j.id + ':', e.message);
+    }
+    perf.callsTicket++; perf.timeTicket += performance.now() - tTicket0;
+    if (txt) {
+      const tXml0 = performance.now();
+      doc = parseTicketXML(txt);
+      perf.timeXml += performance.now() - tXml0;
+      if (doc) { ticketsOk++; } else {
+        ticketsFalhaParse++;
+        console.warn('[Prinect] falha ao interpretar XML do ticket do job ' + j.id + ' (tamanho recebido: ' + txt.length + ' caracteres)');
+      }
+    }
+
+    let plateIntervals = [];
+    if (doc) {
+      const { fileCount, pageCount } = extractOrigFiles(doc);
+      if (fileCount > 0) jobsComOrigFile++;
+
+      const phases = extractPhaseIntervals(doc, toolTypesNaoClassificados);
+      const pdfIntervals = phases.pdfIntervals;
+      plateIntervals = phases.plateIntervals;
+      if (pdfIntervals.length > 0 || plateIntervals.length > 0) jobsComToolTypeRun++;
+
+      // 2. Quantidade de PDFs: no dia do primeiro processamento de PDF encontrado
+      //    (se nao achar nenhum evento de processamento, cai para o dia de criacao)
+      if (fileCount > 0 || pageCount > 0) {
+        const dk = earliestDayKey(pdfIntervals) || (det.creationDate ? det.creationDate.slice(0, 10) : null);
+        if (dk && dayMap[dk]) {
+          dayMap[dk].pdfFiles += fileCount;
+          dayMap[dk].pdfPages += pageCount;
+          contribuiu = true;
+        }
+      }
+
+      // 3. Tempo de processamento de PDF: cada sessao mesclada no seu proprio dia
+      mergeIntervals(pdfIntervals).forEach(iv => {
+        const dk = iv.startStr.slice(0, 10);
+        if (dayMap[dk]) { dayMap[dk].pdfHours += (iv.end - iv.start) / 3600000; contribuiu = true; }
+      });
+
+      // 5. Tempo de gravacao de chapa: idem
+      mergeIntervals(plateIntervals).forEach(iv => {
+        const dk = iv.startStr.slice(0, 10);
+        if (dayMap[dk]) { dayMap[dk].plateHours += (iv.end - iv.start) / 3600000; contribuiu = true; }
+      });
+    }
+
+    // 4. Quantidade de chapas: no dia do primeiro processamento de chapa encontrado
+    //    (se nao achar nenhum evento de processamento, cai para o dia de criacao)
+    const tElem0 = performance.now();
+    try {
+      const elements = await fetchJobElements(j.id);
+      const plates = Array.isArray(elements?.plates) ? elements.plates : [];
+      if (plates.length > 0) {
+        const dk = earliestDayKey(plateIntervals) || (det.creationDate ? det.creationDate.slice(0, 10) : null);
+        if (dk && dayMap[dk]) { dayMap[dk].plates += plates.length; contribuiu = true; }
+      }
+    } catch(_) {}
+    perf.callsElement++; perf.timeElement += performance.now() - tElem0;
+
+    if (!contribuiu) foraDoPeriodo++;
+  }
+
+  function atualizarProgressoPool() {
+    const pct = Math.round(jobsFeitos / toProcess.length * 100);
+    const elapsedMs   = performance.now() - tLoop0;
+    const avgMsPerJob = jobsFeitos > 0 ? elapsedMs / jobsFeitos : null;
+    const etaMs        = avgMsPerJob !== null ? avgMsPerJob * (toProcess.length - jobsFeitos) : null;
+
+    setProgress(
+      jobsFeitos + '/' + toProcess.length + ' jobs conclu\u00eddos (' + pct + '%) \u2014 ' +
+      MAX_CONCURRENT_JOBS + ' em paralelo \u2014 restante estimado: ' + (etaMs !== null ? formatarDuracao(etaMs) : 'calculando...'),
+      pct
+    );
+    atualizarIndicadorAtividade({
+      etapa: 'Processando em paralelo (' + MAX_CONCURRENT_JOBS + ' workers: Job Detail + Ticket + Element)',
+      endpoint: '/job/{id} + /ticket + /element',
+      feito: jobsFeitos, total: toProcess.length, avgMsPerJob, etaMs
+    });
+
+    // KPIs progressivos: redesenha o dashboard periodicamente com o que ja foi
+    // apurado ate agora, sem esperar todos os workers terminarem. Os numeros finais
+    // (no fim do processamento) sao sempre os mesmos -- isso so antecipa a visualizacao.
+    // Renderiza imediatamente no 1o job concluido (feedback instantaneo de que esta
+    // funcionando) e depois a cada 500ms (antes era 1200ms, ficava com sensacao de travado).
+    if (horasDia && (jobsFeitos === 1 || performance.now() - ultimoRenderParcial > 500 || jobsFeitos === toProcess.length)) {
+      const diasParciais = dayRangeArr.map(d => dayMap[d]);
+      const kpisParciais = processarKPIs(diasParciais, horasDia);
+      renderizarDashboard(diasParciais, kpisParciais);
+      document.getElementById('main').style.display = 'block';
+      document.getElementById('liveBadge').style.display = (jobsFeitos < toProcess.length) ? 'flex' : 'none';
+      ultimoRenderParcial = performance.now();
+    }
+  }
+
+  // Worker pool: cada worker pega o proximo job da fila compartilhada assim que
+  // termina o anterior. "proximoIndice++" e sincrono (sem await no meio), entao
+  // dois workers nunca pegam o mesmo job por engano, mesmo rodando em paralelo.
+  let proximoIndice = 0;
+  async function worker() {
+    while (proximoIndice < toProcess.length) {
+      const meuIndice = proximoIndice++;
+      await processarUmJob(toProcess[meuIndice]);
+      jobsFeitos++;
+      atualizarProgressoPool();
+    }
+  }
+
+  const numWorkers = Math.max(1, Math.min(MAX_CONCURRENT_JOBS, toProcess.length));
+  const workers = [];
+  for (let w = 0; w < numWorkers; w++) workers.push(worker());
+  await Promise.all(workers);
+
+  hideProgress();
+  atualizarIndicadorAtividade(null);
+
+  const days = dayRangeArr.map(d => dayMap[d]);
+
+  return {
+    days, toProcessLength: toProcess.length,
+    jobsDescartados, jobsProcessados,
+    ticketsOk, ticketsFalhaFetch, ticketsFalhaParse,
+    jobsComOrigFile, jobsComToolTypeRun, toolTypesNaoClassificados,
+    foraDoPeriodo, perf
+  };
+}
+
+// ---------- Camada 2: processamento puro (sem rede, sem DOM) ----------
+function processarKPIs(days, horasDia) {
+  days.forEach(d => { d.horasDisponiveisDia = horasDia; });
+
+  const diasComPdfH   = days.filter(d => d.pdfHours > 0);
+  const diasComChapaH = days.filter(d => d.plateHours > 0);
+
+  const totalJobs   = days.reduce((a, d) => a + d.jobs, 0);
+  const totalPag    = days.reduce((a, d) => a + d.pdfPages, 0);
+  const totalArq    = days.reduce((a, d) => a + d.pdfFiles, 0);
+  const totalChapas = days.reduce((a, d) => a + d.plates, 0);
+  const totalPdfH   = days.reduce((a, d) => a + d.pdfHours, 0);
+  const totalChapaH = days.reduce((a, d) => a + d.plateHours, 0);
+
+  const picoJobs = days.reduce((m, d) => (d.jobs > (m?.jobs ?? -1) ? d : m), null);
+
+  const ocupPdf   = diasComPdfH.map(d => d.horasDisponiveisDia ? Math.min(1, d.pdfHours / d.horasDisponiveisDia) : null).filter(v => v !== null);
+  const ocupChapa = diasComChapaH.map(d => d.horasDisponiveisDia ? Math.min(1, d.plateHours / d.horasDisponiveisDia) : null).filter(v => v !== null);
+
+  return {
+    totalJobs, totalPag, totalArq, totalChapas, totalPdfH, totalChapaH,
+    mediaJobs:   days.length ? (totalJobs / days.length) : null,
+    picoJobs,
+    mediaPag:    days.length ? (totalPag / days.length) : null,
+    ocupPdfPct:  ocupPdf.length   ? Math.round(ocupPdf.reduce((a,b)=>a+b,0) / ocupPdf.length * 100)     : null,
+    mediaChapas: days.length ? (totalChapas / days.length) : null,
+    ocupChapaPct: ocupChapa.length ? Math.round(ocupChapa.reduce((a,b)=>a+b,0) / ocupChapa.length * 100) : null
+  };
+}
+
+// ---------- Camada 3: renderizacao pura (so escreve no DOM) ----------
+function renderizarDashboard(days, kpis) {
+  RUNTIME.diasAtuais = days;
+  RUNTIME.kpisAtuais = kpis;
+
+  set('kJobsTotal', kpis.totalJobs);
+  set('kJobsMedia', kpis.mediaJobs !== null ? kpis.mediaJobs.toFixed(1) : '\u2014');
+  set('kJobsPico', kpis.picoJobs && kpis.picoJobs.jobs > 0 ? kpis.picoJobs.jobs : '\u2014');
+  set('kJobsPicoSub', kpis.picoJobs && kpis.picoJobs.jobs > 0 ? fmtDiaLabel(kpis.picoJobs.date) : '');
+
+  set('kPdfPaginas', kpis.totalPag.toLocaleString('pt-BR'));
+  set('kPdfArquivos', kpis.totalArq.toLocaleString('pt-BR'));
+  set('kPdfMedia', kpis.mediaPag !== null ? kpis.mediaPag.toFixed(0) : '\u2014');
+
+  set('kPdfHoras', formatarHoras(kpis.totalPdfH));
+  set('kPdfOcupacao', kpis.ocupPdfPct !== null ? kpis.ocupPdfPct + '%' : '\u2014');
+
+  set('kChapasTotal', kpis.totalChapas.toLocaleString('pt-BR'));
+  set('kChapasMedia', kpis.mediaChapas !== null ? kpis.mediaChapas.toFixed(1) : '\u2014');
+
+  set('kChapasHoras', formatarHoras(kpis.totalChapaH));
+  set('kChapasOcupacao', kpis.ocupChapaPct !== null ? kpis.ocupChapaPct + '%' : '\u2014');
+
+  renderBarChart('barsJobs', days, 'jobs');
+  renderBarChart('barsPdfPaginas', days, 'pdfPages');
+  renderIdleChart('barsPdfHoras', days, 'pdfHours');
+  renderBarChart('barsChapas', days, 'plates');
+  renderIdleChart('barsChapasHoras', days, 'plateHours');
+}
+
+function construirTabelaImpressaoDashboard() {
+  const dias = RUNTIME.diasAtuais || [];
+  const linhas = dias.map(d => '<tr>' +
+    '<td class="label-col">' + d.date + '</td>' +
+    '<td class="num">' + d.jobs.toLocaleString('pt-BR') + '</td>' +
+    '<td class="num">' + d.pdfFiles.toLocaleString('pt-BR') + '</td>' +
+    '<td class="num">' + d.pdfPages.toLocaleString('pt-BR') + '</td>' +
+    '<td class="num">' + formatarHoras(d.pdfHours || 0) + '</td>' +
+    '<td class="num">' + d.plates.toLocaleString('pt-BR') + '</td>' +
+    '<td class="num">' + formatarHoras(d.plateHours || 0) + '</td>' +
+    '<td class="num">' + (d.horasDisponiveisDia || 0) + 'h</td>' +
+  '</tr>').join('');
+
+  document.getElementById('dashboardPrintTable').innerHTML =
+    '<div class="cache-table-wrap">' +
+      '<table class="compare-table">' +
+        '<thead><tr>' +
+          '<th>Data</th><th class="num">Jobs</th><th class="num">Arquivos PDF</th><th class="num">P\u00e1ginas PDF</th>' +
+          '<th class="num">Tempo PDF</th><th class="num">Chapas</th><th class="num">Tempo Chapa</th><th class="num">Horas Dispon\u00edveis</th>' +
+        '</tr></thead>' +
+        '<tbody>' + linhas + '</tbody>' +
+      '</table>' +
+    '</div>';
+}
+
+function exportarDashboardCSV() {
+  if (!RUNTIME.diasAtuais || !RUNTIME.diasAtuais.length) {
+    alert('Carregue um per\u00edodo antes de exportar.');
+    return;
+  }
+  const cliente = document.getElementById('inCliente').value.trim() || '\u2014';
+  const linhas = [[
+    'Data', 'Jobs Criados', 'Arquivos de PDF', 'P\u00e1ginas de PDF',
+    'Tempo de Processamento de PDF (h)', 'Chapas', 'Tempo de Grava\u00e7\u00e3o de Chapa (h)',
+    'Horas Dispon\u00edveis no Dia'
+  ]];
+  RUNTIME.diasAtuais.forEach(d => {
+    linhas.push([
+      d.date, d.jobs, d.pdfFiles, d.pdfPages,
+      (d.pdfHours || 0).toFixed(3), d.plates, (d.plateHours || 0).toFixed(3),
+      d.horasDisponiveisDia
+    ]);
+  });
+  const nome = 'prinect-kpi-' + nomeArquivoSeguro(cliente) + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+  baixarArquivo('\uFEFF' + arrayParaCSV(linhas), nome, 'text/csv;charset=utf-8');
+}
+
+function exportarDashboardPDF() {
+  if (!RUNTIME.diasAtuais || !RUNTIME.diasAtuais.length) {
+    alert('Carregue um per\u00edodo antes de exportar.');
+    return;
+  }
+  const cliente = document.getElementById('inCliente').value.trim() || '\u2014';
+  const de  = document.getElementById('inFrom').value;
+  const ate = document.getElementById('inTo').value;
+  construirTabelaImpressaoDashboard();
+  exportarComoPDF('Dashboard \u2014 ' + cliente + ' \u2014 ' + de + ' a ' + ate);
+}
+
+// ---------- Orquestrador: decide entre cache e API, nunca faz REST direto ----------
+async function encontrarCachePaiDoPeriodo(cliente, server, context, user, fromStr, toStr) {
+  const candidatos = [...CACHE_STORE.values(), ...(await idbGetAll())];
+  for (const entry of candidatos) {
+    const p = (entry.key || '').split('||');
+    if (p[0] === cliente && p[1] === server && p[2] === context && p[3] === user &&
+        p[4] && p[5] && p[4] <= fromStr && p[5] >= toStr) {
+      return entry;
+    }
+  }
+  return null;
+}
+
+async function carregar() {
+  const cliente  = document.getElementById('inCliente').value.trim();
+  SERVER  = (document.getElementById('inServer').value || 'http://localhost:15011').replace(/\/$/, '');
+  CONTEXT = document.getElementById('inContext').value || 'PrinectAPILocal';
+  const user     = document.getElementById('inUser').value.trim();
+  const pass     = document.getElementById('inPass').value;
+  const fromStr  = document.getElementById('inFrom').value;
+  const toStr    = document.getElementById('inTo').value;
+  const horasDia = parseFloat(document.getElementById('inHorasDia').value) || 8;
+  const pagesize = PAGESIZE_INTERNO;
+  const limit    = LIMITE_SEGURANCA_INTERNO;
+
+  const chave = buildCacheKey(cliente, SERVER, CONTEXT, user, fromStr, toStr);
+
+  setBusy(true);
+
+  // CACHE HIT: ja existe um cache para esse Servidor/Contexto/Usuario/Periodo -- pode ter
+  // sido carregado agora ou em qualquer momento anterior desta sessao (mesmo com outros
+  // periodos carregados no meio do caminho). So recalcula e redesenha, sem chamada REST.
+  // Nenhuma senha e exigida aqui: nao ha nenhuma conexao de rede envolvida.
+  if (CACHE_STORE.has(chave)) {
+    CACHE = CACHE_STORE.get(chave);
+    SESSION_STATS.cacheHits++;
+    SESSION_STATS.jobsReaproveitadosCache += CACHE.toProcessLength || 0;
+    SESSION_STATS.tempoEconomizadoMs += CACHE.tempoFetchOriginalMs || 0;
+    if (CACHE.perf) {
+      SESSION_STATS.chamadasEvitadasCache += CACHE.perf.callsJob + CACHE.perf.callsJobDetail + CACHE.perf.callsElement + CACHE.perf.callsTicket;
+    }
+    hideProgress();
+    atualizarIndicadorAtividade(null);
+    setStatus('Utilizando dados j\u00e1 carregados em mem\u00f3ria (sem novas chamadas \u00e0 API).', 'ok');
+    const tR0 = performance.now();
+    const kpis = processarKPIs(CACHE.days, horasDia);
+    renderizarDashboard(CACHE.days, kpis);
+    RUNTIME.lastRecalcMs = performance.now() - tR0;
+    RUNTIME.origem = 'CACHE';
+    montarDiagnosticoTicket();
+    montarPainelPerformance();
+    atualizarPainelDiagnosticoExtra();
+    atualizarIndicadorCache();
+    document.getElementById('main').style.display = 'block';
+    setBusy(false);
+    return;
+  }
+
+  // L2: tenta o IndexedDB (sobrevive a fechar o navegador) antes de ir pra API.
+  // Tambem nao exige senha -- nenhuma conexao de rede envolvida.
+  const registroPersistido = await idbGet(chave);
+  if (registroPersistido) {
+    CACHE = registroPersistido;
+    CACHE_STORE.set(chave, CACHE); // promove pra L1 tambem, evita reler do IndexedDB de novo nesta sessao
+    SESSION_STATS.cacheHits++;
+    SESSION_STATS.jobsReaproveitadosCache += CACHE.toProcessLength || 0;
+    SESSION_STATS.tempoEconomizadoMs += CACHE.tempoFetchOriginalMs || 0;
+    if (CACHE.perf) {
+      SESSION_STATS.chamadasEvitadasCache += CACHE.perf.callsJob + CACHE.perf.callsJobDetail + CACHE.perf.callsElement + CACHE.perf.callsTicket;
+    }
+    hideProgress();
+    atualizarIndicadorAtividade(null);
+    setStatus('Utilizando dados salvos localmente (IndexedDB) \u2014 sem nenhuma chamada \u00e0 API.', 'ok');
+    const tR0b = performance.now();
+    const kpisb = processarKPIs(CACHE.days, horasDia);
+    renderizarDashboard(CACHE.days, kpisb);
+    RUNTIME.lastRecalcMs = performance.now() - tR0b;
+    RUNTIME.origem = 'INDEXEDDB';
+    montarDiagnosticoTicket();
+    montarPainelPerformance();
+    atualizarPainelDiagnosticoExtra();
+    atualizarIndicadorCache();
+    document.getElementById('main').style.display = 'block';
+    setBusy(false);
+    return;
+  }
+
+  // L3: nenhum cache exato pra esse periodo, mas pode existir um cache MAIS AMPLO
+  // (mesmo Servidor+Contexto+Usuario) que ja contenha esse periodo inteiro dentro dele
+  // -- ex: voce carregou Janeiro-Junho e agora quer ver so Mar\u00e7o. Nesse caso, recorta
+  // os dias certos do cache maior. Continua sem exigir senha, sem chamada REST.
+  const cachePai = await encontrarCachePaiDoPeriodo(cliente, SERVER, CONTEXT, user, fromStr, toStr);
+  if (cachePai) {
+    const diasRecortados = cachePai.days.filter(d => d.date >= fromStr && d.date <= toStr);
+    CACHE = {
+      key: chave,
+      timestampCarregado: cachePai.timestampCarregado,
+      days: diasRecortados,
+      toProcessLength: cachePai.toProcessLength,
+      jobsDescartados: cachePai.jobsDescartados,
+      jobsProcessados: cachePai.jobsProcessados,
+      ticketsOk: cachePai.ticketsOk,
+      ticketsFalhaFetch: cachePai.ticketsFalhaFetch,
+      ticketsFalhaParse: cachePai.ticketsFalhaParse,
+      jobsComOrigFile: cachePai.jobsComOrigFile,
+      jobsComToolTypeRun: cachePai.jobsComToolTypeRun,
+      toolTypesNaoClassificados: cachePai.toolTypesNaoClassificados,
+      foraDoPeriodo: cachePai.foraDoPeriodo,
+      perf: cachePai.perf,
+      recortadoDe: cachePai.key
+    };
+    SESSION_STATS.cacheHits++;
+    hideProgress();
+    atualizarIndicadorAtividade(null);
+    setStatus('Per\u00edodo recortado de um cache mais amplo j\u00e1 carregado (' + (cachePai.key.split('||')[4]) + ' a ' + (cachePai.key.split('||')[5]) + ') \u2014 sem nenhuma chamada \u00e0 API.', 'ok');
+    const tR0c = performance.now();
+    const kpisc = processarKPIs(CACHE.days, horasDia);
+    renderizarDashboard(CACHE.days, kpisc);
+    RUNTIME.lastRecalcMs = performance.now() - tR0c;
+    RUNTIME.origem = 'CACHE (recorte de ' + cachePai.key.split('||')[4] + ' a ' + cachePai.key.split('||')[5] + ')';
+    montarDiagnosticoTicket();
+    montarPainelPerformance();
+    atualizarPainelDiagnosticoExtra();
+    atualizarIndicadorCache();
+    document.getElementById('main').style.display = 'block';
+    setBusy(false);
+    return;
+  }
+
+  // Nenhum cache (exato ou mais amplo) resolve -- so agora a senha e realmente necessaria,
+  // porque so agora vamos precisar conectar de verdade na API.
+  const erro = validar(cliente, user, pass);
+  if (erro) { setStatus(erro, 'err'); setBusy(false); return; }
+  AUTH = 'Basic ' + btoa(user + ':' + pass);
+  hideProgress();
+  document.getElementById('main').style.display       = 'none';
+  document.getElementById('filterNote').style.display  = 'none';
+  document.getElementById('perfNote').style.display    = 'none';
+  setStatus('Conectando...', '');
+
+  try {
+    const tF0 = performance.now();
+    const resultado = await buscarDadosDaAPI(fromStr, toStr, limit, pagesize, horasDia);
+    RUNTIME.lastFetchMs = performance.now() - tF0;
+    RUNTIME.origem = 'REST';
+
+    const novoCache = {
+      key: chave,
+      apelido: APELIDOS_PENDENTES.get(chave) || '',
+      timestampCarregado: new Date(),
+      days: resultado.days,
+      toProcessLength: resultado.toProcessLength,
+      jobsDescartados: resultado.jobsDescartados,
+      jobsProcessados: resultado.jobsProcessados,
+      ticketsOk: resultado.ticketsOk,
+      ticketsFalhaFetch: resultado.ticketsFalhaFetch,
+      ticketsFalhaParse: resultado.ticketsFalhaParse,
+      jobsComOrigFile: resultado.jobsComOrigFile,
+      jobsComToolTypeRun: resultado.jobsComToolTypeRun,
+      toolTypesNaoClassificados: resultado.toolTypesNaoClassificados,
+      foraDoPeriodo: resultado.foraDoPeriodo,
+      perf: resultado.perf,
+      tempoFetchOriginalMs: RUNTIME.lastFetchMs
+    };
+    APELIDOS_PENDENTES.delete(chave);
+    CACHE_STORE.set(chave, novoCache);
+    await idbPut(novoCache);
+    CACHE = novoCache;
+
+    montarDiagnosticoTicket();
+
+    const tR0 = performance.now();
+    const kpis = processarKPIs(CACHE.days, horasDia);
+    renderizarDashboard(CACHE.days, kpis);
+    RUNTIME.lastRecalcMs = performance.now() - tR0;
+
+    montarPainelPerformance();
+    atualizarPainelDiagnosticoExtra();
+    atualizarIndicadorCache();
+
+    setStatus('Indicadores carregados \u2014 ' + CACHE.jobsProcessados + ' job(s) processado(s) de ' + CACHE.toProcessLength + ' encontrado(s), ' + CACHE.days.length + ' dia(s) no per\u00edodo', 'ok');
+    document.getElementById('main').style.display = 'block';
+
+  } catch(e) {
+    setStatus('Erro: ' + e.message, 'err');
+    hideProgress();
+    console.error('[Prinect Capacidade Pr\u00e9-impress\u00e3o]', e);
+  } finally {
+    setBusy(false);
+  }
+}
+
+(function() {
+  const to   = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - 30);
+  document.getElementById('inTo').value   = to.toISOString().slice(0, 10);
+  document.getElementById('inFrom').value = from.toISOString().slice(0, 10);
+
+  ['inCliente', 'inServer', 'inContext', 'inUser', 'inFrom', 'inTo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', atualizarIndicadorCache);
+      el.addEventListener('change', atualizarIndicadorCache);
+    }
+  });
+  atualizarIndicadorCache();
+})();
+</script>
+</body>
+</html>

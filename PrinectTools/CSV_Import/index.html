@@ -139,13 +139,13 @@ const CONFIGS = {
     types: {Amount:'number', EndDate:'date'},
     placeholders: {
       JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245',
-      URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\...\\arquivo.pdf',
+      URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\...\\arquivo.pdf',
       CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245',
       MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'2026-03-31'
     },
     seed: [
-      [{JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245', URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Landogan1.pdf', CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'2026-03-31'}],
-      [{JobID:'CSV-302', Description:'Soap', ProductPart:'PACK-4497', URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\Demonstração Embalagem\\Produtos\\F51_HBR_2546 - Soap.pdf', CustomerID:'S150', ArticleID:'5525', ShapeID:'HBR_2546', ToolID:'PACK-4497', MediaQuality:'DP_300_1060x750_LG', Size:'186,5mm 136mm', Amount:'370000', EndDate:'2026-03-31'}]
+      [{JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Landogan1.pdf', CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'2026-03-31'}],
+      [{JobID:'CSV-302', Description:'Soap', ProductPart:'PACK-4497', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Embalagem\\Produtos\\F51_HBR_2546 - Soap.pdf', CustomerID:'S150', ArticleID:'5525', ShapeID:'HBR_2546', ToolID:'PACK-4497', MediaQuality:'DP_300_1060x750_LG', Size:'186,5mm 136mm', Amount:'370000', EndDate:'2026-03-31'}]
     ]
   },
   commercial: {
@@ -157,7 +157,7 @@ const CONFIGS = {
     types: {NPage:'number', Amount:'number', EndDate:'date'},
     placeholders: {
       JobID:'CSV-026', Description:'HBR_Zoo_CAPA_MIOLO', Comment:'Saddle Stiched Capa e Miolo em arquivos separados',
-      ProductPart:'Capa', URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\...\\arquivo.pdf',
+      ProductPart:'Capa', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\...\\arquivo.pdf',
       NPage:'4', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL',
       MediaQuality:'CO_150_1000x700_SG', Size:'169mm 233mm', Colors:'CMYK / CMYK', Binding:'SaddleStitch',
       Amount:'12000', EndDate:'2026-05-31'
@@ -165,11 +165,11 @@ const CONFIGS = {
     seed: [
       [
         {JobID:'CSV-026', Description:'HBR_Zoo_CAPA_MIOLO', Comment:'Saddle Stiched Capa e Miolo em arquivos separados', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL', Binding:'SaddleStitch', Amount:'12000', EndDate:'2026-05-31'},
-        {JobID:'CSV-026', Description:'HBR_Zoo_CAPA', Comment:'Saddle Stiched_CAPA', ProductPart:'Capa', URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\Demonstração Comercial\\F51_Zoo Broschuere Daten_CAPA.pdf', NPage:'4', Production:'Lithography', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_150_1000x700_SG', Size:'169mm 233mm', Colors:'CMYK / CMYK'},
-        {JobID:'CSV-026', Description:'HBR_Zoo_MIOLO', Comment:'Saddle Stiched_MIOLO', ProductPart:'Miolo', URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\Demonstração Comercial\\F51_Zoo Broschuere Daten_MIOLO.pdf', NPage:'16', Production:'Lithography', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_90_1000x700_LG', Size:'169mm 233mm', Colors:'CMYK / CMYK'}
+        {JobID:'CSV-026', Description:'HBR_Zoo_CAPA', Comment:'Saddle Stiched_CAPA', ProductPart:'Capa', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Comercial\\F51_Zoo Broschuere Daten_CAPA.pdf', NPage:'4', Production:'Lithography', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_150_1000x700_SG', Size:'169mm 233mm', Colors:'CMYK / CMYK'},
+        {JobID:'CSV-026', Description:'HBR_Zoo_MIOLO', Comment:'Saddle Stiched_MIOLO', ProductPart:'Miolo', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Comercial\\F51_Zoo Broschuere Daten_MIOLO.pdf', NPage:'16', Production:'Lithography', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_90_1000x700_LG', Size:'169mm 233mm', Colors:'CMYK / CMYK'}
       ],
       [
-        {JobID:'CSV-028', Description:'Whiskas_Brochure', Comment:'Saddle Stitched Capa e Miolo juntos', ProductPart:'Revista', URL:'\\\\SRVPMC04\\Demonstrações Prinect_\\Demonstração Comercial\\F51_Whiskas16page1-16.pdf', NPage:'16', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_150_1060x750_LG', Size:'210mm 297mm', Colors:'CMYK / CMYK', Binding:'SaddleStitch', Amount:'9450', EndDate:'2026-05-31'}
+        {JobID:'CSV-028', Description:'Whiskas_Brochure', Comment:'Saddle Stitched Capa e Miolo juntos', ProductPart:'Revista', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Comercial\\F51_Whiskas16page1-16.pdf', NPage:'16', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_150_1060x750_LG', Size:'210mm 297mm', Colors:'CMYK / CMYK', Binding:'SaddleStitch', Amount:'9450', EndDate:'2026-05-31'}
       ]
     ]
   }

@@ -16,12 +16,12 @@
   *{box-sizing:border-box;}
   body{margin:0;background:radial-gradient(circle at 15% -10%, rgba(232,163,61,0.06), transparent 45%), var(--bg);
     color:var(--text);font-family:var(--sans);padding:32px 20px 80px;}
-  .wrap{max-width:1280px;margin:0 auto;}
+  .wrap{max-width:1320px;margin:0 auto;}
 
   header{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;border-bottom:1px solid var(--line);padding-bottom:20px;}
   .brand-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin:0 0 6px;}
   h1{font-family:var(--disp);font-size:28px;margin:0;font-weight:700;letter-spacing:-0.01em;}
-  .sub{color:var(--muted);font-size:13px;margin-top:6px;max-width:560px;line-height:1.5;}
+  .sub{color:var(--muted);font-size:13px;margin-top:6px;max-width:600px;line-height:1.5;}
 
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:22px;}
   .panel h2{font-family:var(--disp);font-size:15px;margin:0 0 4px;font-weight:600;}
@@ -37,6 +37,7 @@
   .copy-btn:hover{background:var(--amber);color:#12151a;}
   .copy-btn.copied{background:var(--green);border-color:var(--green);color:#12151a;}
   .hint{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.5;}
+  .hint code{background:#0d1013;padding:1px 5px;border-radius:4px;font-family:var(--mono);color:var(--cyan);}
 
   /* TABS */
   .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--line);}
@@ -70,6 +71,10 @@
   .mini-btn.sub-add:hover{background:var(--cyan);color:#0d1013;}
   .mini-btn.del{color:var(--red);}
   .mini-btn.del:hover{background:var(--red);color:#12151a;border-color:var(--red);}
+  .url-cell{display:flex;gap:4px;align-items:center;}
+  .url-cell input{flex:1;}
+  .mini-btn.url-prefix{color:var(--amber);border-color:var(--amber-dim);flex-shrink:0;font-size:11px;width:auto;padding:0 8px;}
+  .mini-btn.url-prefix:hover{background:var(--amber);color:#12151a;}
 
   .table-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--panel-2);border-top:1px solid var(--line);flex-wrap:wrap;gap:10px;}
   .add-btn{background:none;border:1px dashed var(--amber-dim);color:var(--amber);padding:9px 16px;border-radius:6px;font-family:var(--mono);font-size:12.5px;cursor:pointer;}
@@ -94,7 +99,7 @@
     <div>
       <p class="brand-eyebrow">Prinect &middot; Connector Import</p>
       <h1>CSV Import Console</h1>
-      <p class="sub">Preencha os dados de job e mídia. Use "+F" para adicionar sub-linhas do mesmo job (ex: Capa e Miolo separados). Ao criar uma sub-linha, os campos que pertencem só ao job-pai ou só ao arquivo ficam travados automaticamente na linha errada, pra evitar preenchimento duplicado ou no lugar errado.</p>
+      <p class="sub">Preencha os dados de job e mídia. Use "+F" para adicionar sub-linhas do mesmo job (ex: Capa e Miolo separados). Campos que não se aplicam a cada tipo de linha ficam travados automaticamente.</p>
     </div>
   </header>
 
@@ -114,7 +119,7 @@
         </div>
       </div>
     </div>
-    <p class="hint">Depois de gerar o .csv, abra o Windows Explorer, cole este caminho na barra de endereço e mova o arquivo baixado para essa pasta.</p>
+    <p class="hint">Depois de gerar o .csv, abra o Windows Explorer, cole este caminho na barra de endereço e mova o arquivo baixado para essa pasta. Esse nome de servidor também é usado no botão <code>caminho</code> ao lado dos campos URL de cada linha, pra montar o caminho da rede de arquivos automaticamente.</p>
   </div>
 
   <div class="tabs">
@@ -128,24 +133,36 @@
 </div>
 
 <script>
+/* ---------- HELPERS DE DATA ---------- */
+function getDefaultEndDate(){
+  const d = new Date();
+  d.setDate(d.getDate() + 15);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
 /* ---------- CONFIG PER TIPO ---------- */
 const CONFIGS = {
   packaging: {
     label: 'Packaging',
-    columns: ['JobID','Description','ProductPart','URL','CustomerID','ArticleID','ShapeID','ToolID','MediaQuality','Size','Amount','EndDate'],
+    columns: ['JobID','Description','ProductPart','URL','CustomerID','ArticleID','ShapeID','ToolID','ProductCode','MediaQuality','Size','Amount','EndDate'],
     sharedOnSub: ['CustomerID'],
     parentOnly: ['CustomerID','Amount','EndDate'],
-    fileOnly: ['ProductPart','URL','ArticleID','ShapeID','ToolID','MediaQuality','Size'],
+    fileOnly: ['ProductPart','URL','ArticleID','ShapeID','ToolID','ProductCode','MediaQuality','Size'],
+    mirror: { ProductCode: 'ProductPart' },
     types: {Amount:'number', EndDate:'date'},
+    urlPrefix: (server) => `\\\\${server}\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\`,
     placeholders: {
       JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245',
-      URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\...\\arquivo.pdf',
-      CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245',
-      MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'2026-03-31'
+      URL:'F51_HBR_2544 - Landogan1.pdf',
+      CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', ProductCode:'PACK-3245',
+      MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'AAAA-MM-DD'
     },
     seed: [
-      [{JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Landogan1.pdf', CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'2026-03-31'}],
-      [{JobID:'CSV-302', Description:'Soap', ProductPart:'PACK-4497', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Embalagem\\Produtos\\F51_HBR_2546 - Soap.pdf', CustomerID:'S150', ArticleID:'5525', ShapeID:'HBR_2546', ToolID:'PACK-4497', MediaQuality:'DP_300_1060x750_LG', Size:'186,5mm 136mm', Amount:'370000', EndDate:'2026-03-31'}]
+      [{JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Landogan1.pdf', CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', ProductCode:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'AUTO'}],
+      [{JobID:'CSV-302', Description:'Soap', ProductPart:'PACK-4497', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2546 - Soap.pdf', CustomerID:'S150', ArticleID:'5525', ShapeID:'HBR_2546', ToolID:'PACK-4497', ProductCode:'PACK-4497', MediaQuality:'DP_300_1060x750_LG', Size:'186,5mm 136mm', Amount:'370000', EndDate:'AUTO'}]
     ]
   },
   commercial: {
@@ -154,22 +171,24 @@ const CONFIGS = {
     sharedOnSub: ['Production','ProductCode'],
     parentOnly: ['CustomerID','Binding','Amount','EndDate'],
     fileOnly: ['ProductPart','URL','NPage','MediaQuality','Size','Colors'],
+    mirror: {},
     types: {NPage:'number', Amount:'number', EndDate:'date'},
+    urlPrefix: (server) => `\\\\${server}\\_ Demonstrações Prinect _\\_Demonstração Comercial\\`,
     placeholders: {
       JobID:'CSV-026', Description:'HBR_Zoo_CAPA_MIOLO', Comment:'Saddle Stiched Capa e Miolo em arquivos separados',
-      ProductPart:'Capa', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\...\\arquivo.pdf',
-      NPage:'4', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL',
+      ProductPart:'Capa', URL:'F51_Zoo Broschuere Daten_CAPA.pdf',
+      NPage:'4', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMERCIAL',
       MediaQuality:'CO_150_1000x700_SG', Size:'169mm 233mm', Colors:'CMYK / CMYK', Binding:'SaddleStitch',
-      Amount:'12000', EndDate:'2026-05-31'
+      Amount:'12000', EndDate:'AAAA-MM-DD'
     },
     seed: [
       [
-        {JobID:'CSV-026', Description:'HBR_Zoo_CAPA_MIOLO', Comment:'Saddle Stiched Capa e Miolo em arquivos separados', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL', Binding:'SaddleStitch', Amount:'12000', EndDate:'2026-05-31'},
-        {JobID:'CSV-026', Description:'HBR_Zoo_CAPA', Comment:'Saddle Stiched_CAPA', ProductPart:'Capa', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Comercial\\F51_Zoo Broschuere Daten_CAPA.pdf', NPage:'4', Production:'Lithography', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_150_1000x700_SG', Size:'169mm 233mm', Colors:'CMYK / CMYK'},
-        {JobID:'CSV-026', Description:'HBR_Zoo_MIOLO', Comment:'Saddle Stiched_MIOLO', ProductPart:'Miolo', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Comercial\\F51_Zoo Broschuere Daten_MIOLO.pdf', NPage:'16', Production:'Lithography', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_90_1000x700_LG', Size:'169mm 233mm', Colors:'CMYK / CMYK'}
+        {JobID:'CSV-026', Description:'HBR_Zoo_CAPA_MIOLO', Comment:'Saddle Stiched Capa e Miolo em arquivos separados', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMERCIAL', Binding:'SaddleStitch', Amount:'12000', EndDate:'AUTO'},
+        {JobID:'CSV-026', Description:'HBR_Zoo_CAPA', Comment:'Saddle Stiched_CAPA', ProductPart:'Capa', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Comercial\\F51_Zoo Broschuere Daten_CAPA.pdf', NPage:'4', Production:'Lithography', ProductCode:'CSV-COMERCIAL', MediaQuality:'CO_150_1000x700_SG', Size:'169mm 233mm', Colors:'CMYK / CMYK'},
+        {JobID:'CSV-026', Description:'HBR_Zoo_MIOLO', Comment:'Saddle Stiched_MIOLO', ProductPart:'Miolo', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Comercial\\F51_Zoo Broschuere Daten_MIOLO.pdf', NPage:'16', Production:'Lithography', ProductCode:'CSV-COMERCIAL', MediaQuality:'CO_90_1000x700_LG', Size:'169mm 233mm', Colors:'CMYK / CMYK'}
       ],
       [
-        {JobID:'CSV-028', Description:'Whiskas_Brochure', Comment:'Saddle Stitched Capa e Miolo juntos', ProductPart:'Revista', URL:'\\\\SRVPMC04\\_Demonstrações Prinect_\\Demonstração Comercial\\F51_Whiskas16page1-16.pdf', NPage:'16', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMMERCIAL', MediaQuality:'CO_150_1060x750_LG', Size:'210mm 297mm', Colors:'CMYK / CMYK', Binding:'SaddleStitch', Amount:'9450', EndDate:'2026-05-31'}
+        {JobID:'CSV-028', Description:'Whiskas_Brochure', Comment:'Saddle Stitched Capa e Miolo juntos', ProductPart:'Revista', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Comercial\\F51_Whiskas16page1-16.pdf', NPage:'16', Production:'Lithography', CustomerID:'S150', ProductCode:'CSV-COMERCIAL', MediaQuality:'CO_150_1060x750_LG', Size:'210mm 297mm', Colors:'CMYK / CMYK', Binding:'SaddleStitch', Amount:'9450', EndDate:'AUTO'}
       ]
     ]
   }
@@ -184,7 +203,11 @@ let activeTab = 'packaging';
 
 function makeRow(cfg, data){
   const row = { __id: ++rowIdCounter };
-  cfg.columns.forEach(col => row[col] = (data && data[col] !== undefined) ? data[col] : '');
+  cfg.columns.forEach(col => {
+    let val = (data && data[col] !== undefined) ? data[col] : '';
+    if(val === 'AUTO') val = getDefaultEndDate();
+    row[col] = val;
+  });
   return row;
 }
 
@@ -238,14 +261,23 @@ function renderRows(type){
       tr.className = (gi % 2 === 0 ? 'group-even' : 'group-odd') + (ri > 0 ? ' sub-row' : '');
       let cells = `<td class="row-num">${n++}</td>`;
       cfg.columns.forEach((col, ci) => {
-        const locked = isMulti && ((isParentRow && cfg.fileOnly.includes(col)) || (!isParentRow && cfg.parentOnly.includes(col)));
-        const lockedAttrs = locked ? 'disabled class="locked" placeholder="—"' : `placeholder="${cfg.placeholders[col]||''}"`;
+        const jobIdLocked = col === 'JobID' && !isParentRow;
+        const locked = jobIdLocked || (isMulti && ((isParentRow && cfg.fileOnly.includes(col)) || (!isParentRow && cfg.parentOnly.includes(col))));
+        const inputId = `inp-${type}-${row.__id}-${col}`;
+        const lockedAttrs = locked ? 'disabled class="locked"' : '';
+        const placeholder = col === 'URL' ? cfg.placeholders[col] : (cfg.placeholders[col]||'');
+
         if(ci === 0){
           const arrow = ri > 0 ? '<span class="arrow">↳</span>' : '';
-          cells += `<td class="job-flag">${arrow}<input type="text" data-col="${col}" ${lockedAttrs} value="${escAttr(row[col])}" oninput="updateVal('${type}',${group.__gid},${row.__id},'${col}',this.value)"></td>`;
+          cells += `<td class="job-flag">${arrow}<input type="text" id="${inputId}" data-col="${col}" placeholder="${placeholder}" ${lockedAttrs} value="${escAttr(row[col])}" oninput="updateVal('${type}',${group.__gid},${row.__id},'${col}',this.value)"></td>`;
+        } else if(col === 'URL'){
+          cells += `<td><div class="url-cell">
+              <input type="text" id="${inputId}" data-col="${col}" placeholder="${placeholder}" ${lockedAttrs} value="${escAttr(row[col])}" oninput="updateVal('${type}',${group.__gid},${row.__id},'${col}',this.value)">
+              <button class="mini-btn url-prefix" ${locked?'disabled':''} title="Inserir caminho de rede padrão" onclick="insertUrlPrefix('${type}',${group.__gid},${row.__id})">caminho</button>
+            </div></td>`;
         } else {
           const t = cfg.types[col] || 'text';
-          cells += `<td><input type="${t}" data-col="${col}" ${lockedAttrs} value="${escAttr(row[col])}" oninput="updateVal('${type}',${group.__gid},${row.__id},'${col}',this.value)"></td>`;
+          cells += `<td><input type="${t}" id="${inputId}" data-col="${col}" placeholder="${placeholder}" ${lockedAttrs} value="${escAttr(row[col])}" oninput="updateVal('${type}',${group.__gid},${row.__id},'${col}',this.value)"></td>`;
         }
       });
       const delDisabled = (isParentRow && isMulti) ? 'disabled title="Remova as sub-linhas antes de remover o job"' : 'title="Remover linha"';
@@ -265,15 +297,54 @@ function escAttr(v){
 }
 
 function updateVal(type, gid, rid, col, value){
+  const cfg = CONFIGS[type];
   const group = state[type].find(g => g.__gid === gid);
   if(!group) return;
   const row = group.rows.find(r => r.__id === rid);
-  if(row) row[col] = value;
+  if(!row) return;
+  row[col] = value;
+
+  // JobID da linha-pai propaga ao vivo para todas as sub-linhas
+  if(col === 'JobID' && group.rows[0].__id === rid && group.rows.length > 1){
+    group.rows.slice(1).forEach(subRow => {
+      subRow['JobID'] = value;
+      const el = document.getElementById(`inp-${type}-${subRow.__id}-JobID`);
+      if(el) el.value = value;
+    });
+  }
+
+  // espelha ProductPart -> ProductCode (Packaging) automaticamente
+  if(cfg.mirror && cfg.mirror[Object.keys(cfg.mirror).find(k => cfg.mirror[k] === col)]){
+    // find any target column whose mirror source is `col`
+  }
+  Object.entries(cfg.mirror || {}).forEach(([target, source]) => {
+    if(source === col){
+      row[target] = value;
+      const el = document.getElementById(`inp-${type}-${rid}-${target}`);
+      if(el) el.value = value;
+    }
+  });
+}
+
+function insertUrlPrefix(type, gid, rid){
+  const cfg = CONFIGS[type];
+  const group = state[type].find(g => g.__gid === gid);
+  if(!group) return;
+  const row = group.rows.find(r => r.__id === rid);
+  if(!row) return;
+  const server = document.getElementById('serverName').value.trim() || 'SERVIDOR';
+  const prefix = cfg.urlPrefix(server);
+  if(!row['URL'] || !row['URL'].startsWith('\\\\')){
+    row['URL'] = prefix + (row['URL']||'');
+  }
+  const el = document.getElementById(`inp-${type}-${rid}-URL`);
+  if(el){ el.value = row['URL']; el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
 }
 
 function addJob(type){
   const cfg = CONFIGS[type];
-  const group = { __gid: ++groupIdCounter, rows: [ makeRow(cfg) ] };
+  const initData = cfg.columns.includes('EndDate') ? {EndDate:'AUTO'} : null;
+  const group = { __gid: ++groupIdCounter, rows: [ makeRow(cfg, initData) ] };
   state[type].push(group);
   renderRows(type);
 }
@@ -295,7 +366,6 @@ function addSubRow(type, gid, rid){
 }
 
 function removeRow(type, gid, rid){
-  const cfg = CONFIGS[type];
   const group = state[type].find(g => g.__gid === gid);
   if(!group) return;
   const isParent = group.rows[0] && group.rows[0].__id === rid;
@@ -316,7 +386,7 @@ function switchTab(type){
   document.getElementById('panel-' + type).classList.add('active');
 }
 
-/* ---------- NETWORK PATH ---------- */
+/* ---------- NETWORK PATH (pasta de destino do CSV) ---------- */
 function updatePath(){
   const server = document.getElementById('serverName').value.trim() || 'SERVIDOR';
   document.getElementById('pathText').textContent = `\\\\${server}\\PTConfig\\Connector\\CSVImport`;
@@ -336,7 +406,7 @@ function copyPath(){
 /* ---------- CSV EXPORT ---------- */
 function csvEscape(value){
   const v = (value === undefined || value === null) ? '' : String(value);
-  if(/[",;\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+  if(/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
   return v;
 }
 
@@ -346,10 +416,10 @@ function generateCSV(type){
   const totalRows = groups.reduce((acc,g)=>acc+g.rows.length,0);
   if(totalRows === 0){ alert('Adicione ao menos uma linha antes de gerar o arquivo.'); return; }
 
-  let lines = [cfg.columns.join(';')];
+  let lines = [cfg.columns.join(',')];
   groups.forEach(group => {
     group.rows.forEach(row => {
-      lines.push(cfg.columns.map(col => csvEscape(row[col])).join(';'));
+      lines.push(cfg.columns.map(col => csvEscape(row[col])).join(','));
     });
   });
 

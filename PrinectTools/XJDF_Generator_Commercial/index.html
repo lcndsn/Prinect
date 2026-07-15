@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8">
+<title>XJDF Generator - Commercial</title>
+<style>
+body{font-family:Segoe UI,Arial;background:#eef3f8;margin:0}
+header{background:#004b8d;color:#fff;padding:18px 28px}
+main{max-width:1000px;margin:20px auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 4px 14px #0002}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+input,select{width:100%;padding:9px;border:1px solid #bbb;border-radius:8px}
+.warn{background:#fff6d8;border-left:5px solid #f0b400;padding:12px;margin-bottom:18px}
+button{background:#004b8d;color:#fff;border:0;padding:12px 18px;border-radius:8px;cursor:pointer}
+pre{background:#f5f5f5;padding:10px;border-radius:8px;white-space:pre-wrap}
+</style></head><body>
+<header><h2>XJDF Generator - Commercial</h2></header>
+<main>
+<div class="warn"><b>Antes de gerar:</b> coloque o PDF em <code>\\Prinect_Server\PTTransfer\Files</code>. O nome do PDF deve ser igual ao <b>Prinect_FileName.pdf</b>.</div>
+<div class="grid">
+<div><label>Prinect Server</label><input id="Prinect_Server"></div>
+<div><label>Job Name</label><input id="Prinect_JobName"></div>
+<div><label>Job ID</label><input id="Prinect_JobID"></div>
+<div><label>Product Code</label><input id="Prinect_ProductCode"></div>
+<div><label>Customer ID</label><input id="Prinect_CustomerID"></div>
+<div><label>Customer Name</label><input id="Prinect_CustomerName"></div>
+<div><label>Product ID</label><input id="Prinect_ProductID"></div>
+<div><label>Prinect FileName</label><input id="Prinect_FileName"></div>
+<div><label>Quantidade</label><input id="Prinect_Quantity" value="1"></div>
+<div><label>Páginas</label><input id="Prinect_NumberPages" value="1"></div>
+<div><label>Finished X (mm)</label><input id="X"></div>
+<div><label>Finished Y (mm)</label><input id="Y"></div>
+<div><label>Media Quality</label><input id="Prinect_MediaQuality"></div>
+<div><label>Duration Days</label><input id="Prinect_DurationDays" value="1"></div>
+<div><label>Sides</label><select id="Prinect_Sides"><option>OneSided</option><option>TwoSidedHeadToHead</option></select></div>
+</div>
+<p><button onclick="gerar()">Gerar XJDF</button> <button onclick="copiar()">Copiar Caminho</button></p>
+<h3>Destino</h3><pre id="path"></pre>
+<script>
+function v(i){return document.getElementById(i).value.trim();}
+function copiar(){let p="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";navigator.clipboard.writeText(p);alert("Caminho copiado.");}
+function gerar(){
+let xml=`<?xml version="1.0" encoding="UTF-8"?>
+<XJDF Category="Printing" DescriptiveName="${v("Prinect_JobName")}" JobID="${v("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
+<GeneralID IDUsage="CatalogID" IDValue="${v("Prinect_ProductCode")}"/>
+<ProductList>
+<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_CustomerName")}" ExternalID="${v("Prinect_ProductID")}" ID="root" IsRoot="true" ProductID="${v("Prinect_ProductID")}">
+<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${v("X")}mm ${v("Y")}mm" Pages="${v("Prinect_NumberPages")}" Sides="${v("Prinect_Sides")}"/></Intent>
+<Intent Name="MediaIntent"><MediaIntent MediaQuality="${v("Prinect_MediaQuality")}"/></Intent>
+<Intent Name="ColorIntent"><ColorIntent><SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front"/></ColorIntent></Intent>
+<Intent Name="ProductionIntent"><ProductionIntent PrintProcess="Lithography"/></Intent>
+<Intent Name="BindingIntent"><BindingIntent BindingType="SaddleStitch"/></Intent>
+</Product></ProductList>
+<ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${v("Prinect_CustomerID")}" CustomerName="${v("Prinect_CustomerName")}"/></Resource></ResourceSet>
+<ResourceSet Name="RunList" Usage="Input"><Resource><RunList><FileSpec URL="//${v("Prinect_Server")}/PTTransfer/Files/${v("Prinect_FileName")}.pdf" UserFileName="${v("Prinect_FileName")}.pdf"/></RunList></Resource></ResourceSet>
+<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${v("Prinect_DurationDays")}D"/></Resource></ResourceSet>
+</XJDF>`;
+let b=new Blob([xml],{type:"application/xml"});let a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=v("Prinect_FileName")+".xjdf";a.click();
+document.getElementById("path").textContent="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";
+}
+</script></main></body></html>

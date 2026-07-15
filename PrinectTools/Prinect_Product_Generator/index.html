@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prinect JDF Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  /* ── LIGHT THEME (default) ── */
+  :root {
+    /* Heidelberg Blue palette */
+    --hd-blue:       #0066CC;
+    --hd-blue-dark:  #004F9F;
+    --hd-blue-light: #1A80E0;
+    --hd-blue-xlight:#E8F2FC;
+    --hd-green:      #1A7A3C;
+    --hd-amber:      #B86B00;
+    --radius:        6px;
+    --font:          'Inter', sans-serif;
+    --mono:          'JetBrains Mono', monospace;
+    --transition:    0.18s ease;
+
+    /* Semantic tokens — light */
+    --bg-page:       #F0F5FB;
+    --bg-card:       #FFFFFF;
+    --bg-topbar:     #003D7A;
+    --bg-input:      #FFFFFF;
+    --bg-input-auto: #F4F8FD;
+    --bg-code:       #EEF4FB;
+    --bg-jobid:      #002D5C;
+    --bg-thead:      #003D7A;
+    --bg-hover:      #F4F8FD;
+    --bg-stat:       #FFFFFF;
+    --bg-toc:        #002D5C;
+    --bg-modal:      #FFFFFF;
+    --bg-tip:        #FFF8E1;
+    --bg-warn:       #FFF0F0;
+    --bg-manual:     #FFFFFF;
+    --bg-field-tbl:  #F0F5FB;
+    --border:        #C8DCEF;
+    --border-focus:  #0066CC;
+    --text-primary:  #0D1B2A;
+    --text-secondary:#1E3448;
+    --text-muted:    #4A6580;
+    --text-faint:    #8AAABF;
+    --text-inverse:  #FFFFFF;
+    --text-jobid:    #1A80E0;
+    --text-thead:    #90B8D8;
+    --text-toc-h:    #5AB0FF;
+    --text-toc-li:   #7090A8;
+    --text-tip:      #5A3E00;
+    --text-warn:     #660000;
+    --accent-badge:  #0066CC;
+    --shadow:        0 2px 12px rgba(0,60,120,0.10);
+    --shadow-lg:     0 8px 32px rgba(0,60,120,0.16);
+  }
+
+  /* ── DARK THEME ── */
+  html.dark {
+    --bg-page:       #07111E;
+    --bg-card:       #0D1E30;
+    --bg-topbar:     #041020;
+    --bg-input:      #132133;
+    --bg-input-auto: #0F1C2C;
+    --bg-code:       #0F1C2C;
+    --bg-jobid:      #041020;
+    --bg-thead:      #041020;
+    --bg-hover:      #152540;
+    --bg-stat:       #0D1E30;
+    --bg-toc:        #041020;
+    --bg-modal:      #0D1E30;
+    --bg-tip:        #1E1600;
+    --bg-warn:       #1E0000;
+    --bg-manual:     #0D1E30;
+    --bg-field-tbl:  #0F1C2C;
+    --border:        #1E3A55;
+    --border-focus:  #3399FF;
+    --text-primary:  #D8EAF8;
+    --text-secondary:#AACCE8;
+    --text-muted:    #6699BB;
+    --text-faint:    #3A5A77;
+    --text-inverse:  #D8EAF8;
+    --text-jobid:    #5AB0FF;
+    --text-thead:    #4A7A9B;
+    --text-toc-h:    #5AB0FF;
+    --text-toc-li:   #4A7A9B;
+    --text-tip:      #D4A820;
+    --text-warn:     #FF8080;
+    --accent-badge:  #3399FF;
+    --shadow:        0 2px 12px rgba(0,0,0,0.40);
+    --shadow-lg:     0 8px 32px rgba(0,0,0,0.60);
+  }
+
+  /* ── THEME TOGGLE BUTTON ── */
+  .theme-toggle {
+    background: none;
+    border: 1.5px solid #3D3D3D;
+    color: #A0A0A0;
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+  .theme-toggle:hover { border-color: #666; color: #fff; }
+  .theme-toggle .icon { font-size: 15px; line-height: 1; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-page);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--bg-topbar);
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    height: 56px;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-logo svg { width: 36px; height: 36px; }
+  .topbar-brand {
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 0.04em;
+  }
+  .topbar-brand span { color: var(--hd-blue); }
+  .topbar-subtitle {
+    font-size: 11px;
+    color: #777777;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: 4px;
+  }
+  .topbar-nav {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    align-items: center;
+  }
+  .nav-btn {
+    background: none;
+    border: none;
+    color: #999999;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.02em;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.12); color: #FFFFFF; }
+  .nav-btn.active { background: var(--hd-blue-light); color: #FFFFFF; }
+
+  /* ── LAYOUT ── */
+  .page { display: none; padding: 28px; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .section-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .section-badge {
+    background: var(--hd-blue);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--hd-blue);
+    display: inline-block;
+  }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .col-span-2 { grid-column: span 2; }
+  .col-span-3 { grid-column: span 3; }
+
+  /* ── FORM ── */
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .field label span.required { color: var(--hd-blue); margin-left: 2px; }
+  .field label span.auto-tag {
+    background: #e8f4fd;
+    color: #0070cc;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  html.dark .field label span.auto-tag {
+    background: #0a2a45;
+    color: #5aabf0;
+  }
+  .field label span.manual-tag {
+    background: #fff3e0;
+    color: var(--hd-amber);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  html.dark .field label span.manual-tag {
+    background: #2a1800;
+    color: #D4820A;
+  }
+
+  input[type="text"], input[type="number"] {
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    transition: var(--transition);
+    outline: none;
+    width: 100%;
+  }
+  input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(0,102,204,0.15);
+  }
+  input.auto-field {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--bg-input-auto);
+    color: var(--text-secondary);
+  }
+  input.auto-field:read-only {
+    background: var(--bg-code);
+    color: var(--text-muted);
+    cursor: default;
+  }
+  .field-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+  .input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .input-row input { flex: 1; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--hd-blue); color: #fff; }
+  .btn-primary:hover { background: var(--hd-blue-dark); }
+  .btn-secondary {
+    background: var(--bg-code);
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-ghost {
+    background: none;
+    color: var(--hd-blue);
+    border: 1.5px solid var(--hd-blue);
+  }
+  .btn-ghost:hover { background: rgba(0,102,204,0.10); }
+  .btn-success { background: var(--hd-green); color: #fff; }
+  .btn-success:hover { background: #145f2e; }
+  .btn-icon { padding: 8px; min-width: 36px; justify-content: center; }
+  .btn-lg { font-size: 15px; padding: 12px 28px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* ── JOB ID PREVIEW ── */
+  .job-id-preview {
+    background: var(--bg-jobid);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .job-id-preview label {
+    font-size: 11px;
+    color: #777777;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .job-id-preview code {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--text-jobid);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── ACTIONS ROW ── */
+  .actions-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .actions-row .spacer { flex: 1; }
+
+  /* ── TOAST ── */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+  }
+  .toast {
+    background: #002D5C;
+    color: #fff;
+    font-size: 13px;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: slideIn 0.2s ease;
+    border-left: 4px solid var(--hd-blue);
+    max-width: 340px;
+  }
+  html.dark .toast { background: #0D1E30; border: 1px solid var(--border); }
+  .toast.success { border-left-color: var(--hd-green); }
+  .toast.warning { border-left-color: var(--hd-amber); }
+  @keyframes slideIn { from { transform: translateX(60px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg-modal);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    max-width: 520px;
+    width: 90vw;
+    box-shadow: var(--shadow-lg);
+    animation: popIn 0.18s ease;
+  }
+  @keyframes popIn { from { transform: scale(0.94); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+  }
+  .modal-body { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+  .modal-body code {
+    font-family: var(--mono);
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--hd-blue-dark);
+    font-size: 12px;
+  }
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+
+  /* ── HISTORY TABLE ── */
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex: 1;
+    min-width: 180px;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    outline: none;
+    font-family: var(--font);
+    background: var(--bg-input);
+    color: var(--text-primary);
+  }
+  .search-bar input:focus { border-color: var(--hd-blue); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--bg-thead);
+    color: var(--text-thead);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+  }
+  tbody tr:hover { background: var(--bg-hover); }
+  tbody td {
+    padding: 10px 12px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+  }
+  td.mono {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-faint);
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--bg-stat);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    transition: background 0.2s ease;
+  }
+  .stat-card .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--mono);
+    line-height: 1;
+  }
+  .stat-card .stat-value.blue { color: var(--hd-blue); }
+
+  /* ── CONFIG PAGE ── */
+  .config-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .counter-display {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--hd-blue);
+    margin: 8px 0;
+  }
+  .counter-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  /* ── MANUAL PAGE ── */
+  .manual-toc {
+    background: var(--bg-toc);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .manual-toc h3 {
+    color: var(--text-toc-h);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .manual-toc ol {
+    padding-left: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .manual-toc li {
+    color: var(--text-toc-li);
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .manual-toc li:hover { color: #FFFFFF; }
+  .manual-toc a { color: inherit; text-decoration: none; }
+
+  .manual-section {
+    background: var(--bg-manual);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    transition: background 0.2s ease;
+  }
+  .manual-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .manual-section h3 .step-num {
+    background: var(--hd-blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .manual-section p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+  .manual-section ul, .manual-section ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+  .manual-section li {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 4px;
+  }
+  .manual-tip {
+    background: var(--bg-tip);
+    border-left: 4px solid var(--hd-amber);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-tip);
+    margin: 10px 0;
+  }
+  .manual-warn {
+    background: var(--bg-warn);
+    border-left: 4px solid var(--hd-blue);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text-warn);
+    margin: 10px 0;
+  }
+  .field-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .field-table th {
+    background: var(--bg-field-tbl);
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .field-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+  .badge-auto {
+    background: #e8f4fd; color: #0070cc;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 6px; border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  html.dark .badge-auto { background: #0a2a45; color: #5aabf0; }
+  .badge-manual {
+    background: #fff3e0; color: var(--hd-amber);
+    font-size: 10px; font-weight: 700;
+    padding: 2px 6px; border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+  html.dark .badge-manual { background: #2a1800; color: #D4820A; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .col-span-2, .col-span-3 { grid-column: span 1; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .config-section { grid-template-columns: 1fr; }
+    .manual-toc ol { grid-template-columns: 1fr; }
+    .topbar-subtitle { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <!-- Heidelberg-style H logo -->
+    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="36" rx="4" fill="#0066CC"/>
+      <rect x="7" y="7" width="5" height="22" fill="white"/>
+      <rect x="24" y="7" width="5" height="22" fill="white"/>
+      <rect x="7" y="15.5" width="22" height="5" fill="white"/>
+    </svg>
+    <div>
+      <div class="topbar-brand">PRINECT <span>JDF</span> Platform</div>
+      <div class="topbar-subtitle">Heidelberg · Gerador de Produtos</div>
+    </div>
+  </div>
+  <nav class="topbar-nav">
+    <button class="nav-btn active" onclick="showPage('novo')">＋ Novo Produto</button>
+    <button class="nav-btn" onclick="showPage('historico')">Histórico</button>
+    <button class="nav-btn" onclick="showPage('config')">Configurações</button>
+    <button class="nav-btn" onclick="showPage('manual')">Manual</button>
+    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Alternar tema claro/escuro">
+      <span class="icon" id="theme-icon">☀️</span>
+      <span id="theme-label">Claro</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: NOVO PRODUTO
+══════════════════════════════════════════════ -->
+<div id="page-novo" class="page active">
+
+  <div class="section-header">
+    <h2>Cadastrar Novo Produto</h2>
+    <span class="section-badge">JDF 1.5</span>
+  </div>
+
+  <!-- CLIENTE -->
+  <div class="card">
+    <div class="card-title">Dados do Cliente</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Customer ID <span class="required">*</span> <span class="manual-tag">Manual</span></label>
+        <input type="text" id="f-customer-id" placeholder="Ex.: S150" oninput="updatePreview()"/>
+        <span class="field-hint">Código interno do cliente na sua gráfica</span>
+      </div>
+      <div class="field">
+        <label>Customer Name <span class="required">*</span> <span class="manual-tag">Manual</span></label>
+        <input type="text" id="f-customer-name" placeholder="Ex.: Heidelberg do Brasil" oninput="updatePreview()"/>
+        <span class="field-hint">Nome completo da empresa cliente</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUTO -->
+  <div class="card">
+    <div class="card-title">Dados do Produto</div>
+    <div class="grid-2">
+
+      <div class="field">
+        <label>Job Name <span class="required">*</span> <span class="manual-tag">Manual</span></label>
+        <input type="text" id="f-job-name" placeholder="Ex.: Caixa Sabão em Pó 500g" oninput="onJobNameInput()"/>
+        <span class="field-hint">Nome do trabalho para identificação</span>
+      </div>
+
+      <div class="field">
+        <label>Article Name <span class="required">*</span> <span class="manual-tag">Manual</span></label>
+        <input type="text" id="f-article-name" placeholder="Preenchido automaticamente pelo Job Name" oninput="onArticleNameInput()"/>
+        <span class="field-hint" id="article-name-hint">Preenchido automaticamente — edite se necessário</span>
+      </div>
+
+      <div class="field">
+        <label>Article ID <span class="required">*</span> <span class="auto-tag">Auto / Manual</span></label>
+        <div class="input-row">
+          <input type="text" id="f-article-id" class="auto-field" placeholder="Clique em Gerar ou digite" oninput="onArticleIDInput()"/>
+          <button class="btn btn-secondary btn-icon" onclick="generateArticleID()" title="Gerar código automático">
+            ⚡
+          </button>
+        </div>
+        <span class="field-hint" id="article-id-hint">Próximo automático: <strong id="next-article-id">—</strong></span>
+      </div>
+
+      <div class="field">
+        <label>Shape ID <span class="required">*</span> <span class="auto-tag">Auto / Manual</span></label>
+        <div class="input-row">
+          <input type="text" id="f-shape-id" class="auto-field" placeholder="Clique em Gerar ou digite" oninput="onShapeIDInput()"/>
+          <button class="btn btn-secondary btn-icon" onclick="generateShapeID()" title="Gerar código automático">
+            ⚡
+          </button>
+        </div>
+        <span class="field-hint">Próximo automático: <strong id="next-shape-id">—</strong></span>
+      </div>
+
+    </div>
+
+    <!-- JOB ID PREVIEW -->
+    <div style="margin-top:16px;">
+      <div class="field">
+        <label>Job ID <span class="auto-tag">Gerado automaticamente</span></label>
+        <div class="job-id-preview">
+          <label>Prefixo + Article ID =</label>
+          <code id="job-id-preview">—</code>
+        </div>
+        <span class="field-hint">Prefixo configurável em <strong>Configurações</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions-row">
+    <button class="btn btn-secondary" onclick="clearForm()">🗑 Limpar</button>
+    <div class="spacer"></div>
+    <button class="btn btn-primary btn-lg" onclick="submitProduct()">
+      ⬇ Gerar e Baixar JDF
+    </button>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: HISTÓRICO
+══════════════════════════════════════════════ -->
+<div id="page-historico" class="page">
+
+  <div class="section-header">
+    <h2>Histórico de Produtos</h2>
+  </div>
+
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total de Produtos</div>
+      <div class="stat-value blue" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Clientes Únicos</div>
+      <div class="stat-value" id="stat-clientes">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Último Article ID</div>
+      <div class="stat-value" id="stat-last-id" style="font-size:18px;">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Próximo Article ID</div>
+      <div class="stat-value" id="stat-next-id" style="font-size:18px;">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="search-bar">
+      <input type="text" id="hist-search" placeholder="🔍 Buscar por nome, código, cliente..." oninput="renderHistory()"/>
+      <button class="btn btn-secondary" onclick="exportJSON()">⬇ Exportar JSON</button>
+      <button class="btn btn-secondary" onclick="exportXLSX()">⬇ Exportar XLSX</button>
+      <label class="btn btn-ghost" style="cursor:pointer;">
+        ⬆ Importar JSON
+        <input type="file" accept=".json" onchange="importJSON(event)" style="display:none;"/>
+      </label>
+    </div>
+
+    <div class="table-wrap">
+      <table id="hist-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Data</th>
+            <th>Job ID</th>
+            <th>Job Name</th>
+            <th>Article ID</th>
+            <th>Article Name</th>
+            <th>Shape ID</th>
+            <th>Customer ID</th>
+            <th>Customer Name</th>
+            <th>Caminho JDF</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: CONFIGURAÇÕES
+══════════════════════════════════════════════ -->
+<div id="page-config" class="page">
+
+  <div class="section-header">
+    <h2>Configurações da Gráfica</h2>
+  </div>
+
+  <div class="config-section">
+
+    <div class="card">
+      <div class="card-title">Identidade</div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Nome da Gráfica</label>
+        <input type="text" id="cfg-grafica-name" placeholder="Ex.: Sua Gráfica"/>
+        <span class="field-hint">Exibido no topo da plataforma</span>
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Prefixo do Job ID</div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Prefixo fixo</label>
+        <input type="text" id="cfg-prefix" placeholder="Ex.: SKU_" oninput="updateConfigPreview()"/>
+        <span class="field-hint">Será adicionado antes do Article ID para formar o Job ID</span>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px; color:var(--hd-gray-400); margin-bottom:4px;">Preview do Job ID:</div>
+        <div class="job-id-preview" style="display:inline-flex;">
+          <code id="cfg-prefix-preview">SKU_12345</code>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Contador de Article ID</div>
+      <p style="font-size:13px; color:var(--hd-gray-600); margin-bottom:8px;">
+        Próximo código automático gerado:
+      </p>
+      <div class="counter-display" id="cfg-counter-display">—</div>
+      <div class="counter-controls">
+        <div class="field" style="flex:1;">
+          <label>Redefinir contador para:</label>
+          <input type="number" id="cfg-counter-input" placeholder="Ex.: 1" min="1"/>
+        </div>
+        <button class="btn btn-ghost" onclick="resetCounter()" style="margin-top:18px;">Redefinir</button>
+      </div>
+      <p style="font-size:11px; color:var(--hd-blue); margin-top:10px;">
+        ⚠ Atenção: se você digitar um Article ID manualmente, o contador não avança. Use com cuidado para evitar duplicatas.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Contador de Shape ID</div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">
+        Próximo código automático gerado:
+      </p>
+      <div class="counter-display" id="cfg-shape-counter-display">—</div>
+      <div class="counter-controls">
+        <div class="field" style="flex:1;">
+          <label>Redefinir contador para:</label>
+          <input type="number" id="cfg-shape-counter-input" placeholder="Ex.: 1" min="1"/>
+        </div>
+        <button class="btn btn-ghost" onclick="resetShapeCounter()" style="margin-top:18px;">Redefinir</button>
+      </div>
+      <p style="font-size:11px; color:var(--hd-blue); margin-top:10px;">
+        ⚠ Atenção: se você digitar um Shape ID manualmente, o contador não avança.
+      </p>
+    </div>
+
+    <div class="card col-span-2">
+      <div class="card-title">Caminho de Destino do JDF</div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+        Após gerar o JDF, o sistema exibe este caminho como instrução de onde salvar o arquivo.
+        Substitua <code>yourserver</code> pelo nome real do seu servidor Heidelberg.
+      </p>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Caminho UNC do servidor Prinect</label>
+        <input type="text" id="cfg-server-path" placeholder="Ex.: \\servidor\PTConfig\Connector\JDFImport"/>
+        <span class="field-hint">Caminho de rede Windows onde o Prinect monitora novos arquivos JDF</span>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Preview do caminho:</div>
+        <div class="job-id-preview" style="display:inline-flex; max-width:100%;">
+          <code id="cfg-path-preview" style="font-size:13px; word-break:break-all;">—</code>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Dados Armazenados</div>
+      <p style="font-size:13px; color:var(--hd-gray-600); margin-bottom:16px;">
+        Todos os dados ficam salvos no navegador (localStorage). Use o botão abaixo para apagar tudo — <strong>essa ação não pode ser desfeita.</strong>
+      </p>
+      <button class="btn btn-ghost" onclick="confirmClearAll()" style="border-color:var(--hd-blue); color:var(--hd-blue);">
+        🗑 Apagar todos os dados
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: MANUAL
+══════════════════════════════════════════════ -->
+<div id="page-manual" class="page">
+
+  <div class="section-header">
+    <h2>Manual do Usuário</h2>
+    <span class="section-badge">Guia completo</span>
+  </div>
+
+  <div class="manual-toc">
+    <h3>📋 Índice</h3>
+    <ol>
+      <li><a href="#m1">O que é esta plataforma?</a></li>
+      <li><a href="#m2">Configuração inicial (faça uma vez)</a></li>
+      <li><a href="#m3">Cadastrar um produto</a></li>
+      <li><a href="#m4">Guia de campos</a></li>
+      <li><a href="#m5">Gerar o JDF e onde salvar</a></li>
+      <li><a href="#m6">Shape ID: automático ou manual</a></li>
+      <li><a href="#m7">Histórico de produtos</a></li>
+      <li><a href="#m8">Backup: exportar e importar</a></li>
+      <li><a href="#m9">O que fazer com o arquivo JDF?</a></li>
+    </ol>
+  </div>
+
+  <div class="manual-section" id="m1">
+    <h3><span class="step-num">1</span> O que é esta plataforma?</h3>
+    <p>
+      Esta plataforma gera arquivos <strong>JDF</strong> para o sistema <strong>Prinect da Heidelberg</strong> de forma simples, sem precisar conhecer o Prinect diretamente.
+    </p>
+    <p>
+      JDF (Job Definition Format) é o formato que o Prinect usa para receber informações de um trabalho de impressão.
+      Você preenche um formulário, clica em um botão e o arquivo JDF é criado e baixado automaticamente.
+    </p>
+    <div class="manual-tip">
+      💡 <strong>Fluxo resumido:</strong> Preencha os dados → clique em <strong>Gerar e Baixar JDF</strong> → mova o arquivo para a pasta do servidor → o Prinect importa automaticamente.
+    </div>
+  </div>
+
+  <div class="manual-section" id="m2">
+    <h3><span class="step-num">2</span> Configuração inicial <small style="font-weight:400;font-size:13px;color:var(--text-faint)">(faça uma vez, na primeira vez)</small></h3>
+    <p>Antes de usar, vá em <strong>Configurações</strong> e preencha os itens abaixo. Após salvar, não precisa mexer de novo.</p>
+    <table class="field-table">
+      <thead><tr><th>Campo</th><th>O que é</th><th>Exemplo</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Nome da Gráfica</strong></td><td>Nome que aparece na plataforma</td><td>Sua Gráfica</td></tr>
+        <tr><td><strong>Prefixo do Job ID</strong></td><td>Texto fixo que vem antes do número do produto para formar o Job ID</td><td><code>SKU_</code> → Job ID: <code>SKU_100</code></td></tr>
+        <tr><td><strong>Contador Article ID</strong></td><td>Número de onde começa a numeração automática dos produtos. Se já tiver produtos no Prinect, coloque o próximo número da sequência.</td><td>1, 101, 5000</td></tr>
+        <tr><td><strong>Contador Shape ID</strong></td><td>Igual ao anterior, mas para os projetos de embalagem.</td><td>1, 50</td></tr>
+        <tr><td><strong>Caminho do servidor</strong></td><td>Endereço de rede onde o Prinect monitora arquivos JDF. Troque <code>yourserver</code> pelo nome do seu servidor.</td><td><code>\\servidor\PTConfig\Connector\JDFImport</code></td></tr>
+      </tbody>
+    </table>
+    <div class="manual-warn">
+      ⚠ Configure o <strong>prefixo</strong> e o <strong>caminho do servidor</strong> antes de gerar o primeiro JDF. Mudar o prefixo depois não altera os registros já salvos.
+    </div>
+  </div>
+
+  <div class="manual-section" id="m3">
+    <h3><span class="step-num">3</span> Cadastrar um produto</h3>
+    <p>Na aba <strong>Novo Produto</strong>, preencha os campos de cima para baixo:</p>
+    <ol>
+      <li><strong>Customer ID</strong> e <strong>Customer Name</strong> — código e nome do cliente que encomendou o trabalho.</li>
+      <li><strong>Job Name</strong> — nome do trabalho. O <strong>Article Name</strong> é preenchido automaticamente com o mesmo valor; edite-o se precisar de um nome diferente.</li>
+      <li><strong>Article ID</strong> — clique em ⚡ para gerar o próximo número automático, ou digite um código específico se o cliente já tiver um.</li>
+      <li><strong>Shape ID</strong> — código do projeto de embalagem. Clique em ⚡ para automático ou digite manualmente. Veja detalhes na seção 6.</li>
+      <li><strong>Job ID</strong> — aparece automaticamente: é o prefixo + Article ID. Não é editável.</li>
+      <li>Clique em <strong>⬇ Gerar e Baixar JDF</strong>.</li>
+    </ol>
+    <div class="manual-tip">
+      💡 Nenhum campo pode ficar em branco. Se o botão não funcionar, procure o campo destacado que falta preencher.
+    </div>
+  </div>
+
+  <div class="manual-section" id="m4">
+    <h3><span class="step-num">4</span> Guia de campos</h3>
+    <table class="field-table">
+      <thead>
+        <tr><th>Campo</th><th>Tipo</th><th>Descrição</th><th>Exemplo</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Customer ID</strong></td>
+          <td><span class="badge-manual">Manual</span></td>
+          <td>Código do cliente na gráfica</td>
+          <td>S150, S150</td>
+        </tr>
+        <tr>
+          <td><strong>Customer Name</strong></td>
+          <td><span class="badge-manual">Manual</span></td>
+          <td>Nome da empresa cliente</td>
+          <td>Heidelberg do Brasil</td>
+        </tr>
+        <tr>
+          <td><strong>Job Name</strong></td>
+          <td><span class="badge-manual">Manual</span></td>
+          <td>Nome do trabalho de impressão</td>
+          <td>Caixa Sabão 500g</td>
+        </tr>
+        <tr>
+          <td><strong>Article Name</strong></td>
+          <td><span class="badge-manual">Manual</span></td>
+          <td>Preenchido automaticamente pelo Job Name. Edite se quiser um nome diferente para o artigo.</td>
+          <td>Caixa Sabão 500g</td>
+        </tr>
+        <tr>
+          <td><strong>Article ID</strong></td>
+          <td><span class="badge-auto">Auto / Manual</span></td>
+          <td>Número sequencial do produto. Botão ⚡ gera o próximo automático. Se digitado à mão, o contador <em>não avança</em>.</td>
+          <td>1, 100, 5432</td>
+        </tr>
+        <tr>
+          <td><strong>Shape ID</strong></td>
+          <td><span class="badge-auto">Auto / Manual</span></td>
+          <td>Código do projeto de embalagem (faca/estrutura). Botão ⚡ gera automático, ou digite o código do fornecedor.</td>
+          <td>1, 50, HBR_1234</td>
+        </tr>
+        <tr>
+          <td><strong>Job ID</strong></td>
+          <td><span class="badge-auto">Automático</span></td>
+          <td>Gerado pela plataforma: Prefixo + Article ID. Não editável.</td>
+          <td>SKU_100</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="manual-section" id="m5">
+    <h3><span class="step-num">5</span> Gerar o JDF e onde salvar</h3>
+    <p>
+      Com todos os campos preenchidos, clique em <strong>⬇ Gerar e Baixar JDF</strong>.
+      O arquivo é baixado automaticamente para a pasta <strong>Downloads</strong> do seu computador com o nome <code>JobID_NomeProduto.jdf</code>.
+    </p>
+    <p>
+      Uma janela de confirmação abrirá mostrando o <strong>nome do arquivo</strong> e o <strong>caminho de destino</strong> configurado:
+    </p>
+    <div style="background:var(--bg-jobid);border-radius:6px;padding:14px 18px;margin:12px 0;">
+      <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Exemplo de caminho de destino</div>
+      <code style="font-family:var(--mono);font-size:13px;color:var(--text-jobid);">\\servidor\PTConfig\Connector\JDFImport</code>
+    </div>
+    <p>Mova o arquivo da pasta Downloads para esse caminho. O Prinect monitora essa pasta e importa o arquivo automaticamente.</p>
+    <div class="manual-tip">
+      💡 Use o botão <strong>📋 Copiar caminho</strong> na janela de confirmação para copiar o endereço e colar direto no Explorador de Arquivos do Windows.
+    </div>
+    <div class="manual-warn">
+      ⚠ O caminho de destino é configurado em <strong>Configurações → Caminho de Destino do JDF</strong>. Se aparecer "(não configurado)", faça isso antes de continuar.
+    </div>
+  </div>
+
+  <div class="manual-section" id="m6">
+    <h3><span class="step-num">6</span> Shape ID: automático ou manual</h3>
+    <p>O Shape ID identifica o projeto de embalagem. Você tem duas opções:</p>
+    <ul>
+      <li><strong>Automático (⚡):</strong> clique no botão e o sistema gera o próximo número sequencial. O contador avança a cada clique.</li>
+      <li><strong>Manual:</strong> digite o código fornecido pelo seu departamento de criação (ex.: <code>HBR_1234</code>). O contador interno <em>não é afetado</em>.</li>
+    </ul>
+    <p>O contador do Shape ID é independente do contador do Article ID e pode ser redefinido em <strong>Configurações → Contador de Shape ID</strong>.</p>
+    <div class="manual-tip">
+      💡 Se o departamento de criação usa numeração própria, sempre use o código dele no campo Shape ID — não clique em ⚡.
+    </div>
+  </div>
+
+  <div class="manual-section" id="m7">
+    <h3><span class="step-num">7</span> Histórico de produtos</h3>
+    <p>A aba <strong>Histórico</strong> guarda todos os produtos já cadastrados. O que você pode fazer lá:</p>
+    <ul>
+      <li><strong>Buscar</strong> qualquer produto pelo nome, código ou cliente</li>
+      <li><strong>Baixar novamente o JDF</strong> de qualquer produto já gerado (botão ⬇ na linha)</li>
+      <li><strong>Ver o caminho</strong> do servidor que estava configurado no momento do cadastro</li>
+      <li><strong>Excluir</strong> um registro (botão 🗑) — só remove do histórico, não apaga o JDF baixado</li>
+      <li>Ver os <strong>indicadores</strong> no topo: total de produtos, clientes únicos, próximo ID</li>
+    </ul>
+  </div>
+
+  <div class="manual-section" id="m8">
+    <h3><span class="step-num">8</span> Backup: exportar e importar</h3>
+    <p>Os dados ficam salvos no navegador. Se limpar o cache ou trocar de computador, os dados somem. Por isso, faça backup regularmente:</p>
+    <ul>
+      <li><strong>Exportar JSON:</strong> salva todos os registros num arquivo <code>.json</code>. É o backup completo — guarde em pasta segura ou no servidor.</li>
+      <li><strong>Exportar CSV:</strong> gera uma planilha que abre direto no Excel, útil para relatórios ou envio por e-mail.</li>
+      <li><strong>Importar JSON:</strong> carrega um backup anterior. Os registros são <em>adicionados</em> aos existentes — duplicatas são ignoradas automaticamente.</li>
+    </ul>
+    <div class="manual-warn">
+      ⚠ Nunca limpe o histórico do navegador sem antes exportar o JSON. Dados apagados do navegador não têm recuperação.
+    </div>
+  </div>
+
+  <div class="manual-section" id="m9">
+    <h3><span class="step-num">9</span> O que fazer com o arquivo JDF?</h3>
+    <p>Após baixar o <code>.jdf</code> e mover para a pasta do servidor:</p>
+    <ol>
+      <li>O <strong>Prinect Connector</strong> detecta o arquivo automaticamente na pasta <code>JDFImport</code>.</li>
+      <li>O trabalho aparece no <strong>Prinect Cockpit</strong> como um novo job aguardando processamento.</li>
+      <li>Abra o job no Cockpit e <strong>anexe o arquivo de arte</strong> (pdf) manualmente.</li>
+      <li>Siga o fluxo normal de pré-impressão no Prinect.</li>
+    </ol>
+    <div class="manual-tip">
+      💡 Se o arquivo JDF não aparecer no Cockpit após alguns minutos, verifique se o serviço <strong>Prinect Connector</strong> está ativo no servidor e se o caminho configurado está correto.
+    </div>
+    <div class="manual-warn">
+      ⚠ Para dúvidas técnicas sobre o Prinect Connector ou o Cockpit, consulte o suporte da <strong>Heidelberg</strong> ou o manual do Prinect Integration Manager.
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Confirmar ação</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modal-confirm-btn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-path">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-title">📄 Pronto para salvar o JDF</div>
+    <div class="modal-body">
+      <p style="margin-bottom:14px;">Copie o caminho abaixo, depois clique em <strong>Salvar arquivo JDF</strong> e cole na barra do diálogo do Windows.</p>
+      <div style="background:var(--bg-jobid);border-radius:6px;padding:12px 16px;margin-bottom:14px;">
+        <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Nome do arquivo</div>
+        <code id="modal-path-filename" style="font-family:var(--mono);font-size:14px;color:var(--text-jobid);word-break:break-all;"></code>
+      </div>
+      <div style="background:var(--bg-jobid);border-radius:6px;padding:12px 16px;margin-bottom:10px;">
+        <div style="font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Salvar em</div>
+        <code id="modal-path-dest" style="font-family:var(--mono);font-size:13px;color:var(--text-jobid);word-break:break-all;"></code>
+      </div>
+      <div style="background:var(--bg-tip);border-left:4px solid var(--hd-amber);border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:var(--text-tip);">
+        💡 Copie o caminho → clique em <strong>Salvar arquivo JDF</strong> → cole o caminho na barra do diálogo → clique Salvar.
+      </div>
+      <div id="modal-path-unconfigured" style="display:none;background:var(--bg-warn);border-left:4px solid var(--hd-blue);border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:var(--text-warn);margin-top:10px;">
+        ⚠ Caminho do servidor não configurado. Vá em <strong>Configurações → Caminho de Destino do JDF</strong> para definir.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cancelPathModal()">Cancelar</button>
+      <button class="btn btn-secondary" onclick="copyPath()">📋 Copiar caminho</button>
+      <button class="btn btn-primary" onclick="saveJDFFromModal()">⬇ Salvar arquivo JDF</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script>
+// ── HELPERS ────────────────────────────────────
+function fmtCounter(n) {
+  // Display: plain number with thousand separator, no leading zeros
+  return Number(n).toLocaleString('pt-BR');
+}
+function padCounter(n) {
+  return String(n);
+}
+
+// ── STATE ──────────────────────────────────────
+const DB_KEY = 'prinect_db';
+const CFG_KEY = 'prinect_cfg';
+
+function loadDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || []; }
+  catch { return []; }
+}
+function saveDB(db) {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+function loadCfg() {
+  try {
+    return JSON.parse(localStorage.getItem(CFG_KEY)) || {
+      prefix: 'SKU_',
+      counter: 1,
+      shapeCounter: 1,
+      graficaName: '',
+      serverPath: '\\\\yourserver\\PTConfig\\Connector\\JDFImport'
+    };
+  } catch {
+    return { prefix: 'SKU_', counter: 1, shapeCounter: 1, graficaName: '', serverPath: '\\\\yourserver\\PTConfig\\Connector\\JDFImport' };
+  }
+}
+function saveCfg(cfg) {
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+}
+
+// ── NAVIGATION ─────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  btns.forEach(b => { if (b.textContent.toLowerCase().includes(name.slice(0,4))) b.classList.add('active'); });
+
+  if (name === 'historico') renderHistory();
+  if (name === 'config') loadConfigPage();
+  if (name === 'novo') { updateNextArticleHint(); updateNextShapeHint(); }
+}
+
+// Fix nav active state properly
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ── FORM LOGIC ─────────────────────────────────
+function updatePreview() {
+  const cfg = loadCfg();
+  const articleId = document.getElementById('f-article-id').value.trim();
+  const jobId = articleId ? (cfg.prefix + articleId) : '—';
+  document.getElementById('job-id-preview').textContent = jobId;
+}
+
+function updateNextArticleHint() {
+  const cfg = loadCfg();
+  document.getElementById('next-article-id').textContent = fmtCounter(cfg.counter);
+}
+
+function generateArticleID() {
+  const cfg = loadCfg();
+  const val = String(cfg.counter);
+  document.getElementById('f-article-id').value = val;
+  updatePreview();
+}
+
+function onArticleIDInput() {
+  updatePreview();
+}
+
+function generateShapeID() {
+  const cfg = loadCfg();
+  document.getElementById('f-shape-id').value = String(cfg.shapeCounter);
+  updatePreview();
+}
+
+function onShapeIDInput() {
+  updatePreview();
+}
+
+function updateNextShapeHint() {
+  const cfg = loadCfg();
+  document.getElementById('next-shape-id').textContent = fmtCounter(cfg.shapeCounter);
+}
+
+function onJobNameInput() {
+  const jobName = document.getElementById('f-job-name').value;
+  // Only mirror to Article Name if user hasn't manually changed it
+  const articleField = document.getElementById('f-article-name');
+  if (!articleField.dataset.manuallyEdited) {
+    articleField.value = jobName;
+  }
+  updatePreview();
+}
+
+function onArticleNameInput() {
+  const articleField = document.getElementById('f-article-name');
+  const jobName = document.getElementById('f-job-name').value;
+  // Mark as manually edited only if the user typed something different from job name
+  if (articleField.value !== jobName) {
+    articleField.dataset.manuallyEdited = '1';
+  } else {
+    delete articleField.dataset.manuallyEdited;
+  }
+  updatePreview();
+}
+
+
+
+function clearForm() {
+  ['f-customer-id','f-customer-name','f-job-name','f-article-name','f-article-id','f-shape-id']
+    .forEach(id => document.getElementById(id).value = '');
+  delete document.getElementById('f-article-name').dataset.manuallyEdited;
+  document.getElementById('job-id-preview').textContent = '—';
+  updateNextArticleHint();
+  updateNextShapeHint();
+}
+
+// pending product waiting for Save confirmation
+let _pendingProduct = null;
+let _pendingCfgSnapshot = null;
+
+function submitProduct() {
+  const fields = {
+    customerID:   document.getElementById('f-customer-id').value.trim(),
+    customerName: document.getElementById('f-customer-name').value.trim(),
+    jobName:      document.getElementById('f-job-name').value.trim(),
+    articleName:  document.getElementById('f-article-name').value.trim(),
+    articleID:    document.getElementById('f-article-id').value.trim(),
+    shapeID:      document.getElementById('f-shape-id').value.trim(),
+  };
+
+  const missing = [];
+  if (!fields.customerID)   missing.push('Customer ID');
+  if (!fields.customerName) missing.push('Customer Name');
+  if (!fields.jobName)      missing.push('Job Name');
+  if (!fields.articleName)  missing.push('Article Name');
+  if (!fields.articleID)    missing.push('Article ID');
+  if (!fields.shapeID)      missing.push('Shape ID');
+  if (missing.length > 0) { toast('Preencha: ' + missing.join(', '), 'warning'); return; }
+
+  const cfg = loadCfg();
+  const jobID = cfg.prefix + fields.articleID;
+  const safeName = (fields.articleName || 'produto').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const fileName = `${jobID}_${safeName}.jdf`;
+
+  const product = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    jobID,
+    jobName:      fields.jobName,
+    articleID:    fields.articleID,
+    articleName:  fields.articleName,
+    shapeID:      fields.shapeID,
+    customerID:   fields.customerID,
+    customerName: fields.customerName,
+    serverPath:   cfg.serverPath || '',
+  };
+
+  // Store pending — not committed to DB yet
+  _pendingProduct = product;
+  _pendingCfgSnapshot = {
+    cfg,
+    wasArticleAuto: fields.articleID === String(cfg.counter),
+    wasShapeAuto:   fields.shapeID   === String(cfg.shapeCounter),
+  };
+
+  // Show modal FIRST so user can copy the path
+  const path = cfg.serverPath || '(não configurado — vá em Configurações)';
+  showPathModal(fileName, path);
+}
+
+async function saveJDFFromModal() {
+  if (!_pendingProduct) return;
+  const product = _pendingProduct;
+  const { cfg, wasArticleAuto, wasShapeAuto } = _pendingCfgSnapshot;
+
+  try {
+    await downloadJDF(product);
+  } catch(err) {
+    if (err && err.name === 'AbortError') {
+      toast('Operação cancelada. Nenhum arquivo foi salvo.', 'warning');
+      return; // modal stays open
+    }
+    toast('Erro ao salvar o arquivo.', 'warning');
+    return;
+  }
+
+  // File saved — now commit to DB and advance counters
+  const db = loadDB();
+  db.push(product);
+  saveDB(db);
+
+  if (wasArticleAuto) cfg.counter++;
+  if (wasShapeAuto)   cfg.shapeCounter++;
+  if (wasArticleAuto || wasShapeAuto) saveCfg(cfg);
+
+  _pendingProduct = null;
+  _pendingCfgSnapshot = null;
+
+  closePathModal();
+  toast('JDF salvo e produto cadastrado!', 'success');
+  clearForm();
+  updateNextArticleHint();
+  updateNextShapeHint();
+}
+
+function cancelPathModal() {
+  _pendingProduct = null;
+  _pendingCfgSnapshot = null;
+  closePathModal();
+  toast('Operação cancelada.', 'warning');
+}
+
+// ── JDF GENERATOR ──────────────────────────────
+// Estrutura espelhada 1:1 a partir do JDF_Product.jdf de referência.
+// Placeholders substituídos: Prinect_JobID, Prinect_JobName, Prinect_ArticleID,
+// Prinect_CustomerID, Prinect_CustomerName, Prinect_ShapeID.
+function buildJDF(p) {
+  const jobID        = escXML(p.jobID);
+  const jobName      = escXML(p.jobName);
+  const articleID    = escXML(p.articleID);
+  const customerID   = escXML(p.customerID);
+  const customerName = escXML(p.customerName);
+  const shapeID      = escXML(p.shapeID);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<JDF
+    Category="OneupProduct"
+    DescriptiveName="${jobName}"
+    ICSVersions="Base_L1-1.5 Base_L2-1.5 JMF_L1-1.5 JMF_L2-1.5 MIS_L1-1.5 MIS_L2-1.5"
+    ID="ID__104004"
+    JobID="${jobID}"
+    JobPartID="ID__104004"
+    MaxVersion="1.5"
+    Status="Ready"
+    Type="Product"
+    Version="1.5"
+    xmlns="http://www.CIP4.org/JDFSchema_1_1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:type="Product">
+
+\t<GeneralID DataType="string" IDUsage="ProductClass" IDValue="Prepress"/>
+\t<GeneralID IDUsage="ProductionType" IDValue="Prepress_Box"/>
+
+\t<ResourcePool>
+
+\t\t<NodeInfo
+\t\t\tClass="Parameter"
+\t\t\tID="NI_ID1376"
+\t\t\tStatus="Available"/>
+
+\t\t<Assembly
+\t\t\tAssemblyIDs="${articleID}"
+\t\t\tClass="Parameter"
+\t\t\tDescriptiveName="${jobName}"
+\t\t\tID="AS000"
+\t\t\tOrder="None"
+\t\t\tPartIDKeys="PartVersion"
+\t\t\tStatus="Available">
+
+\t\t\t<Assembly
+\t\t\t\tDescriptiveName="${jobName}"
+\t\t\t\tPartVersion="${articleID}">
+
+\t\t\t\t<PageListRef rRef="ID_PageList">
+\t\t\t\t\t<Part PartVersion="${articleID}"/>
+\t\t\t\t</PageListRef>
+
+\t\t\t</Assembly>
+
+\t\t</Assembly>
+
+\t\t<Component
+\t\t\tAssemblyIDs="${articleID}"
+\t\t\tClass="Quantity"
+\t\t\tComponentType="FinalProduct"
+\t\t\tID="COMP.1344.F"
+\t\t\tPartIDKeys="PartVersion"
+\t\t\tProductType="Box"
+\t\t\tStatus="Unavailable">
+
+\t\t\t<Component
+\t\t\t\tCatalogID="${articleID}"
+\t\t\t\tDescriptiveName="${jobName}"
+\t\t\t\tPartVersion="${articleID}"
+\t\t\t\tProductID="${articleID}"/>
+
+\t\t</Component>
+
+\t\t<CustomerInfo
+\t\t\tID="CI_1"
+\t\t\tClass="Parameter"
+\t\t\tStatus="Available"
+\t\t\tCustomerID="${customerID}">
+
+\t\t\t<Contact ContactTypes="Customer">
+\t\t\t\t<Company OrganizationName="${customerName}"/>
+\t\t\t</Contact>
+
+\t\t</CustomerInfo>
+
+\t\t<LayoutElementProductionParams
+\t\t\tClass="Parameter"
+\t\t\tID="LP1344_01"
+\t\t\tStatus="Available"/>
+
+\t\t<PageList
+\t\t\tClass="Parameter"
+\t\t\tID="ID_PageList"
+\t\t\tPartIDKeys="PartVersion"
+\t\t\tStatus="Available">
+
+\t\t\t<PageList
+\t\t\t\tAssemblyIDs="${articleID}"
+\t\t\t\tDescriptiveName="${jobName}"
+\t\t\t\tPartVersion="${articleID}"
+\t\t\t\tProductID="${articleID}">
+
+\t\t\t\t<PageData
+\t\t\t\t\tPageStatus="DigitalArtArrived"
+\t\t\t\t\tProductID="${articleID}"/>
+
+\t\t\t</PageList>
+
+\t\t</PageList>
+
+\t</ResourcePool>
+
+\t<ResourceLinkPool>
+
+\t\t<NodeInfoLink
+\t\t\tUsage="Input"
+\t\t\trRef="NI_ID1376"/>
+
+\t\t<CustomerInfoLink
+\t\t\tUsage="Input"
+\t\t\trRef="CI_1"/>
+
+\t\t<ComponentLink
+\t\t\tUsage="Output"
+\t\t\trRef="COMP.1344.F">
+
+\t\t\t<AmountPool>
+\t\t\t\t<PartAmount Amount="1">
+\t\t\t\t\t<Part PartVersion="${articleID}"/>
+\t\t\t\t</PartAmount>
+\t\t\t</AmountPool>
+
+\t\t\t<Part PartVersion="${articleID}"/>
+
+\t\t</ComponentLink>
+
+\t</ResourceLinkPool>
+
+\t<JDF
+\t\tDescriptiveName="${jobName}"
+\t\tID="JDF-000989.01"
+\t\tJobPartID="JDF-000989.01"
+\t\tStatus="Waiting"
+\t\tType="Product">
+
+\t\t<ResourcePool>
+
+\t\t\t<ShapeCuttingIntent
+\t\t\t\tClass="Intent"
+\t\t\t\tID="ID_ShapeDef1"
+\t\t\t\tStatus="Available">
+
+\t\t\t\t<GeneralID
+\t\t\t\t\tDataType="NMTOKEN"
+\t\t\t\t\tIDUsage="ShapeID"
+\t\t\t\t\tIDValue="${shapeID}"/>
+
+\t\t\t\t<GeneralID
+\t\t\t\t\tDataType="string"
+\t\t\t\t\tIDUsage="ShapeName"
+\t\t\t\t\tIDValue="Box"/>
+
+\t\t\t</ShapeCuttingIntent>
+
+\t\t</ResourcePool>
+
+\t\t<ResourceLinkPool>
+
+\t\t\t<ComponentLink
+\t\t\t\tUsage="Output"
+\t\t\t\trRef="COMP.1344.F"/>
+
+\t\t\t<ShapeCuttingIntentLink
+\t\t\t\tUsage="Input"
+\t\t\t\trRef="ID_ShapeDef1"/>
+
+\t\t</ResourceLinkPool>
+
+\t\t<JDF
+\t\t\tCategory="PrePress"
+\t\t\tDescriptiveName="${jobName}"
+\t\t\tID="PR__000"
+\t\t\tJobPartID="PR__000"
+\t\t\tStatus="Waiting"
+\t\t\tType="ProcessGroup"
+\t\t\txsi:type="ProcessGroup">
+
+\t\t\t<ResourcePool>
+
+\t\t\t\t<RunList
+\t\t\t\t\tClass="Parameter"
+\t\t\t\t\tDescriptiveName="${jobName}"
+\t\t\t\t\tID="Link97487_000043"
+\t\t\t\t\tNPage="1"
+\t\t\t\t\tPartIDKeys="Run"
+\t\t\t\t\tStatus="Unavailable">
+
+\t\t\t\t\t<RunList Run="1">
+
+\t\t\t\t\t\t<LayoutElement>
+\t\t\t\t\t\t\t<FileSpec URL=""/>
+\t\t\t\t\t\t</LayoutElement>
+
+\t\t\t\t\t</RunList>
+
+\t\t\t\t\t<PageListRef rRef="ID_PageList">
+\t\t\t\t\t\t<Part PartVersion="${articleID}"/>
+\t\t\t\t\t</PageListRef>
+
+\t\t\t\t</RunList>
+
+\t\t\t\t<RunList
+\t\t\t\t\tClass="Parameter"
+\t\t\t\t\tID="Link974787_000044"
+\t\t\t\t\tStatus="Unavailable"/>
+
+\t\t\t</ResourcePool>
+
+\t\t\t<ResourceLinkPool/>
+
+\t\t\t<JDF
+\t\t\t\tCategory="PrePressPreparation"
+\t\t\t\tDescriptiveName="PrePressPreparation"
+\t\t\t\tID="PRO-1344.5"
+\t\t\t\tJobPartID="1344.5"
+\t\t\t\tStatus="Waiting"
+\t\t\t\tType="ProcessGroup"
+\t\t\t\tTypes="PrePressPreparation">
+
+\t\t\t\t<ResourceLinkPool>
+
+\t\t\t\t\t<LayoutElementProductionParamsLink
+\t\t\t\t\t\tUsage="Input"
+\t\t\t\t\t\trRef="LP1344_01"/>
+
+\t\t\t\t\t<RunListLink
+\t\t\t\t\t\tUsage="Input"
+\t\t\t\t\t\trRef="Link97487_000043"/>
+
+\t\t\t\t\t<RunListLink
+\t\t\t\t\t\tUsage="Output"
+\t\t\t\t\t\trRef="Link974787_000044"/>
+
+\t\t\t\t</ResourceLinkPool>
+
+\t\t\t\t<ResourcePool/>
+
+\t\t\t</JDF>
+
+\t\t</JDF>
+
+\t</JDF>
+
+</JDF>`;
+}
+
+function escXML(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+async function downloadJDF(product) {
+  const xml = buildJDF(product);
+  const safeName = (product.articleName || 'produto').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const fileName = `${product.jobID}_${safeName}.jdf`;
+
+  // Try File System Access API (Chrome/Edge — opens native "Save As" dialog)
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{
+          description: 'JDF File',
+          accept: { 'application/xml': ['.jdf'] }
+        }],
+        startIn: 'downloads'
+      });
+      const writable = await handle.createWritable();
+      await writable.write(xml);
+      await writable.close();
+      return; // success — caller handles modal/toast
+    } catch (err) {
+      // User cancelled the dialog — abort silently
+      if (err.name === 'AbortError') throw err;
+      // Any other error: fall through to legacy download
+    }
+  }
+
+  // Fallback: legacy download (Firefox, Safari, older browsers)
+  const blob = new Blob([xml], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+}
+
+// ── HISTORY ────────────────────────────────────
+function renderHistory() {
+  const db = loadDB();
+  const q = (document.getElementById('hist-search').value || '').toLowerCase();
+
+  const filtered = db.filter(p =>
+    !q ||
+    Object.values(p).some(v => String(v).toLowerCase().includes(q))
+  );
+
+  // Stats
+  const cfg = loadCfg();
+  document.getElementById('stat-total').textContent = db.length;
+  const uniqueClients = [...new Set(db.map(p => p.customerID))].length;
+  document.getElementById('stat-clientes').textContent = uniqueClients;
+  const lastAuto = db.filter(p => /^\d+$/.test(p.articleID)).sort((a,b) => Number(b.articleID)-Number(a.articleID));
+  document.getElementById('stat-last-id').textContent = lastAuto.length ? lastAuto[0].articleID : '—';
+  document.getElementById('stat-next-id').textContent = fmtCounter(cfg.counter);
+
+  const tbody = document.getElementById('hist-tbody');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11">
+      <div class="empty-state">
+        <div class="empty-icon">📂</div>
+        <p>${db.length === 0 ? 'Nenhum produto cadastrado ainda. Comece pelo <strong>Novo Produto</strong>.' : 'Nenhum resultado para a busca.'}</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.slice().reverse().map((p, i) => {
+    const date = new Date(p.date).toLocaleDateString('pt-BR');
+    return `<tr>
+      <td style="color:var(--hd-gray-400);font-size:12px;">${filtered.length - i}</td>
+      <td style="color:var(--hd-gray-400);font-size:12px;">${date}</td>
+      <td class="mono">${escHTML(p.jobID)}</td>
+      <td>${escHTML(p.jobName)}</td>
+      <td class="mono">${escHTML(p.articleID)}</td>
+      <td>${escHTML(p.articleName)}</td>
+      <td class="mono">${escHTML(p.shapeID)}</td>
+      <td class="mono">${escHTML(p.customerID)}</td>
+      <td>${escHTML(p.customerName)}</td>
+      <td class="mono" style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHTML(p.serverPath || '')}">${escHTML(p.serverPath || '—')}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-secondary btn-icon" title="Baixar novamente o JDF" onclick="redownload(${p.id})">⬇</button>
+        <button class="btn btn-icon" style="color:var(--hd-blue);background:none;border:1px solid var(--border);" title="Excluir" onclick="deleteProduct(${p.id})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escHTML(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s || '');
+  return d.innerHTML;
+}
+
+function redownload(id) {
+  const db = loadDB();
+  const p = db.find(x => x.id === id);
+  if (!p) return;
+  downloadJDF(p).then(() => {
+    toast('JDF salvo: ' + p.jobID, 'success');
+  }).catch(err => {
+    if (err && err.name === 'AbortError') toast('Operação cancelada.', 'warning');
+  });
+}
+
+function deleteProduct(id) {
+  showModal(
+    'Excluir produto',
+    'Deseja excluir este produto do histórico? O arquivo JDF já baixado não será afetado.',
+    () => {
+      const db = loadDB().filter(x => x.id !== id);
+      saveDB(db);
+      renderHistory();
+      toast('Produto removido do histórico.', 'warning');
+    }
+  );
+}
+
+// ── EXPORT / IMPORT ────────────────────────────
+function exportJSON() {
+  const db = loadDB();
+  if (db.length === 0) { toast('Nenhum produto para exportar.', 'warning'); return; }
+  const blob = new Blob([JSON.stringify({ version: 1, exported: new Date().toISOString(), records: db }, null, 2)], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `prinect_base_${new Date().toISOString().slice(0,10)}.json`;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  toast('Base exportada como JSON!', 'success');
+}
+
+function exportXLSX() {
+  const db = loadDB();
+  if (db.length === 0) { toast('Nenhum produto para exportar.', 'warning'); return; }
+
+  // Build CSV with BOM for Excel compatibility
+  const headers = ['#','Data','Job ID','Job Name','Article ID','Article Name','Shape ID','Customer ID','Customer Name','Caminho JDF'];
+  const rows = db.map((p, i) => [
+    i + 1,
+    new Date(p.date).toLocaleDateString('pt-BR'),
+    p.jobID, p.jobName, p.articleID, p.articleName, p.shapeID, p.customerID, p.customerName, p.serverPath || ''
+  ]);
+
+  // Simple XLSX via CSV with UTF-8 BOM
+  const csvContent = '\uFEFF' + [headers, ...rows]
+    .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';'))
+    .join('\r\n');
+
+  const blob = new Blob([csvContent], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `prinect_base_${new Date().toISOString().slice(0,10)}.csv`;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  toast('Base exportada! Abra no Excel — ele lê .csv nativamente.', 'success');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const incoming = parsed.records || parsed; // support both formats
+      if (!Array.isArray(incoming)) throw new Error('Formato inválido');
+
+      const db = loadDB();
+      const existingIds = new Set(db.map(p => p.id));
+      let added = 0;
+      incoming.forEach(p => {
+        if (!existingIds.has(p.id)) {
+          db.push(p);
+          added++;
+        }
+      });
+      saveDB(db);
+      renderHistory();
+      toast(`${added} registro(s) importado(s). ${incoming.length - added} já existiam.`, 'success');
+    } catch(err) {
+      toast('Erro ao importar: arquivo inválido.', 'warning');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── CONFIG ─────────────────────────────────────
+function loadConfigPage() {
+  const cfg = loadCfg();
+  document.getElementById('cfg-prefix').value = cfg.prefix || '';
+  document.getElementById('cfg-grafica-name').value = cfg.graficaName || '';
+  document.getElementById('cfg-server-path').value = cfg.serverPath || '';
+  document.getElementById('cfg-path-preview').textContent = cfg.serverPath || '(não configurado)';
+  document.getElementById('cfg-counter-display').textContent = fmtCounter(cfg.counter);
+  document.getElementById('cfg-shape-counter-display').textContent = fmtCounter(cfg.shapeCounter || 1);
+  updateConfigPreview();
+}
+
+function updateConfigPreview() {
+  const prefix = document.getElementById('cfg-prefix').value || '';
+  const cfg = loadCfg();
+  document.getElementById('cfg-prefix-preview').textContent = prefix + padCounter(cfg.counter);
+}
+
+function saveConfig() {
+  const cfg = loadCfg();
+  cfg.prefix = document.getElementById('cfg-prefix').value.trim();
+  cfg.graficaName = document.getElementById('cfg-grafica-name').value.trim();
+  cfg.serverPath  = document.getElementById('cfg-server-path').value.trim();
+  document.getElementById('cfg-path-preview').textContent = cfg.serverPath || '(não configurado)';
+  saveCfg(cfg);
+  updateConfigPreview();
+  document.getElementById('cfg-counter-display').textContent = fmtCounter(cfg.counter);
+  document.getElementById('cfg-shape-counter-display').textContent = fmtCounter(cfg.shapeCounter || 1);
+  toast('Configurações salvas!', 'success');
+  updateNextArticleHint();
+}
+
+function resetCounter() {
+  const val = parseInt(document.getElementById('cfg-counter-input').value);
+  if (isNaN(val) || val < 1) { toast('Digite um número válido (mínimo 1).', 'warning'); return; }
+  showModal(
+    'Redefinir contador',
+    `O próximo Article ID automático será <code>${padCounter(val)}</code>. Confirma?`,
+    () => {
+      const cfg = loadCfg();
+      cfg.counter = val;
+      saveCfg(cfg);
+      document.getElementById('cfg-counter-display').textContent = fmtCounter(val);
+      updateNextArticleHint();
+      toast('Contador redefinido para ' + fmtCounter(val), 'success');
+    }
+  );
+}
+
+function resetShapeCounter() {
+  const val = parseInt(document.getElementById('cfg-shape-counter-input').value);
+  if (isNaN(val) || val < 1) { toast('Digite um número válido (mínimo 1).', 'warning'); return; }
+  showModal(
+    'Redefinir contador de Shape ID',
+    `O próximo Shape ID automático será <code>${val}</code>. Confirma?`,
+    () => {
+      const cfg = loadCfg();
+      cfg.shapeCounter = val;
+      saveCfg(cfg);
+      document.getElementById('cfg-shape-counter-display').textContent = fmtCounter(val);
+      updateNextShapeHint();
+      toast('Contador de Shape ID redefinido para ' + fmtCounter(val), 'success');
+    }
+  );
+}
+
+function confirmClearAll() {
+  showModal(
+    '⚠ Apagar todos os dados',
+    'Isso irá remover <strong>todos os produtos</strong> do histórico e resetar as configurações. Esta ação <strong>não pode ser desfeita</strong>.',
+    () => {
+      localStorage.removeItem(DB_KEY);
+      localStorage.removeItem(CFG_KEY);
+      toast('Todos os dados foram apagados.', 'warning');
+      loadConfigPage();
+    }
+  );
+}
+
+// ── MODAL ──────────────────────────────────────
+let _modalCallback = null;
+function showModal(title, body, callback) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  _modalCallback = callback;
+  document.getElementById('modal-confirm').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-confirm').classList.remove('open');
+  _modalCallback = null;
+}
+document.getElementById('modal-confirm-btn').onclick = () => {
+  if (_modalCallback) _modalCallback();
+  closeModal();
+};
+document.getElementById('modal-confirm').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ── TOAST ──────────────────────────────────────
+function toast(msg, type = 'info') {
+  const icons = { success: '✅', warning: '⚠️', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── THEME ───────────────────────────────────────
+function applyTheme(dark) {
+  if (dark) {
+    document.documentElement.classList.add('dark');
+    document.getElementById('theme-icon').textContent = '🌙';
+    document.getElementById('theme-label').textContent = 'Escuro';
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.getElementById('theme-icon').textContent = '☀️';
+    document.getElementById('theme-label').textContent = 'Claro';
+  }
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  applyTheme(!isDark);
+  localStorage.setItem('prinect_theme', !isDark ? 'dark' : 'light');
+}
+
+// Apply saved theme immediately
+(function() {
+  const saved = localStorage.getItem('prinect_theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved === 'dark' || (!saved && prefersDark));
+})();
+
+// ── PATH MODAL ─────────────────────────────────
+function showPathModal(fileName, path) {
+  document.getElementById('modal-path-filename').textContent = fileName;
+  const configured = path && !path.includes('não configurado');
+  document.getElementById('modal-path-dest').textContent = configured ? path : '—';
+  document.getElementById('modal-path-unconfigured').style.display = configured ? 'none' : 'block';
+  document.getElementById('modal-path').classList.add('open');
+}
+function closePathModal() {
+  document.getElementById('modal-path').classList.remove('open');
+}
+function copyPath() {
+  const path = document.getElementById('modal-path-dest').textContent;
+  if (path && path !== '—') {
+    navigator.clipboard.writeText(path).then(() => toast('Caminho copiado!', 'success'));
+  } else {
+    toast('Nenhum caminho configurado para copiar.', 'warning');
+  }
+}
+
+// ── INIT ───────────────────────────────────────
+updateNextArticleHint();
+updateNextShapeHint();
+updatePreview();
+</script>
+</body>
+</html>

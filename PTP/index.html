@@ -1,100 +1,636 @@
-
-<!DOCTYPE html><html><head><meta charset='utf-8'>
-<title>Heidelberg Training Dashboard v9</title>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prinect Training Portfolio — Heidelberg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-body{font-family:Segoe UI,Arial;margin:0;background:#f3f6fb}
-.hero{background:linear-gradient(135deg,#003B7A,#0D62C9);color:#fff;padding:40px}
-.container{max-width:1700px;margin:auto;padding:20px}
-.section{background:#fff;border-radius:18px;margin-top:18px;box-shadow:0 4px 15px rgba(0,0,0,.08);overflow:hidden}
-.header{background:#003B7A;color:#fff;padding:18px 24px;cursor:pointer;display:flex;justify-content:space-between}
-.content{display:none;padding:20px}
-.cards{display:flex;gap:12px;flex-wrap:wrap}
-.card{border:2px solid #d8e3f5;border-radius:14px;padding:15px;min-width:200px;cursor:pointer;background:#fff}
-.card.active{background:#DCEBFF;border-color:#003B7A}
-.info{background:#eef4ff;border-left:5px solid #003B7A;padding:15px;border-radius:10px;margin:15px 0}
-.btn{padding:10px 14px;border:none;border-radius:20px;background:#e8eef8;cursor:pointer}
-.btn.active{background:#003B7A;color:#fff}
-table{width:100%;border-collapse:collapse}
-th{background:#0D62C9;color:white}
-th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
-td:first-child{text-align:left}
-.highlight{background:#DCEBFF!important;color:#003B7A!important;font-weight:bold}
-.hide{display:none}
-</style></head><body>
-<div class='hero'><h1>Prinect Training Portfolio</h1><p>Catálogo de treinamentos e níveis de maturidade.</p></div>
-<div class='container'>
-<div class='section'><div class='header' onclick='toggleModule(0)'><span>Prinect Production Commercial</span><span id='a0'>▶</span></div><div class='content' id='c0'><div class='cards'><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Padrão')"><b>⭐</b><br>Padrão</div><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Smart Automation')"><b>⭐⭐</b><br>Smart Automation</div><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Integração (CSV)')"><b>⭐⭐⭐</b><br>Integração (CSV)</div><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Integração (JDF)')"><b>⭐⭐⭐⭐</b><br>Integração (JDF)</div></div><div class='info'><h3 id='title0'>Selecione um modelo</h3><div id='desc0'>Escolha um card acima.</div><br><b>👥 Público-Alvo:</b> <span id='pub0'>-</span></div>
-    <button class='btn active' onclick="filterTable(event,0,'all')">Todos</button>
-    <button class='btn' onclick="filterTable(event,0,'yes')">✔ Incluídos</button>
-    <button class='btn' onclick="filterTable(event,0,'no')">❌ Não Incluídos</button>
-    <table id='t0'><thead><tr>
-    <th>Prinect Production Commercial</th><th>Padrão</th><th>Smart Automation</th><th>Integração (CSV)</th><th>Integração (JDF)</th></tr></thead><tbody><tr><td>Abertura dos trabalho (Manual)</td><td>✔️</td><td>✔️</td><td>✖</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Semi Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Automática)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Manual)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Semi Automático)</td><td>✖</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Automático)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Imposição (Manual)</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Imposição (Semi Automática)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Imposição (Automática)</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td></tr><tr><td>Gravação de Chapas (Manual)</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Gravação de Chapas (Automática)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Retorno de dados via API (Heidelberg somente entrega o Manual)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Retorno de dados via API (Heidelberg auxilia na integração)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr></tbody></table></div></div><div class='section'><div class='header' onclick='toggleModule(1)'><span>Prinect Production Packaging</span><span id='a1'>▶</span></div><div class='content' id='c1'><div class='cards'><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Padrão')"><b>⭐</b><br>Padrão</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Avançado')"><b>⭐⭐</b><br>Avançado</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Smart Automation')"><b>⭐⭐⭐</b><br>Smart Automation</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Integração (CSV)')"><b>⭐⭐⭐⭐</b><br>Integração (CSV)</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Integração (JDF)')"><b>⭐⭐⭐⭐⭐</b><br>Integração (JDF)</div></div><div class='info'><h3 id='title1'>Selecione um modelo</h3><div id='desc1'>Escolha um card acima.</div><br><b>👥 Público-Alvo:</b> <span id='pub1'>-</span></div>
-    <button class='btn active' onclick="filterTable(event,1,'all')">Todos</button>
-    <button class='btn' onclick="filterTable(event,1,'yes')">✔ Incluídos</button>
-    <button class='btn' onclick="filterTable(event,1,'no')">❌ Não Incluídos</button>
-    <table id='t1'><thead><tr>
-    <th>Prinect Production Packaging</th><th>Padrão</th><th>Avançado</th><th>Smart Automation</th><th>Integração (CSV)</th><th>Integração (JDF)</th></tr></thead><tbody><tr><td>Abertura dos trabalho (Manual)</td><td>✔️</td><td>✖</td><td>✔️</td><td>✖</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Semi Automática)</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Automática)</td><td>✖</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Manual)</td><td>✔️</td><td>✖</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Semi Automático)</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Automático)</td><td>✖</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Imposição (Manual)</td><td>✔️</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Imposição (Semi Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Imposição (Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td></tr><tr><td>Gravação de Chapas (Manual)</td><td>✔️</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Gravação de Chapas (Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Retorno de dados via API (Heidelberg somente entrega o Manual)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Retorno de dados via API (Heidelberg auxilia na integração)</td><td>✖</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr></tbody></table></div></div><div class='section'><div class='header' onclick='toggleModule(2)'><span>Prinect Package Designer</span><span id='a2'>▶</span></div><div class='content' id='c2'><div class='cards'><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Padrão')"><b>⭐</b><br>Padrão</div><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Avançado')"><b>⭐⭐</b><br>Avançado</div><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Integração (PPD)')"><b>⭐⭐⭐</b><br>Integração (PPD)</div><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Expert')"><b>⭐⭐⭐⭐</b><br>Expert</div></div><div class='info'><h3 id='title2'>Selecione um modelo</h3><div id='desc2'>Escolha um card acima.</div><br><b>👥 Público-Alvo:</b> <span id='pub2'>-</span></div>
-    <button class='btn active' onclick="filterTable(event,2,'all')">Todos</button>
-    <button class='btn' onclick="filterTable(event,2,'yes')">✔ Incluídos</button>
-    <button class='btn' onclick="filterTable(event,2,'no')">❌ Não Incluídos</button>
-    <table id='t2'><thead><tr>
-    <th>Prinect Package Designer</th><th>Padrão</th><th>Avançado</th><th>Integração (PPD)</th><th>Expert</th></tr></thead><tbody><tr><td>Ferramentas básicas</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Ferramentas avançadas</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>3D (Automático)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>3D (Avançado)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Layout (Automático)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Layout (Personalizado)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Layout (Nesting)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Ferramentas de Facaria</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>CAM (Configurar caminho)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>CAM (Conectar plotter de recorte)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Relatório padrão do sistema</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Relatório personalizado</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Integração com o Prinect Cockpit (PPD)</td><td>✖</td><td>✖</td><td>✔️</td><td>✔️</td></tr><tr><td>Construção de paramétricos (Synergy)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr></tbody></table></div></div>
+  :root{
+    --ink:#14171A;
+    --ink-soft:#2A2E33;
+    --paper:#F6F4EF;
+    --paper-card:#FFFFFF;
+    --blue:#003B7A;
+    --blue-bright:#0057B8;
+    --cyan:#00AEEF;
+    --magenta:#E6007E;
+    --yellow:#FFD400;
+    --key:#14171A;
+    --steel:#5B6470;
+    --steel-light:#8A929C;
+    --line:#DEE1E5;
+    --line-soft:#ECEEF0;
+    --paper-on-ink:#F1EEE6;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Barlow Condensed',sans-serif;margin:0}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    background:var(--ink);
+    color:var(--paper-on-ink);
+    padding:64px 32px 0;
+    overflow:hidden;
+  }
+  .hero-inner{max-width:1200px;margin:0 auto;position:relative;padding-bottom:44px}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    margin-bottom:18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{content:'';width:22px;height:1px;background:var(--cyan)}
+  .hero h1{
+    font-weight:900;
+    text-transform:uppercase;
+    font-size:clamp(40px,7vw,84px);
+    line-height:.92;
+    letter-spacing:-.01em;
+  }
+  .hero h1 span{color:var(--steel-light);font-weight:600}
+  .hero p{
+    max-width:560px;
+    margin-top:20px;
+    font-size:16px;
+    line-height:1.6;
+    color:#C7CBD1;
+  }
+  .colorbar{display:flex;height:6px;width:100%}
+  .colorbar span{flex:1}
+  .colorbar span:nth-child(1){background:var(--cyan)}
+  .colorbar span:nth-child(2){background:var(--magenta)}
+  .colorbar span:nth-child(3){background:var(--yellow)}
+  .colorbar span:nth-child(4){background:var(--key)}
+
+  .regmark{position:absolute;opacity:.5}
+  .regmark svg{display:block}
+  .regmark.tr{top:36px;right:0}
+  .regmark.bl{bottom:44px;left:0}
+
+  /* ---------- LAYOUT ---------- */
+  .container{max-width:1200px;margin:0 auto;padding:36px 32px 80px}
+
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:24px;
+    align-items:center;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px 22px;
+    margin-bottom:28px;
+    font-size:13px;
+    color:var(--steel);
+  }
+  .legend b{color:var(--ink);font-weight:600}
+  .legend .dots{margin:0}
+  .legend-item{display:flex;align-items:center;gap:10px}
+
+  /* ---------- MODULE SECTION ---------- */
+  .section{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    margin-top:20px;
+    overflow:hidden;
+  }
+  .section-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:22px 26px;
+    cursor:pointer;
+    background:var(--blue);
+    color:#fff;
+    user-select:none;
+  }
+  .section-header:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px}
+  .section-header .code{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    color:#9FC4EE;
+    display:block;
+    margin-bottom:4px;
+  }
+  .section-header h2{
+    font-size:26px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.01em;
+  }
+  .arrow{
+    font-size:14px;
+    width:30px;height:30px;
+    flex:none;
+    border-radius:50%;
+    background:rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .35s ease;
+  }
+  .section.open .arrow{transform:rotate(90deg)}
+
+  .content{max-height:0;overflow:hidden;transition:max-height .4s ease}
+  .content-inner{padding:28px}
+
+  /* ---------- TIER CARDS ---------- */
+  .cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .card{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:14px 18px;
+    min-width:150px;
+    cursor:pointer;
+    background:var(--paper);
+    transition:border-color .2s ease, background .2s ease, transform .15s ease;
+  }
+  .card:hover{border-color:var(--blue-bright);transform:translateY(-2px)}
+  .card:focus-visible{outline:2px solid var(--blue-bright);outline-offset:2px}
+  .card.active{background:#EAF2FB;border-color:var(--blue)}
+  .dots{display:flex;gap:4px;margin-bottom:10px}
+  .dot{width:10px;height:10px;border-radius:2.5px;border:1.5px solid var(--line-soft);background:transparent}
+  .dot.c{background:var(--cyan);border-color:transparent}
+  .dot.m{background:var(--magenta);border-color:transparent}
+  .dot.y{background:var(--yellow);border-color:transparent}
+  .dot.k{background:var(--key);border-color:transparent}
+  .dot.b{background:var(--blue-bright);border-color:transparent}
+  .tier-name{font-weight:600;font-size:14.5px}
+
+  /* ---------- SPEC PANEL (job-ticket) ---------- */
+  .spec{
+    position:relative;
+    background:var(--ink);
+    color:var(--paper-on-ink);
+    border-radius:12px;
+    padding:22px 24px 20px;
+    margin-bottom:22px;
+  }
+  .spec h3{
+    font-size:24px;
+    text-transform:uppercase;
+    font-weight:800;
+    letter-spacing:.01em;
+    color:#fff;
+  }
+  .spec .desc{
+    margin-top:8px;
+    font-size:14.5px;
+    line-height:1.55;
+    color:#C7CBD1;
+    max-width:640px;
+  }
+  .tear{
+    border:none;
+    border-top:1.5px dashed #45494F;
+    margin:16px 0;
+  }
+  .audience{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    color:var(--cyan);
+    background:rgba(0,174,239,.1);
+    border:1px solid rgba(0,174,239,.35);
+    padding:6px 12px;
+    border-radius:20px;
+  }
+
+  /* ---------- FILTER BUTTONS ---------- */
+  .filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .btn{
+    padding:9px 16px;
+    border:1.5px solid var(--line);
+    border-radius:20px;
+    background:var(--paper-card);
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    color:var(--steel);
+    display:flex;align-items:center;gap:7px;
+    transition:all .15s ease;
+  }
+  .btn:hover{border-color:var(--blue-bright)}
+  .btn:focus-visible{outline:2px solid var(--blue-bright);outline-offset:2px}
+  .btn .swatch{width:8px;height:8px;border-radius:2px}
+  .btn[data-mode="all"] .swatch{background:var(--steel-light)}
+  .btn[data-mode="yes"] .swatch{background:var(--cyan)}
+  .btn[data-mode="no"] .swatch{background:var(--line)}
+  .btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn.active .swatch{background:#fff}
+
+  /* ---------- TABLE ---------- */
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;min-width:560px}
+  thead th{
+    background:var(--ink);
+    color:var(--paper-on-ink);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-weight:500;
+    padding:12px 10px;
+    text-align:center;
+    white-space:nowrap;
+  }
+  thead th:first-child{text-align:left}
+  tbody td{
+    padding:11px 10px;
+    border-bottom:1px solid var(--line-soft);
+    text-align:center;
+    font-size:13.5px;
+  }
+  tbody tr:nth-child(even){background:#FBFAF7}
+  tbody tr:hover{background:#F1F5FA}
+  td:first-child{
+    text-align:left;
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+  .yes{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    color:var(--blue);
+  }
+  .no{
+    color:var(--line);
+    font-weight:600;
+  }
+  th.highlight{background:var(--blue)!important}
+  td.highlight{background:#E4EFFB!important}
+  tr.hide{display:none}
+
+  @media (max-width:640px){
+    .hero{padding:44px 20px 0}
+    .container{padding:24px 16px 60px}
+    .content-inner{padding:20px}
+    .section-header{padding:18px 20px}
+    .section-header h2{font-size:20px}
+    .regmark{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="regmark tr"><svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="12" stroke="#8A929C" stroke-width="1" fill="none"/><line x1="23" y1="0" x2="23" y2="46" stroke="#8A929C" stroke-width="1"/><line x1="0" y1="23" x2="46" y2="23" stroke="#8A929C" stroke-width="1"/></svg></div>
+  <div class="regmark bl"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="9" stroke="#8A929C" stroke-width="1" fill="none"/><line x1="17" y1="0" x2="17" y2="34" stroke="#8A929C" stroke-width="1"/><line x1="0" y1="17" x2="34" y2="17" stroke="#8A929C" stroke-width="1"/></svg></div>
+  <div class="hero-inner">
+    <div class="eyebrow">Heidelberg · Prinect</div>
+    <h1>Training<br><span>Portfolio</span></h1>
+    <p>Catálogo de treinamentos e níveis de maturidade para os fluxos de produção Prinect — do operacional manual à integração total via JDF.</p>
+  </div>
+  <div class="colorbar"><span></span><span></span><span></span><span></span></div>
 </div>
+
+<div class="container">
+
+  <div class="legend">
+    <div class="legend-item"><b>Como ler os níveis:</b></div>
+    <div class="legend-item">
+      <div class="dots"><span class="dot c"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <span>manual, ponto a ponto</span>
+    </div>
+    <div class="legend-item">
+      <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot k"></span></div>
+      <span>processo completo, automatizado e integrado</span>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 0 — PRODUCTION COMMERCIAL ============ -->
+  <div class="section">
+    <div class="section-header" onclick="toggleModule(0)" tabindex="0" role="button" aria-expanded="false">
+      <div>
+        <span class="code">MOD-01 / COMERCIAL</span>
+        <h2>Prinect Production Commercial</h2>
+      </div>
+      <div class="arrow" id="a0">▶</div>
+    </div>
+    <div class="content" id="c0">
+      <div class="content-inner">
+
+        <div class="cards">
+          <div class="card" tabindex="0" onclick="selectModel(event,0,'Prinect Production Commercial','Padrão')">
+            <div class="dots"><span class="dot c"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Padrão</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,0,'Prinect Production Commercial','Smart Automation')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Smart Automation</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,0,'Prinect Production Commercial','Integração (CSV)')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot"></span></div>
+            <div class="tier-name">Integração (CSV)</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,0,'Prinect Production Commercial','Integração (JDF)')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot k"></span></div>
+            <div class="tier-name">Integração (JDF)</div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <h3 id="title0">Selecione um modelo</h3>
+          <div class="desc" id="desc0">Escolha um card acima para ver os detalhes do pacote.</div>
+          <hr class="tear">
+          <span class="audience">👥 Público-alvo: <span id="pub0">—</span></span>
+        </div>
+
+        <div class="filters">
+          <button class="btn" data-mode="all" onclick="filterTable(event,0,'all')"><span class="swatch"></span>Todos</button>
+          <button class="btn" data-mode="yes" onclick="filterTable(event,0,'yes')"><span class="swatch"></span>Incluídos</button>
+          <button class="btn" data-mode="no" onclick="filterTable(event,0,'no')"><span class="swatch"></span>Não incluídos</button>
+        </div>
+
+        <div class="table-wrap">
+        <table id="t0"><thead><tr>
+          <th>Prinect Production Commercial</th><th>Padrão</th><th>Smart Automation</th><th>Integração (CSV)</th><th>Integração (JDF)</th>
+        </tr></thead><tbody>
+          <tr><td>Abertura dos trabalhos (Manual)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Abertura dos trabalhos (Semi Automática)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Abertura dos trabalhos (Automática)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Manual)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Semi Automático)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Automático)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Imposição (Manual)</td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Imposição (Semi Automática)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Imposição (Automática)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Gravação de Chapas (Manual)</td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Gravação de Chapas (Automática)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Retorno de dados via API (Heidelberg somente entrega o Manual)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Retorno de dados via API (Heidelberg auxilia na integração)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+        </tbody></table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 1 — PRODUCTION PACKAGING ============ -->
+  <div class="section">
+    <div class="section-header" onclick="toggleModule(1)" tabindex="0" role="button" aria-expanded="false">
+      <div>
+        <span class="code">MOD-02 / EMBALAGEM</span>
+        <h2>Prinect Production Packaging</h2>
+      </div>
+      <div class="arrow" id="a1">▶</div>
+    </div>
+    <div class="content" id="c1">
+      <div class="content-inner">
+
+        <div class="cards">
+          <div class="card" tabindex="0" onclick="selectModel(event,1,'Prinect Production Packaging','Padrão')">
+            <div class="dots"><span class="dot c"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Padrão</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,1,'Prinect Production Packaging','Avançado')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Avançado</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,1,'Prinect Production Packaging','Smart Automation')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Smart Automation</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,1,'Prinect Production Packaging','Integração (CSV)')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot k"></span><span class="dot"></span></div>
+            <div class="tier-name">Integração (CSV)</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,1,'Prinect Production Packaging','Integração (JDF)')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot k"></span><span class="dot b"></span></div>
+            <div class="tier-name">Integração (JDF)</div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <h3 id="title1">Selecione um modelo</h3>
+          <div class="desc" id="desc1">Escolha um card acima para ver os detalhes do pacote.</div>
+          <hr class="tear">
+          <span class="audience">👥 Público-alvo: <span id="pub1">—</span></span>
+        </div>
+
+        <div class="filters">
+          <button class="btn" data-mode="all" onclick="filterTable(event,1,'all')"><span class="swatch"></span>Todos</button>
+          <button class="btn" data-mode="yes" onclick="filterTable(event,1,'yes')"><span class="swatch"></span>Incluídos</button>
+          <button class="btn" data-mode="no" onclick="filterTable(event,1,'no')"><span class="swatch"></span>Não incluídos</button>
+        </div>
+
+        <div class="table-wrap">
+        <table id="t1"><thead><tr>
+          <th>Prinect Production Packaging</th><th>Padrão</th><th>Avançado</th><th>Smart Automation</th><th>Integração (CSV)</th><th>Integração (JDF)</th>
+        </tr></thead><tbody>
+          <tr><td>Abertura dos trabalhos (Manual)</td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Abertura dos trabalhos (Semi Automática)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Abertura dos trabalhos (Automática)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Manual)</td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Semi Automático)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Automático)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Imposição (Manual)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Imposição (Semi Automática)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Imposição (Automática)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Gravação de Chapas (Manual)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Gravação de Chapas (Automática)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Retorno de dados via API (Heidelberg somente entrega o Manual)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="no">–</span></td></tr>
+          <tr><td>Retorno de dados via API (Heidelberg auxilia na integração)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+        </tbody></table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 2 — PACKAGE DESIGNER ============ -->
+  <div class="section">
+    <div class="section-header" onclick="toggleModule(2)" tabindex="0" role="button" aria-expanded="false">
+      <div>
+        <span class="code">MOD-03 / DESIGNER</span>
+        <h2>Prinect Package Designer</h2>
+      </div>
+      <div class="arrow" id="a2">▶</div>
+    </div>
+    <div class="content" id="c2">
+      <div class="content-inner">
+
+        <div class="cards">
+          <div class="card" tabindex="0" onclick="selectModel(event,2,'Prinect Package Designer','Padrão')">
+            <div class="dots"><span class="dot c"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Padrão</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,2,'Prinect Package Designer','Avançado')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot"></span><span class="dot"></span></div>
+            <div class="tier-name">Avançado</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,2,'Prinect Package Designer','Integração (PPD)')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot"></span></div>
+            <div class="tier-name">Integração (PPD)</div>
+          </div>
+          <div class="card" tabindex="0" onclick="selectModel(event,2,'Prinect Package Designer','Expert')">
+            <div class="dots"><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span><span class="dot k"></span></div>
+            <div class="tier-name">Expert</div>
+          </div>
+        </div>
+
+        <div class="spec">
+          <h3 id="title2">Selecione um modelo</h3>
+          <div class="desc" id="desc2">Escolha um card acima para ver os detalhes do pacote.</div>
+          <hr class="tear">
+          <span class="audience">👥 Público-alvo: <span id="pub2">—</span></span>
+        </div>
+
+        <div class="filters">
+          <button class="btn" data-mode="all" onclick="filterTable(event,2,'all')"><span class="swatch"></span>Todos</button>
+          <button class="btn" data-mode="yes" onclick="filterTable(event,2,'yes')"><span class="swatch"></span>Incluídos</button>
+          <button class="btn" data-mode="no" onclick="filterTable(event,2,'no')"><span class="swatch"></span>Não incluídos</button>
+        </div>
+
+        <div class="table-wrap">
+        <table id="t2"><thead><tr>
+          <th>Prinect Package Designer</th><th>Padrão</th><th>Avançado</th><th>Integração (PPD)</th><th>Expert</th>
+        </tr></thead><tbody>
+          <tr><td>Ferramentas básicas</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Ferramentas avançadas</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>3D (Automático)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>3D (Avançado)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Layout (Automático)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Layout (Personalizado)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Layout (Nesting)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Ferramentas de Facaria</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>CAM (Configurar caminho)</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>CAM (Conectar plotter de recorte)</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Relatório padrão do sistema</td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Relatório personalizado</td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Integração com o Prinect Cockpit (PPD)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td><td><span class="yes">✓</span></td></tr>
+          <tr><td>Construção de paramétricos (Synergy)</td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="no">–</span></td><td><span class="yes">✓</span></td></tr>
+        </tbody></table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <script>
 const descriptions={"Prinect Production Commercial": {"Padrão": {"desc": "Fluxo totalmente manual, do cadastro à gravação de chapas.", "publico": "Operador"}, "Smart Automation": {"desc": "Fluxo com imposição e gravação de chapas automatizadas.", "publico": "Operador / Supervisor"}, "Integração (CSV)": {"desc": "Fluxo semi-automático com abertura de trabalhos e imposição via arquivo CSV.", "publico": "Supervisor / Analista"}, "Integração (JDF)": {"desc": "Fluxo totalmente automatizado com integração JDF e auxílio Heidelberg na API.", "publico": "Analista de TI"}}, "Prinect Production Packaging": {"Padrão": {"desc": "Fluxo totalmente manual, do cadastro à gravação de chapas.", "publico": "Operador"}, "Avançado": {"desc": "Fluxo manual com cadastros e abertura de trabalhos semi-automáticos via Article e Shape.", "publico": "Operador / Supervisor"}, "Smart Automation": {"desc": "Fluxo com imposição e gravação de chapas automatizadas.", "publico": "Operador / Supervisor"}, "Integração (CSV)": {"desc": "Fluxo semi-automático com abertura de trabalhos e imposição via arquivo CSV.", "publico": "Supervisor / Analista"}, "Integração (JDF)": {"desc": "Fluxo totalmente automatizado com integração JDF e auxílio Heidelberg na API.", "publico": "Analista de TI"}}, "Prinect Package Designer": {"Padrão": {"desc": "Ferramentas básicas, 3D automático, layout automático e CAM essencial.", "publico": "Operador"}, "Avançado": {"desc": "Adiciona 3D avançado, layout personalizado, nesting, plotter de recorte e relatórios personalizados.", "publico": "Operador / Supervisor"}, "Integração (PPD)": {"desc": "Inclui todos os recursos avançados com integração ao Prinect Cockpit via PPD.", "publico": "Supervisor / Analista"}, "Expert": {"desc": "Nível completo com ferramentas de facaria e construção de paramétricos via Synergy.", "publico": "Analista / Especialista"}}};
 const selected={};
+const sections=document.querySelectorAll('.section');
 
 function toggleModule(id){
- document.querySelectorAll('.content').forEach((c,i)=>{
-   c.style.display=(i===id && c.style.display!=='block')?'block':'none';
-   document.getElementById('a'+i).innerText=(c.style.display==='block'&&i===id)?'▼':'▶';
- });
+  sections.forEach((sec,i)=>{
+    const content=document.getElementById('c'+i);
+    const arrow=document.getElementById('a'+i);
+    const header=sec.querySelector('.section-header');
+    if(i===id){
+      const isOpen=sec.classList.contains('open');
+      if(isOpen){
+        sec.classList.remove('open');
+        content.style.maxHeight=null;
+        header.setAttribute('aria-expanded','false');
+      }else{
+        sec.classList.add('open');
+        content.style.maxHeight=content.scrollHeight+'px';
+        header.setAttribute('aria-expanded','true');
+      }
+    }else{
+      sec.classList.remove('open');
+      content.style.maxHeight=null;
+      header.setAttribute('aria-expanded','false');
+    }
+  });
+}
+
+function refreshHeight(id){
+  const sec=sections[id];
+  if(sec.classList.contains('open')){
+    document.getElementById('c'+id).style.maxHeight=document.getElementById('c'+id).scrollHeight+'px';
+  }
 }
 
 function status(v){
- v=(v||'').trim();
- if(v==='' ) return 'no';
- if(v.includes('✔')||v.includes('✓')||v==='1'||v.toUpperCase()==='X') return 'yes';
- return 'no';
+  v=(v||'').trim();
+  if(v==='') return 'no';
+  if(v.includes('✔')||v.includes('✓')||v==='1'||v.toUpperCase()==='X') return 'yes';
+  return 'no';
 }
 
 function selectModel(ev,id,module,model){
- selected[id]=model;
- document.querySelectorAll('#c'+id+' .card').forEach(c=>c.classList.remove('active'));
- ev.currentTarget.classList.add('active');
+  selected[id]=model;
+  document.querySelectorAll('#c'+id+' .card').forEach(c=>c.classList.remove('active'));
+  ev.currentTarget.classList.add('active');
 
- document.getElementById('title'+id).innerText=model;
- document.getElementById('desc'+id).innerText=descriptions[module][model]?.desc || '';
- document.getElementById('pub'+id).innerText=descriptions[module][model]?.publico || '-';
+  document.getElementById('title'+id).innerText=model;
+  document.getElementById('desc'+id).innerText=descriptions[module][model]?.desc || '';
+  document.getElementById('pub'+id).innerText=descriptions[module][model]?.publico || '-';
 
- document.querySelectorAll('#c'+id+' .btn').forEach((b,n)=>b.classList.toggle('active',n===0));
+  let tbl=document.getElementById('t'+id);
+  tbl.querySelectorAll('th,td').forEach(x=>x.classList.remove('highlight'));
 
- let tbl=document.getElementById('t'+id);
- tbl.querySelectorAll('tr').forEach(r=>r.classList.remove('hide'));
- tbl.querySelectorAll('th,td').forEach(x=>x.classList.remove('highlight'));
+  let col=-1;
+  tbl.querySelectorAll('th').forEach((th,i)=>{if(th.textContent.trim()===model){col=i;th.classList.add('highlight')}});
+  if(col>=0) tbl.querySelectorAll('tr').forEach(r=>{if(r.children[col])r.children[col].classList.add('highlight')});
 
- let col=-1;
- tbl.querySelectorAll('th').forEach((th,i)=>{if(th.innerText.trim()===model){col=i;th.classList.add('highlight')}});
- if(col>=0) tbl.querySelectorAll('tr').forEach(r=>{if(r.children[col])r.children[col].classList.add('highlight')});
+  applyFilter(id,'yes');
+}
+
+function applyFilter(id,mode){
+  let model=selected[id];
+  if(!model) return;
+  let tbl=document.getElementById('t'+id);
+
+  document.querySelectorAll('#c'+id+' .btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+
+  let col=-1;
+  tbl.querySelectorAll('th').forEach((th,i)=>{if(th.textContent.trim()===model)col=i;});
+
+  tbl.querySelectorAll('tbody tr').forEach(r=>{
+    r.classList.remove('hide');
+    if(mode==='all') return;
+    let s=status(r.children[col].textContent);
+    if(mode==='yes' && s!=='yes') r.classList.add('hide');
+    if(mode==='no' && s!=='no') r.classList.add('hide');
+  });
+
+  refreshHeight(id);
 }
 
 function filterTable(ev,id,mode){
- let model=selected[id];
- if(!model) return;
- let tbl=document.getElementById('t'+id);
-
- document.querySelectorAll('#c'+id+' .btn').forEach(b=>b.classList.remove('active'));
- ev.target.classList.add('active');
-
- let col=-1;
- tbl.querySelectorAll('th').forEach((th,i)=>{if(th.innerText.trim()===model)col=i;});
-
- tbl.querySelectorAll('tbody tr').forEach(r=>{
-  r.classList.remove('hide');
-  if(mode==='all') return;
-  let s=status(r.children[col].innerText);
-  if(mode==='yes' && s!=='yes') r.classList.add('hide');
-  if(mode==='no' && s!=='no') r.classList.add('hide');
- });
+  applyFilter(id,mode);
 }
-</script></body></html>
+
+// keyboard support for card / header interactions
+document.querySelectorAll('.card,.section-header').forEach(el=>{
+  el.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){
+      e.preventDefault();
+      el.click();
+    }
+  });
+});
+
+window.addEventListener('resize',()=>{
+  sections.forEach((sec,i)=>{ if(sec.classList.contains('open')) refreshHeight(i); });
+});
+</script>
+</body>
+</html>

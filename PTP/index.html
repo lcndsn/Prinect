@@ -1,0 +1,100 @@
+
+<!DOCTYPE html><html><head><meta charset='utf-8'>
+<title>Heidelberg Training Dashboard v9</title>
+<style>
+body{font-family:Segoe UI,Arial;margin:0;background:#f3f6fb}
+.hero{background:linear-gradient(135deg,#003B7A,#0D62C9);color:#fff;padding:40px}
+.container{max-width:1700px;margin:auto;padding:20px}
+.section{background:#fff;border-radius:18px;margin-top:18px;box-shadow:0 4px 15px rgba(0,0,0,.08);overflow:hidden}
+.header{background:#003B7A;color:#fff;padding:18px 24px;cursor:pointer;display:flex;justify-content:space-between}
+.content{display:none;padding:20px}
+.cards{display:flex;gap:12px;flex-wrap:wrap}
+.card{border:2px solid #d8e3f5;border-radius:14px;padding:15px;min-width:200px;cursor:pointer;background:#fff}
+.card.active{background:#DCEBFF;border-color:#003B7A}
+.info{background:#eef4ff;border-left:5px solid #003B7A;padding:15px;border-radius:10px;margin:15px 0}
+.btn{padding:10px 14px;border:none;border-radius:20px;background:#e8eef8;cursor:pointer}
+.btn.active{background:#003B7A;color:#fff}
+table{width:100%;border-collapse:collapse}
+th{background:#0D62C9;color:white}
+th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
+td:first-child{text-align:left}
+.highlight{background:#DCEBFF!important;color:#003B7A!important;font-weight:bold}
+.hide{display:none}
+</style></head><body>
+<div class='hero'><h1>Prinect Training Portfolio</h1><p>Catálogo de treinamentos e níveis de maturidade.</p></div>
+<div class='container'>
+<div class='section'><div class='header' onclick='toggleModule(0)'><span>Prinect Production Commercial</span><span id='a0'>▶</span></div><div class='content' id='c0'><div class='cards'><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Padrão')"><b>⭐</b><br>Padrão</div><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Smart Automation')"><b>⭐⭐</b><br>Smart Automation</div><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Integração (CSV)')"><b>⭐⭐⭐</b><br>Integração (CSV)</div><div class='card' onclick="selectModel(event,0,'Prinect Production Commercial','Integração (JDF)')"><b>⭐⭐⭐⭐</b><br>Integração (JDF)</div></div><div class='info'><h3 id='title0'>Selecione um modelo</h3><div id='desc0'>Escolha um card acima.</div><br><b>👥 Público-Alvo:</b> <span id='pub0'>-</span></div>
+    <button class='btn active' onclick="filterTable(event,0,'all')">Todos</button>
+    <button class='btn' onclick="filterTable(event,0,'yes')">✔ Incluídos</button>
+    <button class='btn' onclick="filterTable(event,0,'no')">❌ Não Incluídos</button>
+    <table id='t0'><thead><tr>
+    <th>Prinect Production Commercial</th><th>Padrão</th><th>Smart Automation</th><th>Integração (CSV)</th><th>Integração (JDF)</th></tr></thead><tbody><tr><td>Abertura dos trabalho (Manual)</td><td>✔️</td><td>✔️</td><td>✖</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Semi Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Automática)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Manual)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Semi Automático)</td><td>✖</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Automático)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Imposição (Manual)</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Imposição (Semi Automática)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Imposição (Automática)</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td></tr><tr><td>Gravação de Chapas (Manual)</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Gravação de Chapas (Automática)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Retorno de dados via API (Heidelberg somente entrega o Manual)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Retorno de dados via API (Heidelberg auxilia na integração)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr></tbody></table></div></div><div class='section'><div class='header' onclick='toggleModule(1)'><span>Prinect Production Packaging</span><span id='a1'>▶</span></div><div class='content' id='c1'><div class='cards'><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Padrão')"><b>⭐</b><br>Padrão</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Avançado')"><b>⭐⭐</b><br>Avançado</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Smart Automation')"><b>⭐⭐⭐</b><br>Smart Automation</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Integração (CSV)')"><b>⭐⭐⭐⭐</b><br>Integração (CSV)</div><div class='card' onclick="selectModel(event,1,'Prinect Production Packaging','Integração (JDF)')"><b>⭐⭐⭐⭐⭐</b><br>Integração (JDF)</div></div><div class='info'><h3 id='title1'>Selecione um modelo</h3><div id='desc1'>Escolha um card acima.</div><br><b>👥 Público-Alvo:</b> <span id='pub1'>-</span></div>
+    <button class='btn active' onclick="filterTable(event,1,'all')">Todos</button>
+    <button class='btn' onclick="filterTable(event,1,'yes')">✔ Incluídos</button>
+    <button class='btn' onclick="filterTable(event,1,'no')">❌ Não Incluídos</button>
+    <table id='t1'><thead><tr>
+    <th>Prinect Production Packaging</th><th>Padrão</th><th>Avançado</th><th>Smart Automation</th><th>Integração (CSV)</th><th>Integração (JDF)</th></tr></thead><tbody><tr><td>Abertura dos trabalho (Manual)</td><td>✔️</td><td>✖</td><td>✔️</td><td>✖</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Semi Automática)</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Abertura dos trabalho (Automática)</td><td>✖</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Manual)</td><td>✔️</td><td>✖</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Semi Automático)</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td><td>✖</td></tr><tr><td>Cadastros (Papel, Tintas, Clientes, etc) no Prinect (Automático)</td><td>✖</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>Imposição (Manual)</td><td>✔️</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Imposição (Semi Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Imposição (Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✖</td><td>✔️</td></tr><tr><td>Gravação de Chapas (Manual)</td><td>✔️</td><td>✔️</td><td>✖</td><td>✖</td><td>✖</td></tr><tr><td>Gravação de Chapas (Automática)</td><td>✖</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Retorno de dados via API (Heidelberg somente entrega o Manual)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✖</td></tr><tr><td>Retorno de dados via API (Heidelberg auxilia na integração)</td><td>✖</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr></tbody></table></div></div><div class='section'><div class='header' onclick='toggleModule(2)'><span>Prinect Package Designer</span><span id='a2'>▶</span></div><div class='content' id='c2'><div class='cards'><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Padrão')"><b>⭐</b><br>Padrão</div><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Avançado')"><b>⭐⭐</b><br>Avançado</div><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Integração (PPD)')"><b>⭐⭐⭐</b><br>Integração (PPD)</div><div class='card' onclick="selectModel(event,2,'Prinect Package Designer','Expert')"><b>⭐⭐⭐⭐</b><br>Expert</div></div><div class='info'><h3 id='title2'>Selecione um modelo</h3><div id='desc2'>Escolha um card acima.</div><br><b>👥 Público-Alvo:</b> <span id='pub2'>-</span></div>
+    <button class='btn active' onclick="filterTable(event,2,'all')">Todos</button>
+    <button class='btn' onclick="filterTable(event,2,'yes')">✔ Incluídos</button>
+    <button class='btn' onclick="filterTable(event,2,'no')">❌ Não Incluídos</button>
+    <table id='t2'><thead><tr>
+    <th>Prinect Package Designer</th><th>Padrão</th><th>Avançado</th><th>Integração (PPD)</th><th>Expert</th></tr></thead><tbody><tr><td>Ferramentas básicas</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Ferramentas avançadas</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>3D (Automático)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>3D (Avançado)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Layout (Automático)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Layout (Personalizado)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Layout (Nesting)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Ferramentas de Facaria</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr><tr><td>CAM (Configurar caminho)</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>CAM (Conectar plotter de recorte)</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Relatório padrão do sistema</td><td>✔️</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Relatório personalizado</td><td>✖</td><td>✔️</td><td>✔️</td><td>✔️</td></tr><tr><td>Integração com o Prinect Cockpit (PPD)</td><td>✖</td><td>✖</td><td>✔️</td><td>✔️</td></tr><tr><td>Construção de paramétricos (Synergy)</td><td>✖</td><td>✖</td><td>✖</td><td>✔️</td></tr></tbody></table></div></div>
+</div>
+<script>
+const descriptions={"Prinect Production Commercial": {"Padrão": {"desc": "Fluxo totalmente manual, do cadastro à gravação de chapas.", "publico": "Operador"}, "Smart Automation": {"desc": "Fluxo com imposição e gravação de chapas automatizadas.", "publico": "Operador / Supervisor"}, "Integração (CSV)": {"desc": "Fluxo semi-automático com abertura de trabalhos e imposição via arquivo CSV.", "publico": "Supervisor / Analista"}, "Integração (JDF)": {"desc": "Fluxo totalmente automatizado com integração JDF e auxílio Heidelberg na API.", "publico": "Analista de TI"}}, "Prinect Production Packaging": {"Padrão": {"desc": "Fluxo totalmente manual, do cadastro à gravação de chapas.", "publico": "Operador"}, "Avançado": {"desc": "Fluxo manual com cadastros e abertura de trabalhos semi-automáticos via Article e Shape.", "publico": "Operador / Supervisor"}, "Smart Automation": {"desc": "Fluxo com imposição e gravação de chapas automatizadas.", "publico": "Operador / Supervisor"}, "Integração (CSV)": {"desc": "Fluxo semi-automático com abertura de trabalhos e imposição via arquivo CSV.", "publico": "Supervisor / Analista"}, "Integração (JDF)": {"desc": "Fluxo totalmente automatizado com integração JDF e auxílio Heidelberg na API.", "publico": "Analista de TI"}}, "Prinect Package Designer": {"Padrão": {"desc": "Ferramentas básicas, 3D automático, layout automático e CAM essencial.", "publico": "Operador"}, "Avançado": {"desc": "Adiciona 3D avançado, layout personalizado, nesting, plotter de recorte e relatórios personalizados.", "publico": "Operador / Supervisor"}, "Integração (PPD)": {"desc": "Inclui todos os recursos avançados com integração ao Prinect Cockpit via PPD.", "publico": "Supervisor / Analista"}, "Expert": {"desc": "Nível completo com ferramentas de facaria e construção de paramétricos via Synergy.", "publico": "Analista / Especialista"}}};
+const selected={};
+
+function toggleModule(id){
+ document.querySelectorAll('.content').forEach((c,i)=>{
+   c.style.display=(i===id && c.style.display!=='block')?'block':'none';
+   document.getElementById('a'+i).innerText=(c.style.display==='block'&&i===id)?'▼':'▶';
+ });
+}
+
+function status(v){
+ v=(v||'').trim();
+ if(v==='' ) return 'no';
+ if(v.includes('✔')||v.includes('✓')||v==='1'||v.toUpperCase()==='X') return 'yes';
+ return 'no';
+}
+
+function selectModel(ev,id,module,model){
+ selected[id]=model;
+ document.querySelectorAll('#c'+id+' .card').forEach(c=>c.classList.remove('active'));
+ ev.currentTarget.classList.add('active');
+
+ document.getElementById('title'+id).innerText=model;
+ document.getElementById('desc'+id).innerText=descriptions[module][model]?.desc || '';
+ document.getElementById('pub'+id).innerText=descriptions[module][model]?.publico || '-';
+
+ document.querySelectorAll('#c'+id+' .btn').forEach((b,n)=>b.classList.toggle('active',n===0));
+
+ let tbl=document.getElementById('t'+id);
+ tbl.querySelectorAll('tr').forEach(r=>r.classList.remove('hide'));
+ tbl.querySelectorAll('th,td').forEach(x=>x.classList.remove('highlight'));
+
+ let col=-1;
+ tbl.querySelectorAll('th').forEach((th,i)=>{if(th.innerText.trim()===model){col=i;th.classList.add('highlight')}});
+ if(col>=0) tbl.querySelectorAll('tr').forEach(r=>{if(r.children[col])r.children[col].classList.add('highlight')});
+}
+
+function filterTable(ev,id,mode){
+ let model=selected[id];
+ if(!model) return;
+ let tbl=document.getElementById('t'+id);
+
+ document.querySelectorAll('#c'+id+' .btn').forEach(b=>b.classList.remove('active'));
+ ev.target.classList.add('active');
+
+ let col=-1;
+ tbl.querySelectorAll('th').forEach((th,i)=>{if(th.innerText.trim()===model)col=i;});
+
+ tbl.querySelectorAll('tbody tr').forEach(r=>{
+  r.classList.remove('hide');
+  if(mode==='all') return;
+  let s=status(r.children[col].innerText);
+  if(mode==='yes' && s!=='yes') r.classList.add('hide');
+  if(mode==='no' && s!=='no') r.classList.add('hide');
+ });
+}
+</script></body></html>

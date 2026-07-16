@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSV Generator</title>
+<title>CSV Import Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -147,22 +147,29 @@ function getDefaultEndDate(){
 const CONFIGS = {
   packaging: {
     label: 'Packaging',
-    columns: ['JobID','Description','ProductPart','URL','CustomerID','ArticleID','ShapeID','ToolID','ProductCode','MediaQuality','Size','Amount','EndDate'],
-    sharedOnSub: ['CustomerID'],
-    parentOnly: ['CustomerID','Amount','EndDate'],
-    fileOnly: ['ProductPart','URL','ArticleID','ShapeID','ToolID','ProductCode','MediaQuality','Size'],
-    mirror: { ProductCode: 'ProductPart' },
+    columns: ['JobID','Description','ProductPart','URL','CustomerID','ArticleID','ShapeID','ToolID','MediaQuality','Amount','Size','EndDate','ProductCode','Type'],
+    exportColumnsSingle: ['JobID','Description','ProductPart','URL','CustomerID','ArticleID','ShapeID','ToolID','ProductCode','MediaQuality','Size','Amount','EndDate'],
+    exportColumnsMulti: ['JobID','Description','ProductPart','URL','CustomerID','ArticleID','ShapeID','ToolID','MediaQuality','Amount','Size','EndDate','ProductCode','Type'],
+    sharedOnSub: ['ProductCode'],
+    syncFromParent: ['ProductCode'],
+    parentOnly: ['Description','CustomerID','EndDate'],
+    fileOnly: ['ProductPart','URL','ArticleID','ShapeID','ToolID','MediaQuality','Size'],
     types: {Amount:'number', EndDate:'date'},
     urlPrefix: (server) => `\\\\${server}\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\`,
     placeholders: {
-      JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245',
+      JobID:'18-CSV', Description:'Kit_Cosmeticos', ProductPart:'Landogan',
       URL:'F51_HBR_2544 - Landogan1.pdf',
-      CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', ProductCode:'PACK-3245',
-      MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'AAAA-MM-DD'
+      CustomerID:'S150', ArticleID:'124789', ShapeID:'HBR_2544', ToolID:'PACK-3245', ProductCode:'PACK-3245',
+      MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'45000', EndDate:'AAAA-MM-DD'
     },
     seed: [
       [{JobID:'CSV-301', Description:'Landogan', ProductPart:'PACK-3245', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Landogan1.pdf', CustomerID:'S150', ArticleID:'2587', ShapeID:'HBR_2544', ToolID:'PACK-3245', ProductCode:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Size:'202,5mm 160,2mm', Amount:'120000', EndDate:'AUTO'}],
-      [{JobID:'CSV-302', Description:'Soap', ProductPart:'PACK-4497', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2546 - Soap.pdf', CustomerID:'S150', ArticleID:'5525', ShapeID:'HBR_2546', ToolID:'PACK-4497', ProductCode:'PACK-4497', MediaQuality:'DP_300_1060x750_LG', Size:'186,5mm 136mm', Amount:'370000', EndDate:'AUTO'}]
+      [{JobID:'CSV-302', Description:'Soap', ProductPart:'PACK-4497', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2546 - Soap.pdf', CustomerID:'S150', ArticleID:'5525', ShapeID:'HBR_2546', ToolID:'PACK-4497', ProductCode:'PACK-4497', MediaQuality:'DP_300_1060x750_LG', Size:'186,5mm 136mm', Amount:'370000', EndDate:'AUTO'}],
+      [
+        {JobID:'18-CSV', Description:'Kit_Cosmeticos', CustomerID:'S150', Amount:'90000', EndDate:'AUTO', ProductCode:'PACK-3245'},
+        {JobID:'18-CSV', ProductPart:'Landogan', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Landogan1.pdf', ArticleID:'124789', ShapeID:'HBR_2544', ToolID:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Amount:'45000', Size:'202,5mm 160,2mm', ProductCode:'PACK-3245'},
+        {JobID:'18-CSV', ProductPart:'Tratamento Cabelos', URL:'\\\\SRVPMC04\\_ Demonstrações Prinect _\\_Demonstração Embalagem\\Produtos\\F51_HBR_2544 - Tratamento Cabelos.pdf', ArticleID:'124790', ShapeID:'HBR_2544', ToolID:'PACK-3245', MediaQuality:'DP_250_1060x750_LG', Amount:'45000', Size:'202,5mm 160,2mm', ProductCode:'PACK-3245'}
+      ]
     ]
   },
   commercial: {
@@ -225,7 +232,11 @@ function buildPanel(type){
   const cfg = CONFIGS[type];
   const container = document.getElementById('panel-' + type);
   const headerCells = cfg.columns.map(c => `<th>${c}</th>`).join('');
+  const note = type === 'packaging'
+    ? `<p class="hint" style="margin:-8px 0 14px;">A coluna <code>Type</code> é preenchida automaticamente: fica vazia quando o job tem só 1 arquivo (formato simples), e vira <code>Job</code>/<code>RootProduct</code> quando o job tem mais de 1 arquivo — o .csv gerado já sai no formato certo para cada caso.</p>`
+    : '';
   container.innerHTML = `
+    ${note}
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
@@ -254,6 +265,7 @@ function renderRows(type){
   let totalRows = 0;
   state[type].forEach((group, gi) => {
     const isMulti = group.rows.length > 1;
+    const syncCols = ['JobID', ...(cfg.syncFromParent || [])];
     group.rows.forEach((row, ri) => {
       totalRows++;
       const isParentRow = ri === 0;
@@ -261,8 +273,12 @@ function renderRows(type){
       tr.className = (gi % 2 === 0 ? 'group-even' : 'group-odd') + (ri > 0 ? ' sub-row' : '');
       let cells = `<td class="row-num">${n++}</td>`;
       cfg.columns.forEach((col, ci) => {
-        const jobIdLocked = col === 'JobID' && !isParentRow;
-        const locked = jobIdLocked || (isMulti && ((isParentRow && cfg.fileOnly.includes(col)) || (!isParentRow && cfg.parentOnly.includes(col))));
+        if(col === 'Type'){
+          const badge = !isMulti ? '—' : (isParentRow ? 'Job' : 'RootProduct');
+          cells += `<td><span style="font-family:var(--mono);font-size:11px;color:${!isMulti?'var(--muted)':'var(--cyan)'};">${badge}</span></td>`;
+          return;
+        }
+        const locked = (syncCols.includes(col) && !isParentRow) || (isMulti && ((isParentRow && cfg.fileOnly.includes(col)) || (!isParentRow && cfg.parentOnly.includes(col))));
         const inputId = `inp-${type}-${row.__id}-${col}`;
         const lockedAttrs = locked ? 'disabled class="locked"' : '';
         const placeholder = col === 'URL' ? cfg.placeholders[col] : (cfg.placeholders[col]||'');
@@ -304,26 +320,16 @@ function updateVal(type, gid, rid, col, value){
   if(!row) return;
   row[col] = value;
 
-  // JobID da linha-pai propaga ao vivo para todas as sub-linhas
-  if(col === 'JobID' && group.rows[0].__id === rid && group.rows.length > 1){
+  // campos "syncFromParent" (JobID sempre, e outros definidos por tipo, ex: ProductCode no Packaging)
+  // propagam ao vivo da linha-pai para todas as sub-linhas
+  const syncCols = ['JobID', ...(cfg.syncFromParent || [])];
+  if(syncCols.includes(col) && group.rows[0].__id === rid && group.rows.length > 1){
     group.rows.slice(1).forEach(subRow => {
-      subRow['JobID'] = value;
-      const el = document.getElementById(`inp-${type}-${subRow.__id}-JobID`);
+      subRow[col] = value;
+      const el = document.getElementById(`inp-${type}-${subRow.__id}-${col}`);
       if(el) el.value = value;
     });
   }
-
-  // espelha ProductPart -> ProductCode (Packaging) automaticamente
-  if(cfg.mirror && cfg.mirror[Object.keys(cfg.mirror).find(k => cfg.mirror[k] === col)]){
-    // find any target column whose mirror source is `col`
-  }
-  Object.entries(cfg.mirror || {}).forEach(([target, source]) => {
-    if(source === col){
-      row[target] = value;
-      const el = document.getElementById(`inp-${type}-${rid}-${target}`);
-      if(el) el.value = value;
-    }
-  });
 }
 
 function insertUrlPrefix(type, gid, rid){
@@ -416,10 +422,26 @@ function generateCSV(type){
   const totalRows = groups.reduce((acc,g)=>acc+g.rows.length,0);
   if(totalRows === 0){ alert('Adicione ao menos uma linha antes de gerar o arquivo.'); return; }
 
-  let lines = [cfg.columns.join(',')];
+  let exportCols = cfg.columns;
+  let hasMulti = false;
+  if(type === 'packaging'){
+    hasMulti = groups.some(g => g.rows.length > 1);
+    exportCols = hasMulti ? cfg.exportColumnsMulti : cfg.exportColumnsSingle;
+  }
+
+  let lines = [exportCols.join(',')];
   groups.forEach(group => {
-    group.rows.forEach(row => {
-      lines.push(cfg.columns.map(col => csvEscape(row[col])).join(','));
+    const isMulti = group.rows.length > 1;
+    group.rows.forEach((row, ri) => {
+      const isParentRow = ri === 0;
+      const vals = exportCols.map(col => {
+        if(col === 'Type'){
+          if(!isMulti) return '';
+          return isParentRow ? 'Job' : 'RootProduct';
+        }
+        return row[col];
+      });
+      lines.push(vals.map(csvEscape).join(','));
     });
   });
 

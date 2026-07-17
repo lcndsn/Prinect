@@ -1,128 +1,324 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LCNDSN — Prinect Tools</title>
-
+<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8">
+<title>XJDF Generator — Packaging</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../style.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#101820;
+  --paper:#f2eef1;
+  --card:#ffffff;
+  --line:#e1dbe0;
+  --text:#1a222c;
+  --muted:#69737f;
+  --cyan:#00aeef;
+  --magenta:#ec1c6e;
+  --yellow:#ffd400;
+  --warn-bg:#fff9e6;
+  --warn-line:#f0b400;
+  --radius:14px;
+  --display:'Space Grotesk',sans-serif;
+  --body:'Inter',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, #fdeaf2 0%, transparent 60%),
+    var(--paper);
+  color:var(--text);
+  font-family:var(--body);
+  min-height:100vh;
+}
+header{
+  background:var(--ink);
+  color:#fff;
+  padding:22px 32px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+header .brand{display:flex;align-items:center;gap:14px}
+header .regmark{width:34px;height:34px;flex:0 0 auto}
+header h1{
+  font-family:var(--display);
+  font-size:19px;
+  font-weight:700;
+  margin:0;
+  letter-spacing:.2px;
+}
+header .kicker{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  color:#d6a9c0;
+  text-transform:uppercase;
+  margin-top:2px;
+}
+.colorbar{display:flex;gap:6px;align-items:center}
+.colorbar .dot{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.colorbar .dot.k{background:#1a1a1a}
+.colorbar .dot.c{background:var(--cyan)}
+.colorbar .dot.m{background:var(--magenta)}
+.colorbar .dot.y{background:var(--yellow)}
+.colorbar span{font-family:var(--mono);font-size:10px;color:#c9b6c2;letter-spacing:1px;margin-left:4px}
 
-<link rel="icon" type="image/x-icon" href="../favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+main{max-width:980px;margin:32px auto 64px;padding:0 20px}
 
-</head>
+.ticket{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:0 18px 40px -18px rgba(16,24,32,.28),0 1px 0 rgba(16,24,32,.04);
+  position:relative;
+}
+.reg{position:absolute;width:20px;height:20px;opacity:.55}
+.reg svg{width:100%;height:100%}
+.reg.tl{top:-10px;left:-10px}
+.reg.tr{top:-10px;right:-10px}
+.reg.bl{bottom:-10px;left:-10px}
+.reg.br{bottom:-10px;right:-10px}
 
-<body>
+.ticket-head{
+  padding:26px 32px 18px;
+  border-bottom:1px dashed var(--line);
+  position:relative;
+}
+.ticket-head::after{
+  content:"";
+  position:absolute;left:-1px;right:-1px;bottom:-11px;height:22px;
+  background:
+    radial-gradient(circle at 0 50%, transparent 10px, var(--paper) 10.5px) 0 0/22px 22px,
+    radial-gradient(circle at 100% 50%, transparent 10px, var(--paper) 10.5px) 100% 0/22px 22px;
+  background-repeat:no-repeat;
+  pointer-events:none;
+}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--muted);
+  text-transform:uppercase;margin:0 0 4px;
+}
+.ticket-head h2{margin:0;font-family:var(--display);font-size:22px;font-weight:600}
+.ticket-head p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
 
-<div class="sheet">
+.warn{
+  margin:24px 32px 6px;
+  background:var(--warn-bg);
+  border-left:4px solid var(--warn-line);
+  border-radius:6px;
+  padding:13px 16px;
+  font-size:13.5px;
+  line-height:1.55;
+  color:#4a3c00;
+}
+.warn code{
+  font-family:var(--mono);
+  background:#fff;
+  border:1px solid #eeddaa;
+  padding:1px 6px;
+  border-radius:4px;
+  font-size:12.5px;
+}
 
-    <div class="reg tl"><span class="reg-circle"></span></div>
-    <div class="reg tr"><span class="reg-circle"></span></div>
-    <div class="reg bl"><span class="reg-circle"></span></div>
-    <div class="reg br"><span class="reg-circle"></span></div>
+.section{padding:6px 32px 4px}
+.section-title{
+  display:flex;align-items:baseline;gap:8px;margin:22px 0 12px;
+}
+.section-title .n{
+  font-family:var(--mono);font-size:12px;color:#fff;background:var(--ink);
+  width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;
+}
+.section-title h3{margin:0;font-family:var(--display);font-size:14.5px;font-weight:600;letter-spacing:.2px}
 
-    <a class="back-link" href="https://lcndsn.com/">← LCNDSN</a>
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;padding-bottom:4px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.2px}
+.field input,.field select{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+  font-family:var(--mono);font-size:13.5px;color:var(--text);background:#fbfcfd;
+  transition:border-color .15s, box-shadow .15s;
+}
+.field input:focus,.field select:focus{
+  outline:none;border-color:var(--magenta);box-shadow:0 0 0 3px rgba(236,28,110,.14);background:#fff;
+}
+.field select{font-family:var(--body)}
 
-    <header>
-        <div class="eyebrow">
-            <span class="dot c"></span><span class="dot m"></span><span class="dot y"></span>
-        </div>
-        <h1 class="h1-sub" aria-label="Prinect Tools">
-            <span class="base">Prinect Tools</span>
-        </h1>
-        <div class="subtitle">Ferramentas para fluxos Prinect</div>
-    </header>
+/* die-cut section: packaging-specific structural fields get a cut-line frame */
+.diecut{
+  margin:6px 0 20px;
+  border:1.5px dashed #d8a9c1;
+  border-radius:10px;
+  padding:16px 16px 6px;
+  background:#fffafc;
+  position:relative;
+}
+.diecut::before{
+  content:"CUT LINE";
+  position:absolute;top:-9px;left:14px;background:#fffafc;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:#c76a90;
+  padding:0 6px;
+}
 
-    <div class="rule"></div>
+.actions{
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  padding:22px 32px 8px;
+}
+button{
+  font-family:var(--body);font-weight:600;font-size:13.5px;border:0;border-radius:10px;
+  padding:12px 20px;cursor:pointer;transition:transform .08s, box-shadow .15s, background .15s;
+}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#000;box-shadow:0 6px 16px -6px rgba(16,24,32,.5)}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.ghost:hover{border-color:var(--ink)}
+button:active{transform:translateY(1px)}
 
-    <section class="tools tools-grid">
+.output{padding:4px 32px 30px}
+.output h4{
+  font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);margin:0 0 8px;
+}
+pre{
+  background:#0f1720;color:#f7d0e2;
+  font-family:var(--mono);font-size:12.5px;line-height:1.6;
+  padding:14px 16px;border-radius:10px;margin:0;
+  white-space:pre-wrap;word-break:break-all;
+  min-height:20px;
+}
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/HF_NameGenerator/">
-            <div>
-                <span class="card-index">FERRAMENTA 01 — NOMENCLATURA</span>
-                <h2>Hot Folder Name Generator</h2>
-                <p>Gera nomes padronizados para arquivos em fluxos Prinect.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font-size:12px;font-family:var(--mono)}
+@media (max-width:680px){
+  .grid{grid-template-columns:1fr}
+  header{padding:18px 20px}
+  .ticket-head,.warn,.section,.actions,.output{padding-left:20px;padding-right:20px}
+  .warn{margin-left:20px;margin-right:20px}
+}
+</style></head><body>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/Prinect_Product_Generator/">
-            <div>
-                <span class="card-index">FERRAMENTA 02 — JDF</span>
-                <h2>Prinect Product Generator</h2>
-                <p>Gera Product JDFs para o Prinect.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+<header>
+  <div class="brand">
+    <svg class="regmark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="15" stroke="#d6a9c0" stroke-width="1.4"/>
+      <line x1="20" y1="1" x2="20" y2="39" stroke="#d6a9c0" stroke-width="1.4"/>
+      <line x1="1" y1="20" x2="39" y2="20" stroke="#d6a9c0" stroke-width="1.4"/>
+    </svg>
+    <div>
+      <h1>XJDF Generator</h1>
+      <div class="kicker">Prinect Workflow · Packaging</div>
+    </div>
+  </div>
+  <div class="colorbar">
+    <span class="dot k"></span><span class="dot c"></span><span class="dot m"></span><span class="dot y"></span>
+    <span>K&nbsp;C&nbsp;M&nbsp;Y</span>
+  </div>
+</header>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/JDF_Generator_PACKAGING/">
-            <div>
-                <span class="card-index">FERRAMENTA 03 — PACKAGING</span>
-                <h2>JDF Generator Packaging</h2>
-                <p>Gera JDFs para produtos de embalagem.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+<main>
+<div class="ticket">
+  <div class="reg tl"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" stroke="#c7ced6" stroke-width="1.2" fill="none"/><line x1="10" y1="0" x2="10" y2="20" stroke="#c7ced6" stroke-width="1.2"/><line x1="0" y1="10" x2="20" y2="10" stroke="#c7ced6" stroke-width="1.2"/></svg></div>
+  <div class="reg tr"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" stroke="#c7ced6" stroke-width="1.2" fill="none"/><line x1="10" y1="0" x2="10" y2="20" stroke="#c7ced6" stroke-width="1.2"/><line x1="0" y1="10" x2="20" y2="10" stroke="#c7ced6" stroke-width="1.2"/></svg></div>
+  <div class="reg bl"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" stroke="#c7ced6" stroke-width="1.2" fill="none"/><line x1="10" y1="0" x2="10" y2="20" stroke="#c7ced6" stroke-width="1.2"/><line x1="0" y1="10" x2="20" y2="10" stroke="#c7ced6" stroke-width="1.2"/></svg></div>
+  <div class="reg br"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" stroke="#c7ced6" stroke-width="1.2" fill="none"/><line x1="10" y1="0" x2="10" y2="20" stroke="#c7ced6" stroke-width="1.2"/><line x1="0" y1="10" x2="20" y2="10" stroke="#c7ced6" stroke-width="1.2"/></svg></div>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/CSV_Import/">
-            <div>
-                <span class="card-index">FERRAMENTA 04 — CSV</span>
-                <h2>CSV Generator</h2>
-                <p>Gera arquivos CSV para importação.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+  <div class="ticket-head">
+    <div class="eyebrow">Job Docket</div>
+    <h2>Novo job de embalagem</h2>
+    <p>Preencha os campos abaixo, incluindo o recorte estrutural, para gerar o XJDF de packaging.</p>
+  </div>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/PD_CostEstimator/">
-            <div>
-                <span class="card-index">FERRAMENTA 05 — CUSTOS</span>
-                <h2>Package Designer Cost Estimator</h2>
-                <p>Estimativa de custo de cartuchos e facas.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+  <div class="warn">
+    <b>Antes de gerar:</b> coloque o PDF em <code>\\Prinect_Server\PTTransfer\Files</code>. O nome do PDF deve ser igual ao <b>ArticleID.pdf</b>.
+  </div>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/PrinectAPI/">
-            <div>
-                <span class="card-index">FERRAMENTA 06 — API</span>
-                <h2>Prinect API</h2>
-                <p>Integração via API do Prinect.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+  <div class="section">
+    <div class="section-title"><span class="n">1</span><h3>Servidor &amp; Job</h3></div>
+    <div class="grid">
+      <div class="field"><label>Prinect Server</label><input id="Prinect_Server"></div>
+      <div class="field"><label>Job Name</label><input id="Prinect_JobName"></div>
+      <div class="field"><label>Job ID</label><input id="Prinect_JobID"></div>
+      <div class="field"><label>Product Code</label><input id="Prinect_ProductCode"></div>
+    </div>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/XJDF_Generator_Packaging/">
-            <div>
-                <span class="card-index">FERRAMENTA 07 — XJDF PACKAGING</span>
-                <h2>XJDF Packaging Generator</h2>
-                <p>Gera XJDFs para produtos de embalagem.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+    <div class="section-title"><span class="n">2</span><h3>Cliente &amp; Produto</h3></div>
+    <div class="grid">
+      <div class="field"><label>Customer ID</label><input id="Prinect_CustomerID"></div>
+      <div class="field"><label>Customer Name</label><input id="Prinect_CustomerName"></div>
+      <div class="field"><label>Product ID</label><input id="Prinect_ProductID"></div>
+    </div>
 
-        <a class="card" href="https://lcndsn.com/PrinectTools/XJDF_Generator_Commercial/">
-            <div>
-                <span class="card-index">FERRAMENTA 08 — XJDF COMERCIAL</span>
-                <h2>XJDF Commercial Generator</h2>
-                <p>Gera XJDFs para produtos comerciais.</p>
-            </div>
-            <div class="arrow">→</div>
-        </a>
+    <div class="section-title"><span class="n">3</span><h3>Estrutural (recorte)</h3></div>
+    <div class="diecut">
+      <div class="grid">
+        <div class="field"><label>Article ID</label><input id="Prinect_ArticleID"></div>
+        <div class="field"><label>Shape ID</label><input id="Prinect_ShapeID"></div>
+      </div>
+    </div>
 
-    </section>
+    <div class="section-title"><span class="n">4</span><h3>Especificações de produção</h3></div>
+    <div class="grid">
+      <div class="field"><label>Quantidade</label><input id="Prinect_Quantity" value="1"></div>
+      <div class="field"><label>Páginas</label><input id="Prinect_NumberPages" value="1"></div>
+      <div class="field"><label>Finished X (mm)</label><input id="X"></div>
+      <div class="field"><label>Finished Y (mm)</label><input id="Y"></div>
+      <div class="field"><label>Media Quality</label><input id="Prinect_MediaQuality"></div>
+      <div class="field"><label>Duration Days</label><input id="Prinect_DurationDays" value="1"></div>
+      <div class="field"><label>Sides</label>
+        <select id="Prinect_Sides">
+          <option>OneSided</option>
+          <option>TwoSidedHeadToHead</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
-    <footer>
-        <span>LCNDSN © 2026</span>
-        <span class="swatches">
-            <span class="k"></span><span class="c"></span><span class="m"></span><span class="y"></span>
-        </span>
-    </footer>
+  <div class="actions">
+    <button class="primary" onclick="gerar()">Gerar XJDF</button>
+    <button class="ghost" onclick="copiar()">Copiar Caminho</button>
+  </div>
 
+  <div class="output">
+    <h4>Destino</h4>
+    <pre id="path"></pre>
+  </div>
 </div>
+</main>
 
-</body>
-</html>
+<footer>XJDF · CIP4 JDFSchema 2.0 · Prinect Connector</footer>
+
+<script>
+function v(id){return document.getElementById(id).value.trim();}
+function copiar(){
+ let p="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";
+ navigator.clipboard.writeText(p);
+ alert("Caminho copiado.");
+}
+function gerar(){
+ let xml=`<?xml version="1.0" encoding="UTF-8"?>
+<XJDF Category="Printing" DescriptiveName="${v("Prinect_JobName")}" JobID="${v("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
+<GeneralID IDUsage="CatalogID" IDValue="${v("Prinect_ProductCode")}"/>
+<ProductList>
+<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_CustomerName")}" ExternalID="100031" ID="p_root_001" IsRoot="true" ProductID="${v("Prinect_ProductID")}">
+<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${v("X")}mm ${v("Y")}mm" Pages="${v("Prinect_NumberPages")}" Sides="${v("Prinect_Sides")}"/></Intent>
+<Intent Name="MediaIntent"><MediaIntent MediaQuality="${v("Prinect_MediaQuality")}"/></Intent>
+<Intent Name="ColorIntent"><ColorIntent><SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front"/></ColorIntent></Intent>
+<Intent Name="ProductionIntent"><ProductionIntent PrintProcess="Lithography"/></Intent>
+<Intent Name="BindingIntent"><BindingIntent BindingType="LooseBinding"/></Intent>
+</Product>
+<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_ArticleID")}" ID="p_part_001" IsRoot="false" ProductID="${v("Prinect_ArticleID")}">
+<GeneralID IDUsage="ArticleID" IDValue="${v("Prinect_ArticleID")}"/>
+<Intent Name="ShapeCuttingIntent"><ShapeCuttingIntent><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/></ShapeCuttingIntent></Intent>
+</Product>
+</ProductList>
+<ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${v("Prinect_CustomerID")}" CustomerName="${v("Prinect_CustomerName")}"/></Resource></ResourceSet>
+<ResourceSet Name="RunList" Usage="Input"><Resource><RunList><FileSpec URL="//${v("Prinect_Server")}/PTTransfer/Files/${v("Prinect_ArticleID")}.pdf" UserFileName="${v("Prinect_ArticleID")}.pdf"/></RunList><PageList><PageData AssemblyIDs="p_part_001" PageIndex="0"><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/></PageData></PageList></Resource></ResourceSet>
+<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${v("Prinect_DurationDays")}D"/></Resource></ResourceSet>
+</XJDF>`;
+ let blob=new Blob([xml],{type:"application/xml"});
+ let a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download=v("Prinect_ArticleID")+".xjdf";
+ a.click();
+ document.getElementById("path").textContent="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";
+}
+</script>
+</body></html>

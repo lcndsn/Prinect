@@ -145,6 +145,7 @@ main{max-width:980px;margin:32px auto 64px;padding:0 20px}
   outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,174,239,.15);background:#fff;
 }
 .field select{font-family:var(--body)}
+.field .hint{margin-top:5px;font-size:11px;color:var(--muted)}
 
 .actions{
   display:flex;gap:12px;align-items:center;flex-wrap:wrap;
@@ -269,12 +270,15 @@ footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font
 function v(i){return document.getElementById(i).value.trim();}
 function copiar(){let p="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";navigator.clipboard.writeText(p);alert("Caminho copiado.");}
 function gerar(){
+// Workaround temporário: o Prinect só monta o layout corretamente se o XJDF
+// informar o dobro das páginas reais. O campo na tela mostra o valor real.
+let pagesForXjdf = (parseFloat(v("Prinect_NumberPages")) || 0) * 2;
 let xml=`<?xml version="1.0" encoding="UTF-8"?>
 <XJDF Category="Printing" DescriptiveName="${v("Prinect_JobName")}" JobID="${v("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
 <GeneralID IDUsage="CatalogID" IDValue="${v("Prinect_ProductCode")}"/>
 <ProductList>
 <Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_CustomerName")}" ExternalID="${v("Prinect_ProductID")}" ID="root" IsRoot="true" ProductID="${v("Prinect_ProductID")}">
-<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${v("X")}mm ${v("Y")}mm" Pages="${v("Prinect_NumberPages")}" Sides="${v("Prinect_Sides")}"/></Intent>
+<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${v("X")}mm ${v("Y")}mm" Pages="${pagesForXjdf}" Sides="${v("Prinect_Sides")}"/></Intent>
 <Intent Name="MediaIntent"><MediaIntent MediaQuality="${v("Prinect_MediaQuality")}"/></Intent>
 <Intent Name="ColorIntent"><ColorIntent><SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front"/></ColorIntent></Intent>
 <Intent Name="ProductionIntent"><ProductionIntent PrintProcess="Lithography"/></Intent>

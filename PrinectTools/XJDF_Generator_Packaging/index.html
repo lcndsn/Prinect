@@ -143,7 +143,6 @@ main{max-width:980px;margin:32px auto 64px;padding:0 20px}
 }
 .field select{font-family:var(--body)}
 
-/* die-cut section: packaging-specific structural fields get a cut-line frame */
 .diecut{
   margin:6px 0 20px;
   border:1.5px dashed #d8a9c1;
@@ -223,7 +222,7 @@ footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font
   <div class="ticket-head">
     <div class="eyebrow">Job Docket</div>
     <h2>Novo job de embalagem</h2>
-    <p>Preencha os campos abaixo, incluindo o recorte estrutural, para gerar o XJDF de packaging.</p>
+    <p>Preencha os campos abaixo para gerar o XJDF de packaging.</p>
   </div>
 
   <div class="warn">
@@ -293,6 +292,7 @@ function copiar(){
  alert("Caminho copiado.");
 }
 function gerar(){
+ let articleId = v("Prinect_ArticleID");
  let xml=`<?xml version="1.0" encoding="UTF-8"?>
 <XJDF Category="Printing" DescriptiveName="${v("Prinect_JobName")}" JobID="${v("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
 <GeneralID IDUsage="CatalogID" IDValue="${v("Prinect_ProductCode")}"/>
@@ -304,19 +304,29 @@ function gerar(){
 <Intent Name="ProductionIntent"><ProductionIntent PrintProcess="Lithography"/></Intent>
 <Intent Name="BindingIntent"><BindingIntent BindingType="LooseBinding"/></Intent>
 </Product>
-<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_ArticleID")}" ID="p_part_001" IsRoot="false" ProductID="${v("Prinect_ArticleID")}">
-<GeneralID IDUsage="ArticleID" IDValue="${v("Prinect_ArticleID")}"/>
+<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${articleId}" ExternalID="${articleId}" ID="p_part_001" IsRoot="false" ProductType="FlatBox" ProductID="${articleId}">
+<GeneralID IDUsage="ArticleID" IDValue="${articleId}"/>
 <Intent Name="ShapeCuttingIntent"><ShapeCuttingIntent><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/></ShapeCuttingIntent></Intent>
 </Product>
 </ProductList>
 <ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${v("Prinect_CustomerID")}" CustomerName="${v("Prinect_CustomerName")}"/></Resource></ResourceSet>
-<ResourceSet Name="RunList" Usage="Input"><Resource><RunList><FileSpec URL="//${v("Prinect_Server")}/PTTransfer/Files/${v("Prinect_ArticleID")}.pdf" UserFileName="${v("Prinect_ArticleID")}.pdf"/></RunList><PageList><PageData AssemblyIDs="p_part_001" PageIndex="0"><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/></PageData></PageList></Resource></ResourceSet>
-<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${v("Prinect_DurationDays")}D"/></Resource></ResourceSet>
+<ResourceSet Name="RunList" Usage="Input">
+<Resource Status="Available">
+<Part ProductPart="${articleId}" Run="1"/>
+<RunList ContentRefs="RS_PageList_001" NPage="1"><FileSpec URL="//${v("Prinect_Server")}/PTTransfer/Files/${articleId}.pdf" UserFileName="${articleId}.pdf"/></RunList>
+</Resource>
+</ResourceSet>
+<ResourceSet ID="RS_PageList_001" Name="PageList" Usage="Input">
+<Resource>
+<PageList><PageData AssemblyIDs="${articleId}" PageIndex="0" ProductID="${articleId}" DescriptiveName="${articleId}"><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/><GeneralID IDUsage="ArticleID" IDValue="${articleId}"/></PageData></PageList>
+</Resource>
+</ResourceSet>
+<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><Part Product="100031"/><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${v("Prinect_DurationDays")}D"/></Resource></ResourceSet>
 </XJDF>`;
  let blob=new Blob([xml],{type:"application/xml"});
  let a=document.createElement("a");
  a.href=URL.createObjectURL(blob);
- a.download=v("Prinect_ArticleID")+".xjdf";
+ a.download=articleId+".xjdf";
  a.click();
  document.getElementById("path").textContent="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";
 }

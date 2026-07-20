@@ -3,37 +3,109 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script>
+    // Aplica o tema salvo antes da página desenhar, pra não "piscar" claro antes do escuro.
+    try { if (localStorage.getItem('hd_jdf_theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e) {}
+  </script>
   <title>JDF Generator - PACKAGING</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
-      --hd-red: #0066cc;
-      --hd-dark: #1a1a1a;
-      --hd-gray: #f4f4f4;
-      --hd-border: #ddd;
-      --hd-blue: #0066cc;
-      --hd-green: #28a745;
-      --radius: 8px;
-      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+      --hd-blue: #3D6FE0;
+      --hd-blue-dark: #1F45B0;
+      --grad-1: #6FA3FF;
+      --grad-2: #2F5FE0;
+      --hd-red: #E0625F;
+      --hd-red-dark: #C74643;
+      --hd-dark: #33404F;
+      --hd-muted: #8A96A3;
+      --hd-gray: #F0F3F8;
+      --hd-border: #E7ECF3;
+      --hd-green: #2FAE6E;
+      --bg: #E8EDF4;
+      --surface: #FFFFFF;
+      --navy-fixed: #29344A;
+      --radius: 22px;
+      --radius-sm: 14px;
+      --radius-pill: 999px;
+      --shadow-sm: 0 4px 14px rgba(70,90,120,0.08);
+      --shadow: 0 10px 30px rgba(70,90,120,0.10);
+      --shadow-md: 0 16px 40px rgba(70,90,120,0.16);
+      --ease: cubic-bezier(.4,0,.2,1);
+      color-scheme: light;
+      transition: background-color .25s var(--ease);
     }
+
+    [data-theme="dark"] {
+      --hd-blue: #6FA3FF;
+      --hd-blue-dark: #4A7FE0;
+      --grad-1: #7FB0FF;
+      --grad-2: #3D6FE0;
+      --hd-red: #E8827F;
+      --hd-red-dark: #D6635F;
+      --hd-dark: #E7ECF5;
+      --hd-muted: #9AA6BA;
+      --hd-gray: #232B3B;
+      --hd-border: #333E52;
+      --hd-green: #4BC787;
+      --bg: #131A26;
+      --surface: #1B2333;
+      --navy-fixed: #10151F;
+      --shadow-sm: 0 4px 14px rgba(0,0,0,0.28);
+      --shadow: 0 10px 30px rgba(0,0,0,0.34);
+      --shadow-md: 0 16px 40px rgba(0,0,0,0.42);
+      color-scheme: dark;
+    }
+
+    [data-theme="dark"] body { background: var(--bg); }
+    [data-theme="dark"] .info-box { background: #1C3049; color: #BFD6F2; }
+    [data-theme="dark"] .spot-tag { background: #1C3049; color: #BFD6F2; }
+    [data-theme="dark"] .db-selector { background: #1C3049; border-color: #2C4A6E; }
+    [data-theme="dark"] .combo-input, [data-theme="dark"] .field input, [data-theme="dark"] .field select { color: var(--hd-dark); }
+    [data-theme="dark"] .db-table th { color: var(--hd-muted); }
+    [data-theme="dark"] .preview-body pre { color: var(--hd-dark); }
+    [data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.6); }
+    [data-theme="dark"] .sheet-layout { background: repeating-linear-gradient(45deg, #1B2333, #1B2333 10px, #202940 10px, #202940 20px); border-color: #333E52; }
+    [data-theme="dark"] .sheet-cell select { color: #1a1a1a; } /* mantém legível sobre as cores pastéis das células, iguais nos dois temas */
+    [data-theme="dark"] .gantt-header-row { background: #202940; }
+    [data-theme="dark"] .gantt-day-cell { color: #CDE8D6; background: #22402C; border-color: #333E52; }
+    [data-theme="dark"] .gantt-track { border-color: #2A3140; background-image: repeating-linear-gradient(to right, #2A3140 0, #2A3140 1px, transparent 1px, transparent 60px); }
+
+    .theme-toggle {
+      background: rgba(255,255,255,0.14);
+      border: none;
+      color: white;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      font-size: 17px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .18s var(--ease), transform .18s var(--ease);
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.26); transform: rotate(-12deg); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f0f0f0;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: var(--bg);
       color: var(--hd-dark);
       min-height: 100vh;
     }
 
     header {
-      background: var(--hd-dark);
+      background: linear-gradient(135deg, var(--grad-2), var(--hd-blue-dark));
       color: white;
       padding: 0 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 64px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      height: 68px;
+      box-shadow: 0 4px 20px rgba(47,95,224,0.22);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -42,73 +114,92 @@
     .header-logo { display: flex; align-items: center; gap: 12px; }
 
     .logo-box {
-      background: var(--hd-red);
+      background: rgba(255,255,255,0.16);
       color: white;
-      font-weight: 900;
+      font-weight: 800;
       font-size: 18px;
-      padding: 6px 12px;
-      border-radius: 4px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
       letter-spacing: 1px;
     }
 
-    .header-title { font-size: 16px; font-weight: 300; color: #ccc; }
+    .header-title { font-size: 15px; font-weight: 400; color: rgba(255,255,255,0.75); letter-spacing: .2px; }
 
     .tabs {
-      background: white;
-      border-bottom: 2px solid var(--hd-border);
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
       display: flex;
-      padding: 0 32px;
-      gap: 4px;
+      padding: 8px;
+      gap: 6px;
       flex-wrap: wrap;
+      max-width: 1100px;
+      margin: 20px auto 0;
+      border-radius: var(--radius);
+      position: relative;
+      z-index: 5;
     }
 
+    /* Tipografia de destaque: Manrope para títulos e navegação, Inter para o resto (corpo/dados) */
+    .header-title, .section-header, .db-section-header, .preview-header, .recalc-header,
+    .logo-box, .tab, .article-card-header span, .btn, .db-btn, .btn-add-article {
+      font-family: 'Manrope', 'Segoe UI', sans-serif;
+    }
+
+    .section-header { cursor: pointer; transition: background .15s var(--ease); }
+    .section-header:hover { background: var(--hd-gray); }
+
     .tab {
-      padding: 14px 22px;
+      padding: 12px 20px;
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
-      color: #666;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.2s;
+      color: var(--hd-muted);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s var(--ease);
     }
 
-    .tab:hover { color: var(--hd-red); }
-    .tab.active { color: var(--hd-red); border-bottom-color: var(--hd-red); }
+    .tab:hover { color: var(--hd-blue); background: var(--hd-gray); }
+    .tab.active { color: white; background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); box-shadow: var(--shadow-sm); }
 
-    main { max-width: 1100px; margin: 32px auto; padding: 0 24px 80px; }
+    main { max-width: 1100px; margin: 24px auto; padding: 0 24px 80px; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     .section {
-      background: white;
+      background: var(--surface);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       margin-bottom: 20px;
       overflow: hidden;
+      transition: box-shadow .2s var(--ease);
     }
 
+    .section:hover { box-shadow: var(--shadow-md); }
+
     .section-header {
-      background: var(--hd-dark);
-      color: white;
-      padding: 14px 20px;
-      font-size: 13px;
+      background: var(--surface);
+      color: var(--hd-dark);
+      padding: 16px 22px;
+      font-size: 13.5px;
       font-weight: 700;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
+      letter-spacing: 0.3px;
       display: flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
       user-select: none;
+      border-bottom: 1px solid var(--hd-border);
     }
-
-    .section-header:hover { background: #2a2a2a; }
-    .section-header .toggle-icon { margin-left: auto; font-size: 16px; transition: transform 0.2s; }
+    .section-header .toggle-icon { margin-left: auto; font-size: 14px; color: var(--hd-muted); transition: transform 0.2s; }
     .section-header.collapsed .toggle-icon { transform: rotate(-90deg); }
+    .db-section-header .toggle-icon { margin-left: 10px; font-size: 14px; color: rgba(255,255,255,0.7); transition: transform 0.2s; }
+    .db-section-header.collapsed .toggle-icon { transform: rotate(-90deg); }
 
     .section-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    /* Itens de grid não encolhem abaixo do seu min-content por padrão — sem isso, conteúdo largo
+       (como o Gantt) empurra a seção inteira para o lado em vez de rolar internamente. */
+    .section-body > * { min-width: 0; }
     .section-body.single { grid-template-columns: 1fr; }
 
     .field { display: flex; flex-direction: column; gap: 5px; }
@@ -120,45 +211,47 @@
     .badge-required  { background: #e8f0fb; color: #0066cc; }
     .badge-important { background: #fff3e0; color: #e65100; }
     .badge-optional  { background: #e8f5e9; color: #2e7d32; }
+    .badge-error     { background: #fdecea; color: #c0392b; }
 
     .field input, .field select {
-      padding: 9px 12px;
-      border: 1.5px solid var(--hd-border);
-      border-radius: 6px;
+      padding: 10px 14px;
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-sm);
       font-size: 13px;
       color: var(--hd-dark);
-      transition: border-color 0.2s, box-shadow 0.2s;
-      background: white;
+      transition: all 0.2s var(--ease);
+      background: var(--hd-gray);
       font-family: inherit;
     }
 
     .field input:focus, .field select:focus {
       outline: none;
-      border-color: var(--hd-red);
-      box-shadow: 0 0 0 3px rgba(0,102,204,0.08);
+      background: var(--surface);
+      border-color: var(--hd-blue);
+      box-shadow: 0 0 0 4px rgba(61,111,224,0.12);
     }
 
-    .field-hint { font-size: 11px; color: #888; line-height: 1.4; }
+    .field-hint { font-size: 11px; color: var(--hd-muted); line-height: 1.4; }
 
     .mm-pt-group { display: flex; gap: 8px; align-items: center; }
     .mm-pt-group input { flex: 1; }
     .mm-pt-group .pt-display {
       background: var(--hd-gray);
-      border: 1.5px solid var(--hd-border);
-      border-radius: 6px;
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-sm);
       padding: 9px 12px;
       font-size: 12px;
-      color: #666;
+      color: var(--hd-muted);
       min-width: 110px;
       text-align: center;
     }
 
     .articles-container { display: flex; flex-direction: column; gap: 16px; }
 
-    .article-card { border: 2px solid var(--hd-border); border-radius: var(--radius); overflow: hidden; }
+    .article-card { box-shadow: var(--shadow-sm); border-radius: var(--radius); overflow: hidden; }
 
     .article-card-header {
-      background: #f8f8f8;
+      background: var(--hd-gray);
       padding: 12px 16px;
       display: flex;
       align-items: center;
@@ -173,7 +266,7 @@
     .btn-remove-article {
       background: none;
       border: 1.5px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 5px 12px;
       font-size: 12px;
       color: #666;
@@ -181,7 +274,7 @@
       transition: all 0.2s;
     }
 
-    .btn-remove-article:hover { border-color: var(--hd-red); color: var(--hd-red); background: #f0f6ff; }
+    .btn-remove-article:hover { border-color: var(--hd-red); color: var(--hd-red); background: #fdf1f1; }
 
     /* ⚠️ NOVO v4.7: CellIndex editável com orientação */
     .cell-index-grid {
@@ -249,17 +342,66 @@
 
     .cell-index-toolbar button {
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       border: 1.5px solid var(--hd-border);
-      background: white;
+      background: var(--surface);
       color: var(--hd-dark);
       transition: all 0.2s;
     }
 
-    .cell-index-toolbar button:hover { background: var(--hd-gray); border-color: var(--hd-red); color: var(--hd-red); }
+    .cell-index-toolbar button:hover { background: var(--hd-gray); border-color: var(--hd-blue); color: var(--hd-blue); }
+
+    /* ── LAYOUT VISUAL DA CHAPA (linhas/colunas físicas, conforme a ferramenta) ── */
+    .sheet-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 18px;
+      background: repeating-linear-gradient(45deg, #eef1f4, #eef1f4 10px, #e7ebef 10px, #e7ebef 20px);
+      border: 2px dashed #c3cad3;
+      border-radius: var(--radius-sm);
+      margin-top: 12px;
+      width: 100%;
+    }
+    /* Sem min-width: max-content — a linha sempre se ajusta à largura disponível, nunca força rolagem lateral */
+    .sheet-row { display: flex; gap: 6px; width: 100%; min-width: 0; }
+    .sheet-cell {
+      flex: 1 1 0;
+      min-width: 0;
+      background: white;
+      border: 2px solid #b9c2cc;
+      border-radius: var(--radius-sm);
+      padding: 10px 6px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+    }
+    .sheet-cell:hover { border-color: var(--hd-blue); box-shadow: 0 2px 6px rgba(23,104,172,0.18); }
+    .sheet-cell .cell-idx-badge {
+      position: absolute; top: -10px; left: -10px;
+      background: var(--hd-blue); color: white; font-weight: 700; font-size: 11px;
+      width: 21px; height: 21px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.35); border: 2px solid white;
+    }
+    .sheet-cell select {
+      width: 100%; min-width: 0; font-size: 11px; padding: 3px 4px;
+      border: 1.5px solid var(--hd-border); border-radius: 6px; background: white;
+      text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+    }
+    .sheet-cell .sheet-cell-article { font-weight: 600; }
+    /* Linhas com muitas colunas ficam mais compactas automaticamente (aplicado via JS) */
+    .sheet-row.sheet-row-dense .sheet-cell { padding: 6px 3px 4px; border-radius: 6px; gap: 3px; }
+    .sheet-row.sheet-row-dense .sheet-cell select { font-size: 9px; padding: 2px 2px; }
+    .sheet-row.sheet-row-dense .cell-idx-badge { width: 16px; height: 16px; font-size: 9px; top: -7px; left: -7px; }
+    .sheet-row.sheet-row-ultra-dense .sheet-cell { padding: 4px 2px 2px; }
+    .sheet-row.sheet-row-ultra-dense .sheet-cell select { font-size: 8px; }
+    .cell-fallback-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; }
 
     .schedule-grid {
       display: grid;
@@ -285,8 +427,21 @@
       margin-bottom: 4px;
     }
 
-    .recalc-panel { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; border: 2px solid #0066cc; }
-    .recalc-header { background: linear-gradient(135deg, #0066cc, #004999); color: white; padding: 16px 20px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .recalc-panel { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
+
+    /* ── QUADRO DE ALOCAÇÃO (GANTT) — construído com HTML/CSS puro, sem libs externas ── */
+    .gantt-wrap { width: 100%; overflow-x: auto; overflow-y: auto; max-height: 460px; border: 1px solid var(--hd-border); border-radius: 8px; background: var(--surface); }
+    .gantt-inner { display: flex; flex-direction: column; min-width: max-content; }
+    .gantt-header-row { display: flex; position: sticky; top: 0; z-index: 2; background: #eef2f7; }
+    .gantt-day-cell { flex: 0 0 auto; text-align: center; font-size: 12px; font-weight: 700; color: #1e3a5f; padding: 6px 0; border-right: 1px solid #d8dee6; border-bottom: 1px solid #d8dee6; background: #dbe7d4; }
+    .gantt-hour-cell { flex: 0 0 auto; text-align: center; font-size: 10px; color: var(--hd-muted); padding: 4px 0; border-right: 1px solid var(--hd-border); border-bottom: 2px solid var(--hd-border); }
+    .gantt-row-label { flex: 0 0 170px; position: sticky; left: 0; z-index: 3; background: var(--hd-gray); padding: 0 12px; font-weight: 600; font-size: 12px; color: var(--hd-dark); border-right: 2px solid var(--hd-border); border-bottom: 1px solid var(--hd-border); display: flex; align-items: center; white-space: nowrap; }
+    .gantt-row { display: flex; position: relative; height: 38px; }
+    .gantt-track { position: relative; border-bottom: 1px solid #eee; background-image: repeating-linear-gradient(to right, #f0f0f0 0, #f0f0f0 1px, transparent 1px, transparent 60px); }
+    .gantt-block { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: #22303f; overflow: hidden; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+    .gantt-block.conflict { outline: 2px dashed #c0392b; outline-offset: -2px; }
+    .gantt-empty { padding: 24px; text-align: center; color: #888; font-size: 13px; }
+    .recalc-header { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); color: white; padding: 18px 22px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     .recalc-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
     .recalc-result { padding: 12px 20px; background: #f0f6ff; border-top: 1px solid #b3d1f7; font-size: 12px; color: #1a5276; display: none; }
     .recalc-result.show { display: block; }
@@ -297,25 +452,25 @@
     .recalc-result .old-date { color: #999; text-decoration: line-through; font-size: 11px; }
     .recalc-result .new-date { color: #0066cc; font-weight: 600; }
 
-    .actions { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid var(--hd-border); padding: 16px 32px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; z-index: 99; box-shadow: 0 -4px 12px rgba(0,0,0,0.08); }
+    .actions { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 2px solid var(--hd-border); padding: 16px 32px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; z-index: 99; box-shadow: 0 -4px 12px rgba(0,0,0,0.16); }
 
-    .btn { padding: 11px 28px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-    .btn-primary { background: var(--hd-red); color: white; }
-    .btn-primary:hover { background: #004999; transform: translateY(-1px); }
-    .btn-secondary { background: white; color: var(--hd-dark); border: 1.5px solid var(--hd-border); }
-    .btn-secondary:hover { background: var(--hd-gray); }
-    .btn-accent { background: linear-gradient(135deg, #0066cc, #004999); color: white; }
-    .btn-accent:hover { background: linear-gradient(135deg, #004999, #003377); transform: translateY(-1px); }
+    .btn { padding: 12px 26px; border-radius: var(--radius-pill); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s var(--ease); }
+    .btn-primary { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); color: white; box-shadow: 0 6px 16px rgba(47,95,224,0.28); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(47,95,224,0.36); }
+    .btn-secondary { background: var(--surface); color: var(--hd-dark); box-shadow: var(--shadow-sm); }
+    .btn-secondary:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+    .btn-accent { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); color: white; box-shadow: 0 6px 16px rgba(47,95,224,0.28); }
+    .btn-accent:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(47,95,224,0.36); }
 
-    .btn-add-article { background: var(--hd-dark); color: white; padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
-    .btn-add-article:hover { background: #333; }
+    .btn-add-article { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); color: white; padding: 10px 22px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s var(--ease); display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(47,95,224,0.24); }
+    .btn-add-article:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(47,95,224,0.32); }
 
-    .preview-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
-    .preview-header { background: #1e3a5f; color: white; padding: 14px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
+    .preview-section { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .preview-header { background: var(--surface); color: var(--hd-dark); padding: 16px 22px; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--hd-border); }
     .preview-body { padding: 0; max-height: 400px; overflow-y: auto; }
-    .preview-body pre { padding: 20px; font-size: 12px; line-height: 1.6; color: #333; font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; word-break: break-all; }
+    .preview-body pre { padding: 20px; font-size: 12px; line-height: 1.6; color: var(--hd-dark); font-family: 'Consolas', 'Courier New', monospace; white-space: pre-wrap; word-break: break-all; }
 
-    .toast { position: fixed; top: 80px; right: 24px; background: var(--hd-dark); color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 999; opacity: 0; transform: translateY(-10px); transition: all 0.3s; pointer-events: none; }
+    .toast { position: fixed; top: 80px; right: 24px; background: var(--navy-fixed); color: white; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; z-index: 999; opacity: 0; transform: translateY(-10px); transition: all 0.3s; pointer-events: none; box-shadow: var(--shadow-md); }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { border-left: 4px solid var(--hd-green); }
     .toast.error   { border-left: 4px solid #cc0000; }
@@ -326,44 +481,65 @@
     .info-box-warning { background: #fff8e1; border-left: 4px solid #ffc107; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 12px; color: #856404; line-height: 1.5; grid-column: 1 / -1; }
     .info-box-warning strong { font-weight: 700; }
 
-    .spot-tag { display: inline-flex; align-items: center; gap: 6px; background: #e8f4fd; border: 1.5px solid #0066cc; border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: #1a5276; }
-    .spot-tag button { background: none; border: none; cursor: pointer; color: #0066cc; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; font-weight: 700; }
-    .spot-tag button:hover { color: #cc0000; }
+    .spot-tag { display: inline-flex; align-items: center; gap: 6px; background: #e8f4fd; border: 1.5px solid var(--hd-blue); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: #1a5276; }
+    .spot-tag button { background: none; border: none; cursor: pointer; color: var(--hd-blue); font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; font-weight: 700; }
+    .spot-tag button:hover { color: var(--hd-red); }
 
-    .db-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
-    .db-section-header { background: #1e3a5f; color: white; padding: 14px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
-    .db-btn { padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap; }
-    .db-btn-primary   { background: var(--hd-red); color: white; }
-    .db-btn-primary:hover { background: #004999; }
+    .db-section { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
+    .db-section-header { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); color: white; padding: 16px 22px; font-size: 13px; font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .db-btn { padding: 8px 16px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s var(--ease); white-space: nowrap; }
+    .db-btn-primary   { background: linear-gradient(135deg, var(--grad-1), var(--grad-2)); color: white; }
+    .db-btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
     .db-btn-warning   { background: #fd7e14; color: white; }
     .db-btn-warning:hover { background: #e96b00; }
     .db-btn-danger    { background: #dc3545; color: white; }
     .db-btn-danger:hover { background: #c82333; }
-    .db-btn-secondary { background: white; color: var(--hd-dark); border: 1.5px solid var(--hd-border); }
-    .db-btn-secondary:hover { background: var(--hd-gray); }
+    .db-btn-secondary { background: var(--hd-gray); color: var(--hd-dark); }
+    .db-btn-secondary:hover { background: #E5EAF2; }
 
     .db-table-wrap { overflow-x: auto; }
     .db-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .db-table th { background: var(--hd-gray); padding: 10px 14px; text-align: left; font-weight: 700; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: #555; border-bottom: 2px solid var(--hd-border); white-space: nowrap; }
-    .db-table td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; color: var(--hd-dark); vertical-align: middle; }
-    .db-table tr:hover td { background: #f8f9ff; }
+    .db-table th { background: var(--hd-gray); padding: 12px 14px; text-align: left; font-weight: 700; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--hd-muted); border-bottom: none; white-space: nowrap; }
+    .db-table td { padding: 12px 14px; border-bottom: 1px solid var(--hd-border); color: var(--hd-dark); vertical-align: middle; transition: background .12s var(--ease); }
+    .db-table tr:hover td { background: var(--hd-gray); }
+    .db-search-bar { padding: 12px 20px 0; }
+    .db-search-bar input {
+      width: 100%; padding: 9px 14px; border: 1.5px solid var(--hd-border); border-radius: var(--radius-sm);
+      font-size: 13px; font-family: inherit; background: var(--hd-gray); transition: all .15s var(--ease);
+    }
+    .db-search-bar input:focus { outline: none; border-color: var(--hd-blue); background: var(--surface); box-shadow: 0 0 0 3px rgba(23,104,172,0.12); }
+    .combo-wrap { position: relative; flex: 1; min-width: 0; }
+    .combo-native-select { display: none; }
+    .combo-input {
+      width: 100%; padding: 10px 14px; border: 1.5px solid transparent; border-radius: var(--radius-sm);
+      font-size: 13px; font-family: inherit; background: var(--surface); box-shadow: var(--shadow-sm); cursor: text;
+    }
+    .combo-input:focus { outline: none; border-color: var(--hd-blue); box-shadow: 0 0 0 4px rgba(61,111,224,0.12); }
+    .combo-panel {
+      display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: var(--surface); border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+      max-height: 230px; overflow-y: auto; z-index: 60; padding: 6px;
+    }
+    .combo-option { padding: 9px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; color: var(--hd-dark); }
+    .combo-option:hover, .combo-option.combo-active { background: var(--hd-gray); }
+    .combo-empty { padding: 9px 12px; font-size: 12px; color: var(--hd-muted); }
     .db-table .actions-cell { display: flex; gap: 6px; white-space: nowrap; }
     .db-empty { padding: 40px 20px; text-align: center; color: #999; font-size: 13px; }
     .db-empty span { font-size: 32px; display: block; margin-bottom: 8px; }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .modal { background: white; border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.2); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-    .modal-header { background: var(--hd-dark); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(51,64,79,0.45); backdrop-filter: blur(2px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { background: var(--navy-fixed); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
     .modal-header button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; line-height: 1; padding: 0; }
     .modal-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .modal-body .field.full { grid-column: 1 / -1; }
     .modal-footer { padding: 16px 20px; border-top: 1px solid var(--hd-border); display: flex; justify-content: flex-end; gap: 10px; }
 
-    .db-selector { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1; background: #f0f6ff; border: 1.5px solid #b3d1f7; border-radius: 6px; padding: 10px 14px; }
+    .db-selector { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1; background: #f0f6ff; border: 1.5px solid #b3d1f7; border-radius: var(--radius-sm); padding: 10px 14px; }
     .db-selector label { font-size: 12px; font-weight: 700; color: #1a5276; white-space: nowrap; }
-    .db-selector select { flex: 1; padding: 7px 10px; border: 1.5px solid #b3d1f7; border-radius: 6px; font-size: 13px; background: white; font-family: inherit; }
-    .db-selector button { padding: 7px 14px; background: var(--hd-red); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    .db-selector button:hover { background: #004999; }
+    .db-selector select { flex: 1; padding: 7px 10px; border: 1.5px solid #b3d1f7; border-radius: 8px; font-size: 13px; background: var(--surface); font-family: inherit; }
+    .db-selector button { padding: 7px 14px; background: var(--hd-blue); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .db-selector button:hover { background: var(--hd-blue-dark); }
 
     .db-io-bar { padding: 16px 20px; background: #f8f9fa; border-top: 1px solid var(--hd-border); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .db-io-bar span { font-size: 12px; color: #666; font-weight: 600; }
@@ -398,7 +574,9 @@
     <div class="logo-box">HD</div>
     <span class="header-title">Prinect JDF Generator — Packaging Workflow</span>
   </div>
-  <span style="font-size:12px;color:#888;">v4.7 — CellIndex Editável + Orientação por Célula</span>
+  <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Alternar modo claro/escuro">
+    <span id="theme-toggle-icon">🌙</span>
+  </button>
 </header>
 
 <div class="tabs">
@@ -410,6 +588,7 @@
 
 <div class="toast" id="toast"></div>
 
+<datalist id="global-colors-datalist"></datalist>
 <div class="modal-overlay" id="modal-overlay" style="display:none;">
   <div class="modal">
     <div class="modal-header"><span id="modal-title">Cadastro</span><button onclick="closeModal()">✕</button></div>
@@ -429,27 +608,44 @@
       <div class="recalc-header">🔄 Recalcular Datas de JDF Existente — Para Demonstrações</div>
       <div class="recalc-body">
         <div class="field">
-          <label>📂 Selecionar arquivo JDF</label>
-          <input type="file" id="recalc_file" accept=".jdf,.xml" onchange="loadJDFFile(event)" style="padding:7px 12px;font-size:13px;"/>
+          <label>📂 Selecionar arquivo(s) JDF <span class="badge badge-optional">pode escolher vários de uma vez</span></label>
+          <input type="file" id="recalc_file" accept=".jdf,.xml" multiple onchange="loadJDFFiles(event)" style="padding:7px 12px;font-size:13px;"/>
+          <span class="field-hint">Pode repetir a seleção quantas vezes precisar — os arquivos vão se somando à lista abaixo.</span>
         </div>
         <div class="field">
-          <label>📅 Nova data de início do trabalho</label>
+          <label>📅 Nova data de início do trabalho <span class="badge badge-optional">aplicada a todos</span></label>
           <input type="datetime-local" id="recalc_newstart"/>
+          <span class="field-hint">Cada arquivo mantém seus próprios intervalos entre etapas — só desloca a data mais antiga dele para esta data.</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <button class="btn btn-accent" onclick="recalculateDates()" style="white-space:nowrap;">🔄 Recalcular Datas</button>
-          <button class="btn btn-secondary" onclick="clearRecalc()" style="font-size:12px;padding:8px 16px;">🗑️ Limpar</button>
+          <button class="btn btn-accent" onclick="recalculateAllDates()" style="white-space:nowrap;">🔄 Recalcular Todos</button>
+          <button class="btn btn-secondary" onclick="clearRecalcAll()" style="font-size:12px;padding:8px 16px;">🗑️ Limpar Tudo</button>
         </div>
       </div>
       <div class="recalc-result" id="recalc_result"></div>
     </div>
+
+    <div class="section" id="recalc_files_section" style="display:none;">
+      <div class="section-header" style="cursor:default;">
+        📑 Arquivos Carregados
+        <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;margin-left:auto;" onclick="downloadAllRecalcZip()">⬇️ Baixar Todos (.zip)</button>
+      </div>
+      <div class="section-body single" style="padding:0;">
+        <div class="db-table-wrap"><table class="db-table">
+          <thead><tr><th>Arquivo</th><th>Status</th><th>Datas Recalc.</th><th>Deslocamento</th><th>Ações</th></tr></thead>
+          <tbody id="recalc-files-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
     <div class="section" id="recalc_preview_section" style="display:none;">
       <div class="section-header" style="cursor:default;">
-        👁️ Preview do JDF com Datas Recalculadas
-        <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;margin-left:auto;" onclick="downloadRecalcJDF()">⬇️ Baixar JDF Atualizado</button>
+        👁️ Preview do JDF Recalculado <span id="recalc_preview_filename" style="font-weight:400;opacity:0.85;margin-left:8px;"></span>
+        <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;margin-left:auto;" onclick="downloadRecalcFileFromPreview()">⬇️ Baixar Este JDF</button>
       </div>
+      <div id="recalc_preview_changes" style="padding:16px 20px;background:#f8f9fa;border-bottom:1px solid var(--hd-border);overflow-x:auto;"></div>
       <div class="preview-body">
-        <pre id="recalc_preview" style="padding:20px;font-size:12px;line-height:1.6;color:#333;font-family:'Consolas','Courier New',monospace;white-space:pre-wrap;word-break:break-all;"></pre>
+        <pre id="recalc_preview" style="padding:20px;font-size:12px;line-height:1.6;color:var(--hd-dark);font-family:'Consolas','Courier New',monospace;white-space:pre-wrap;word-break:break-all;"></pre>
       </div>
     </div>
   </div>
@@ -459,10 +655,31 @@
   <div class="tab-content active" id="tab-product">
 
     <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">📄 Artigo e PDF<span class="toggle-icon">▼</span></div>
+      <div class="section-body">
+        <div class="db-selector"><label>📚 Carregar Artigo:</label><select id="p_db_article_select"><option value="">— Selecione —</option></select><button onclick="loadFromDB('article','p')">Carregar</button></div>
+        <div class="info-box"><strong>⚠️ Atenção:</strong> O <strong>Article ID</strong> deve ser <strong>exatamente idêntico</strong> ao AssemblyIDs usado na Ordem de Produção.</div>
+        <div class="field"><label>Article ID (AssemblyIDs) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="p_articleid" placeholder="Ex.: 617001" oninput="onArticleIdChangeProduct()"/></div>
+        <div class="field"><label>Article Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_articlename" placeholder="Ex.: Blackberry" oninput="onArticleNameChangeProduct()"/></div>
+        <div class="field"><label>Server (YOURSERVER) <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="p_server" placeholder="Ex.: SRVPMC04"/></div>
+        <div class="field"><label>PDF File Name <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="p_pdfname" placeholder="Ex.: 617001.pdf"/><span class="field-hint">Preenchido automaticamente com Article ID + ".pdf". Pode editar se precisar de um nome diferente.</span></div>
+        <div class="field"><label>PDF Path <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="p_pdfpath" placeholder="Ex.: PTTransfer/Files/SAMPLE-EX15"/></div>
+        <div class="field">
+          <label>Número de Páginas do PDF <span class="badge badge-important">IMPORTANTE</span></label>
+          <select id="p_npages">
+            <option value="1">1 página — Frente apenas (OneSided)</option>
+            <option value="2">2 páginas — Frente e verso (TwoSided)</option>
+          </select>
+        </div>
+        <div class="field"><label>Due Date (NodeInfo LastEnd) <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="p_nodeinfo_lastend"/></div>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🔖 Identificação do Trabalho<span class="toggle-icon">▼</span></div>
       <div class="section-body">
-        <div class="field"><label>Job ID <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="p_jobid" placeholder="Ex.: EX26_1122"/></div>
-        <div class="field"><label>Job Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_jobname" placeholder="Ex.: UC Packaging Product JDF Blackberry"/></div>
+        <div class="field"><label>Job ID <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="p_jobid" placeholder="Ex.: SKU_617001"/><span class="field-hint">Preenchido automaticamente: prefixo configurado em Base de Dados → Configurações Gerais + Article ID.</span></div>
+        <div class="field"><label>Job Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_jobname" placeholder="Ex.: Blackberry"/><span class="field-hint">Preenchido automaticamente com o Article Name.</span></div>
         <div class="field">
           <label>Production Type <span class="badge badge-optional">OPCIONAL</span></label>
           <select id="p_productiontype">
@@ -491,27 +708,6 @@
         <div class="field"><label>City <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_city" placeholder="Ex.: Kiel"/></div>
         <div class="field"><label>Postal Code <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_postalcode" placeholder="Ex.: 24107"/></div>
         <div class="field"><label>Country Code <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_countrycode" placeholder="Ex.: DE" maxlength="2"/></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-header" onclick="toggleSection(this)">📄 Artigo e PDF<span class="toggle-icon">▼</span></div>
-      <div class="section-body">
-        <div class="db-selector"><label>📚 Carregar Artigo:</label><select id="p_db_article_select"><option value="">— Selecione —</option></select><button onclick="loadFromDB('article','p')">Carregar</button></div>
-        <div class="info-box"><strong>⚠️ Atenção:</strong> O <strong>Article ID</strong> deve ser <strong>exatamente idêntico</strong> ao AssemblyIDs usado na Ordem de Produção.</div>
-        <div class="field"><label>Article ID (AssemblyIDs) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="p_articleid" placeholder="Ex.: 617001"/></div>
-        <div class="field"><label>Article Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="p_articlename" placeholder="Ex.: Blackberry"/></div>
-        <div class="field"><label>Server (YOURSERVER) <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="p_server" placeholder="Ex.: SRVPMC04"/></div>
-        <div class="field"><label>PDF File Name <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="p_pdfname" placeholder="Ex.: 617001_Delicioso_Blackberry.pdf"/></div>
-        <div class="field"><label>PDF Path <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="p_pdfpath" placeholder="Ex.: PTTransfer/Files/SAMPLE-EX15"/></div>
-        <div class="field">
-          <label>Número de Páginas do PDF <span class="badge badge-important">IMPORTANTE</span></label>
-          <select id="p_npages">
-            <option value="1">1 página — Frente apenas (OneSided)</option>
-            <option value="2">2 páginas — Frente e verso (TwoSided)</option>
-          </select>
-        </div>
-        <div class="field"><label>Due Date (NodeInfo LastEnd) <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="p_nodeinfo_lastend"/></div>
       </div>
     </div>
 
@@ -550,6 +746,7 @@
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🎨 Cores (ColorIntent)<span class="toggle-icon">▼</span></div>
       <div class="section-body">
+        <div class="info-box"><strong>ℹ️ Origem:</strong> estas cores vêm cadastradas no <strong>Artigo</strong> (Base de Dados) e são carregadas automaticamente ao clicar em "Carregar" na seção Artigo e PDF. Ainda pode ajustar manualmente aqui para este job específico, se precisar.</div>
         <div class="field full">
           <label>Separações de Cor CMYK <span class="badge badge-optional">OPCIONAL</span></label>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
@@ -562,8 +759,9 @@
         <div class="field full">
           <label>Cores Especiais (Spot Colors) <span class="badge badge-optional">OPCIONAL</span></label>
           <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-            <input type="text" id="p_spotcolor_input" placeholder="Ex.: PANTONE 485 C, Gold..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSpotColor('p');}"/>
-            <button type="button" onclick="addSpotColor('p')" style="padding:9px 18px;background:#0066cc;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Adicionar</button>
+            <input type="text" id="p_spotcolor_input" list="global-colors-datalist" placeholder="Ex.: PANTONE 485 C, Gold..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSpotColor('p');}"/>
+            <input type="color" id="p_spotcolor_hex" value="#1768ac" title="Cor da amostra (use o conta-gotas do seletor do navegador)" style="width:40px;height:38px;padding:2px;border:1.5px solid var(--hd-border);border-radius:8px;cursor:pointer;"/>
+            <button type="button" onclick="addSpotColor('p')" style="padding:9px 18px;background:var(--hd-blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Adicionar</button>
           </div>
           <span class="field-hint">Digite o nome exato da cor especial e pressione Enter ou clique em Adicionar.</span>
           <div id="p_spotcolors_list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:10px;"></div>
@@ -573,6 +771,10 @@
 
     <div class="preview-section">
       <div class="preview-header">👁️ Preview do JDF<button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="previewJDF('product')">Atualizar Preview</button></div>
+      <div class="info-box" style="border-radius:0;margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span>📁 <strong>Pasta de importação no Prinect:</strong> <code id="import-path-product" style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--hd-border);"></code></span>
+        <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="copyImportPath()">📋 Copiar</button>
+      </div>
       <div class="preview-body"><pre id="preview-product">Clique em "Atualizar Preview" para visualizar o JDF gerado.</pre></div>
     </div>
 
@@ -585,10 +787,10 @@
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🔖 Identificação do Trabalho<span class="toggle-icon">▼</span></div>
       <div class="section-body">
-        <div class="field"><label>Job ID <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="pr_jobid" placeholder="Ex.: EX26_1125"/></div>
+        <div class="field"><label>Job ID <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="pr_jobid" placeholder="Ex.: EX26_1125" oninput="onJobIdChangeProduction()"/></div>
         <div class="field"><label>Job Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_jobname" placeholder="Ex.: UC Packaging EX15 - JDF Delicioso"/></div>
         <div class="field"><label>Comment <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_comment" placeholder="Ex.: 1 shape, 3 articles"/></div>
-        <div class="field"><label>Job Ticket URL (CommentURL) <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_commenturl" placeholder="Ex.: file://SRVPMC04/PTTransfer/Files/jobticket.pdf"/></div>
+        <div class="field"><label>Job Ticket URL (CommentURL) <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_commenturl" placeholder="Ex.: file://SRVPMC04/PTTransfer/JobTicket/JobTicket_EX26_1125.pdf"/><span class="field-hint">Preenchido automaticamente: file://{Servidor Padrão}/PTTransfer/JobTicket/JobTicket_{Job ID}.pdf</span></div>
         <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_startdate"/></div>
         <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_enddate"/></div>
         <div class="field"><label>Due Date (Prazo de Entrega) <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_duedate"/></div>
@@ -613,9 +815,22 @@
     </div>
 
     <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">📦 Artigos (Articles)<span class="toggle-icon">▼</span></div>
+      <div class="section-body single">
+        <div class="info-box">
+          <strong>ℹ️ Multi-Shape:</strong> Cada artigo tem seu próprio <strong>Shape ID</strong>, <strong>Shape Name</strong> e <strong>Station Amount</strong>.
+          O <strong>Station Amount</strong> depende da ferramenta usada neste trabalho — não é salvo no cadastro.
+        </div>
+        <div class="articles-container" id="articles-container"></div>
+        <div style="margin-top:12px;"><button class="btn-add-article" onclick="addArticle()">+ Adicionar Artigo</button></div>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="section-header" onclick="toggleSection(this)">✂️ Ferramenta de Corte (BinderySignature)<span class="toggle-icon">▼</span></div>
       <div class="section-body">
         <div class="db-selector"><label>📚 Carregar Ferramenta:</label><select id="pr_db_tool_select"><option value="">— Selecione —</option></select><button onclick="loadFromDB('tool','pr')">Carregar</button></div>
+        <input type="hidden" id="pr_tool_dbid" value=""/>
         <div class="info-box-warning">
           <strong>ℹ️ Multi-Shape:</strong> O <strong>Shape ID</strong>, <strong>Shape Name</strong> e <strong>Station Amount</strong> são definidos <strong>individualmente por artigo</strong> na seção de Artigos abaixo.
           O arquivo CAD deve conter <strong>todos os contornos</strong> referenciados pelos artigos.
@@ -687,6 +902,7 @@
       <div class="section-header" onclick="toggleSection(this)">🖨️ Impressora (Device)<span class="toggle-icon">▼</span></div>
       <div class="section-body">
         <div class="db-selector"><label>📚 Carregar Impressora:</label><select id="pr_db_printer_select"><option value="">— Selecione —</option></select><button onclick="loadFromDB('printer','pr')">Carregar</button></div>
+        <input type="hidden" id="pr_printer_dbid" value=""/>
         <div class="info-box"><strong>⚠️ Atenção:</strong> O <strong>Device ID</strong> deve corresponder exatamente ao valor cadastrado no Prinect Cockpit.</div>
         <div class="field"><label>Device ID <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="pr_deviceid" placeholder="Ex.: 3451"/></div>
         <div class="field"><label>Device Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_devicename" placeholder="Ex.: XL106-7-LX"/></div>
@@ -699,14 +915,17 @@
         <div class="info-box"><strong>ℹ️ Acabamento:</strong> Selecione as máquinas cadastradas na Base de Dados ou preencha manualmente.</div>
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:#1e3a5f;padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">✂️ Shape Cutting</div>
         <div class="db-selector"><label>📚 Carregar:</label><select id="pr_db_shapecutting_select"><option value="">— Selecione —</option></select><button onclick="loadFinishingFromDB('shapecutting')">Carregar</button></div>
+        <input type="hidden" id="pr_shapecutting_dbid" value=""/>
         <div class="field"><label>Device ID — Shape Cutting <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_shapecutting_deviceid" placeholder="Ex.: 4212"/></div>
         <div class="field"><label>Device Name — Shape Cutting <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_shapecutting_devicename" placeholder="Ex.: MMATRIX-106-CSB"/></div>
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:#1e3a5f;padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">📦 Box Folding and Glueing</div>
         <div class="db-selector"><label>📚 Carregar:</label><select id="pr_db_boxfolding_select"><option value="">— Selecione —</option></select><button onclick="loadFinishingFromDB('boxfolding')">Carregar</button></div>
+        <input type="hidden" id="pr_boxfolding_dbid" value=""/>
         <div class="field"><label>Device ID — Box Folding <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_boxfolding_deviceid" placeholder="Ex.: 5224"/></div>
         <div class="field"><label>Device Name — Box Folding <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_boxfolding_devicename" placeholder="Ex.: FOLDER-GLUER"/></div>
         <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:#1e3a5f;padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">🏭 Packed in Boxes</div>
         <div class="db-selector"><label>📚 Carregar:</label><select id="pr_db_packing_select"><option value="">— Selecione —</option></select><button onclick="loadFinishingFromDB('packing')">Carregar</button></div>
+        <input type="hidden" id="pr_packing_dbid" value=""/>
         <div class="field"><label>Device ID — Packing <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_packing_deviceid" placeholder="Ex.: 7224"/></div>
         <div class="field"><label>Device Name — Packing <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_packing_devicename" placeholder="Ex.: PACKING"/></div>
       </div>
@@ -715,42 +934,45 @@
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🕐 Prazos por Etapa (Scheduler)<span class="toggle-icon">▼</span></div>
       <div class="section-body single">
-        <div class="info-box"><strong>ℹ️ Scheduler:</strong> Informe os prazos de cada etapa. Campos não preenchidos serão removidos do JDF.<br/><br/><strong>💡 Dica para demos:</strong> Use a aba <strong>🔄 Recalcular Datas</strong> para atualizar as datas mantendo os intervalos.</div>
+        <div class="info-box">
+          <strong>ℹ️ Cálculo automático:</strong> Informe a <strong>Start Date</strong> de <strong>Printing</strong> abaixo (dia/hora em que a produção pode começar) e clique em <strong>"⚙️ Calcular Prazos Automaticamente"</strong>.
+          O sistema soma a Quantidade (Amount) de todos os Artigos, divide pelo total de Station Amount para achar as folhas a produzir, e usa o Setup + Velocidade de cada máquina selecionada
+          (Impressora e Ferramentas de Acabamento) para calcular Printing → Shape Cutting → Box Folding and Glueing → Packing, nessa ordem, com 30 min de troca entre etapas.
+          <strong>Printing e Shape Cutting</strong> usam a velocidade em <strong>folhas/hora</strong> (trabalham em cima da folha inteira); <strong>Box Folding and Glueing e Packing</strong> usam <strong>unidades/hora</strong>
+          (já processam o cartucho individual, depois do corte) — configure a velocidade certa em cada máquina na Base de Dados.
+          Ele também verifica o <strong>Quadro de Alocação</strong> logo abaixo e empurra o horário para a próxima janela livre de cada máquina, evitando conflito com outros trabalhos já salvos.
+          <br/><br/><strong>PrePress</strong> e <strong>Plates</strong> foram removidos deste planejamento (não entravam no cálculo e não eram usados).
+          <br/><br/><strong>💡 Dica para demos:</strong> Use a aba <strong>🔄 Recalcular Datas</strong> para atualizar as datas mantendo os intervalos.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+          <button class="btn btn-accent" onclick="calculateProductionSchedule()">⚙️ Calcular Prazos Automaticamente</button>
+          <button class="btn btn-secondary" onclick="addJobToScheduleBoard()">📊 Adicionar/Atualizar no Quadro</button>
+          <button class="btn btn-secondary" onclick="removeJobFromScheduleBoard()">🗑️ Remover Este Job do Quadro</button>
+        </div>
+        <div id="pr_schedule_summary" style="font-size:13px;color:var(--hd-dark);background:var(--hd-gray);border:1px solid var(--hd-border);border-radius:6px;padding:10px 14px;margin-bottom:16px;display:none;"></div>
         <div class="schedule-grid">
-          <div class="schedule-grid-title">📄 PrePress Preparation (1ups)</div>
-          <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_prepress_start"/></div>
-          <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_prepress_end"/></div>
+          <div class="schedule-grid-title">🖨️ Printing (Print) <span class="badge badge-important">INFORME O START</span></div>
+          <div class="field"><label>Start Date <span class="badge badge-required">PONTO DE PARTIDA</span></label><input type="datetime-local" id="pr_printing_start"/></div>
+          <div class="field"><label>End Date <span class="badge badge-optional">AUTO</span></label><input type="datetime-local" id="pr_printing_end"/></div>
+          <div class="field"><label>Setup Duration (minutos) <span class="badge badge-optional">AUTO</span></label><input type="number" id="pr_printing_setup" placeholder="Ex.: 35" min="0"/></div>
+          <div class="field"><label>Total Duration (minutos) <span class="badge badge-optional">AUTO</span></label><input type="number" id="pr_printing_total" placeholder="Ex.: 140" min="0"/></div>
         </div>
         <div class="schedule-grid">
-          <div class="schedule-grid-title">🖨️ Platemaking / CTP (Plates)</div>
-          <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_plates_start"/></div>
-          <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_plates_end"/></div>
-          <div class="field"><label>Setup Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_plates_setup" placeholder="Ex.: 20" min="0"/></div>
-          <div class="field"><label>Total Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_plates_total" placeholder="Ex.: 40" min="0"/></div>
-        </div>
-        <div class="schedule-grid">
-          <div class="schedule-grid-title">🖨️ Printing (Print)</div>
-          <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_printing_start"/></div>
-          <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_printing_end"/></div>
-          <div class="field"><label>Setup Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_printing_setup" placeholder="Ex.: 35" min="0"/></div>
-          <div class="field"><label>Total Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_printing_total" placeholder="Ex.: 140" min="0"/></div>
-        </div>
-        <div class="schedule-grid">
-          <div class="schedule-grid-title">✂️ Shape Cutting (Sheet Finishing)</div>
+          <div class="schedule-grid-title">✂️ Shape Cutting (Sheet Finishing) <span class="badge badge-optional">AUTO</span></div>
           <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_shapecutting_start"/></div>
           <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_shapecutting_end"/></div>
           <div class="field"><label>Setup Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_shapecutting_setup" placeholder="Ex.: 50" min="0"/></div>
           <div class="field"><label>Total Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_shapecutting_total" placeholder="Ex.: 130" min="0"/></div>
         </div>
         <div class="schedule-grid">
-          <div class="schedule-grid-title">📦 Box Folding and Glueing</div>
+          <div class="schedule-grid-title">📦 Box Folding and Glueing <span class="badge badge-optional">AUTO</span></div>
           <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_boxfolding_start"/></div>
           <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_boxfolding_end"/></div>
           <div class="field"><label>Setup Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_boxfolding_setup" placeholder="Ex.: 75" min="0"/></div>
           <div class="field"><label>Total Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_boxfolding_total" placeholder="Ex.: 250" min="0"/></div>
         </div>
         <div class="schedule-grid">
-          <div class="schedule-grid-title">🏭 Packed in Boxes</div>
+          <div class="schedule-grid-title">🏭 Packed in Boxes <span class="badge badge-optional">AUTO</span></div>
           <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_packing_start"/></div>
           <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_packing_end"/></div>
           <div class="field"><label>Setup Duration (minutos) <span class="badge badge-optional">OPCIONAL</span></label><input type="number" id="pr_packing_setup" placeholder="Ex.: 40" min="0"/></div>
@@ -760,14 +982,17 @@
     </div>
 
     <div class="section">
-      <div class="section-header" onclick="toggleSection(this)">📦 Artigos (Articles)<span class="toggle-icon">▼</span></div>
+      <div class="section-header" onclick="toggleSection(this)">📊 Quadro de Alocação (Gantt)<span class="toggle-icon">▼</span></div>
       <div class="section-body single">
         <div class="info-box">
-          <strong>ℹ️ Multi-Shape:</strong> Cada artigo tem seu próprio <strong>Shape ID</strong>, <strong>Shape Name</strong> e <strong>Station Amount</strong>.
-          O <strong>Station Amount</strong> depende da ferramenta usada neste trabalho — não é salvo no cadastro.
+          <strong>ℹ️ Como funciona:</strong> Cada trabalho adicionado aqui (botão "📊 Adicionar/Atualizar no Quadro") entra nesse quadro e fica salvo neste navegador
+          (não é enviado a lugar nenhum). Assim, ao calcular o próximo trabalho, o sistema já sabe quando cada máquina está ocupada e evita sobreposição.
+          Barras da mesma cor = mesmo Job ID. Contorno vermelho tracejado = conflito de horário na mesma máquina.
         </div>
-        <div class="articles-container" id="articles-container"></div>
-        <div style="margin-top:12px;"><button class="btn-add-article" onclick="addArticle()">+ Adicionar Artigo</button></div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+          <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="clearScheduleBoard()">🗑️ Limpar Quadro Inteiro</button>
+        </div>
+        <div id="gantt-container"></div>
       </div>
     </div>
 
@@ -779,11 +1004,15 @@
           <strong>ℹ️ CellIndex Editável:</strong> Cada célula pode ter um artigo diferente e uma orientação diferente.
           Use isso para conjugações onde artigos precisam ir em direções opostas na chapa.
           <br/><br/>
+          <strong>🗺️ Layout visual:</strong> a numeração começa em <strong>0 no canto inferior esquerdo</strong> e segue para a direita, depois sobe linha por linha — igual ao arquivo CAD da faca.
+          Para ver o desenho físico da chapa (em vez da lista simples), configure <strong>"Layout da Chapa"</strong> no cadastro da Ferramenta de Corte (Base de Dados), informando as colunas de cada linha
+          de baixo pra cima (ex.: <code>4,4,4,4</code> para uma chapa uniforme, ou <code>4,2</code> se as linhas tiverem quantidades diferentes). As colunas se ajustam automaticamente para caber lado a lado, como na folha real.
+          <br/><br/>
           <strong>Orientações disponíveis:</strong>
           Rotate0 (normal) | Rotate90 | Rotate180 (invertido) | Rotate270 |
           Flip0 (espelhado) | Flip90 | Flip180 | Flip270
         </div>
-        <div class="cell-index-grid" id="cell-index-grid">
+        <div id="cell-index-grid" style="margin-top:12px;">
           <span style="color:#888;font-size:13px;">Adicione artigos com Station Amount para configurar o layout da chapa.</span>
         </div>
         <!-- ⚠️ NOVO v4.7: Toolbar de ações rápidas -->
@@ -796,7 +1025,10 @@
       </div>
     </div>
 
-    <div class="section">
+    <!-- Oculto a pedido do cliente: campo não é preenchido no fluxo atual. Mantido no DOM
+         (vazio) para não alterar a lógica de geração do JDF, que já ignora LayoutIntent quando
+         largura/altura estão em branco. Para reexibir, basta remover o display:none abaixo. -->
+    <div class="section" style="display:none;">
       <div class="section-header" onclick="toggleSection(this)">📐 Dimensões do Produto (LayoutIntent)<span class="toggle-icon">▼</span></div>
       <div class="section-body">
         <div class="info-box"><strong>Conversão automática:</strong> Informe os valores em <strong>mm</strong>. Fórmula: mm × 72 ÷ 25.4 = pt</div>
@@ -814,6 +1046,7 @@
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🎨 Cores (ColorIntent)<span class="toggle-icon">▼</span></div>
       <div class="section-body">
+        <div class="info-box"><strong>ℹ️ Origem:</strong> as cores são somadas automaticamente à medida que você carrega Artigos da Base de Dados abaixo, em "Artigos" — CMYK e cores especiais de cada artigo se juntam aqui, sem repetir nomes duplicados. Pode ajustar manualmente se precisar.</div>
         <div class="field full">
           <label>Separações de Cor CMYK <span class="badge badge-optional">OPCIONAL</span></label>
           <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
@@ -826,10 +1059,11 @@
         <div class="field full">
           <label>Cores Especiais (Spot Colors) <span class="badge badge-optional">OPCIONAL</span></label>
           <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
-            <input type="text" id="pr_spotcolor_input" placeholder="Ex.: PANTONE 485 C, Gold..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSpotColor('pr');}"/>
-            <button type="button" onclick="addSpotColor('pr')" style="padding:9px 18px;background:#0066cc;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Adicionar</button>
+            <input type="text" id="pr_spotcolor_input" list="global-colors-datalist" placeholder="Ex.: PANTONE 485 C, Gold..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSpotColor('pr');}"/>
+            <input type="color" id="pr_spotcolor_hex" value="#1768ac" title="Cor da amostra (use o conta-gotas do seletor do navegador)" style="width:40px;height:38px;padding:2px;border:1.5px solid var(--hd-border);border-radius:8px;cursor:pointer;"/>
+            <button type="button" onclick="addSpotColor('pr')" style="padding:9px 18px;background:var(--hd-blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Adicionar</button>
           </div>
-          <span class="field-hint">Digite o nome exato da cor especial e pressione Enter ou clique em Adicionar.</span>
+          <span class="field-hint">Preenchidas automaticamente pelos Artigos carregados. Também aceita adição manual aqui.</span>
           <div id="pr_spotcolors_list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:10px;"></div>
         </div>
       </div>
@@ -837,6 +1071,17 @@
 
     <div class="preview-section">
       <div class="preview-header">👁️ Preview do JDF<button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="previewJDF('production')">Atualizar Preview</button></div>
+      <div class="info-box" style="border-radius:0;margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span>📁 <strong>Pasta de importação no Prinect:</strong> <code id="import-path-production" style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--hd-border);"></code></span>
+        <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="copyImportPath()">📋 Copiar</button>
+      </div>
+      <div class="info-box" style="border-radius:0;margin:0;border-top:1px solid var(--hd-border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span>🎫 <strong>Pasta do JobTicket no Prinect:</strong> <code id="jobticket-path-production" style="background:var(--surface);padding:2px 8px;border-radius:4px;border:1px solid var(--hd-border);"></code></span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="copyJobTicketPath()">📋 Copiar</button>
+          <button class="btn btn-primary" style="font-size:12px;padding:6px 14px;" onclick="generateJobTicketPDF()">🎫 Gerar JobTicket (PDF)</button>
+        </div>
+      </div>
       <div class="preview-body"><pre id="preview-production">Clique em "Atualizar Preview" para visualizar o JDF gerado.</pre></div>
     </div>
 
@@ -847,32 +1092,122 @@
   <div class="tab-content" id="tab-database">
 
     <div class="db-section">
-      <div class="db-section-header"><span>👤 Clientes</span><button class="db-btn db-btn-primary" onclick="openModal('customer')">+ Novo Cliente</button></div>
+      <div class="db-section-header" onclick="toggleSection(this)"><span>⚙️ Configurações Gerais</span><span class="toggle-icon">▼</span></div>
+      <div class="section-body single" style="padding:20px;">
+        <div class="info-box">
+          <strong>ℹ️ Servidor Padrão:</strong> Informe aqui o nome do servidor do cliente (ex.: SRVPMC04).
+          Esse valor preenche automaticamente o campo <strong>Server</strong> ao cadastrar um novo Artigo e o campo
+          <strong>CAD File Server</strong> ao cadastrar uma nova Ferramenta de Corte — assim você não digita o mesmo
+          servidor várias vezes. Pode ser sempre editado individualmente em cada cadastro, se necessário.
+          <br/><br/>
+          <strong>ℹ️ Prefixo do Job ID:</strong> usado para montar automaticamente o Job ID do Product Job
+          (prefixo + Article ID). Também editável a qualquer momento diretamente no campo Job ID.
+          <br/><br/>
+          <strong>ℹ️ Próximo Job ID (Production Job):</strong> toda vez que você entra na aba Production Job com o campo
+          Job ID vazio (ex.: depois de "Limpar Formulário"), ele já vem preenchido com este número. Ao gerar o JDF,
+          o número avança sozinho pro próximo, pronto pro trabalho seguinte.
+        </div>
+        <div class="field">
+          <label>Nome do Servidor (Server) <span class="badge badge-optional">OPCIONAL</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="settings_defaultserver" placeholder="Ex.: SRVPMC04" style="flex:1;"/>
+            <button class="db-btn db-btn-primary" onclick="saveSettings()">💾 Salvar</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Prefixo do Job ID (Product Job) <span class="badge badge-optional">OPCIONAL</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="settings_jobprefix" placeholder="Ex.: SKU_" style="flex:1;"/>
+            <button class="db-btn db-btn-primary" onclick="saveSettings()">💾 Salvar</button>
+          </div>
+          <span class="field-hint">Usado para montar o Job ID automático do Product Job: prefixo + Article ID (ex.: SKU_617001).</span>
+        </div>
+        <div class="field">
+          <label>Próximo Job ID (Production Job) <span class="badge badge-optional">OPCIONAL</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="settings_productioncounter" placeholder="Ex.: 1245" style="flex:1;"/>
+            <button class="db-btn db-btn-primary" onclick="saveSettings()">💾 Salvar</button>
+          </div>
+          <span class="field-hint">Numeração sequencial automática. Avança +1 sozinho a cada Production Job gerado.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>🎨 Cores</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('color')">+ Nova Cor</button><span class="toggle-icon">▼</span></div>
+      <div class="section-body single" style="padding:16px 20px;">
+        <div class="info-box">
+          Banco de cores compartilhado por todos os Artigos. Ao cadastrar uma Cor Especial (Spot Color) dentro de um Artigo, ela é salva aqui automaticamente —
+          e da próxima vez que você digitar o mesmo nome em qualquer Artigo, a cor já é sugerida e o tom exato é reaproveitado (evita duas cores com o mesmo nome e tons diferentes).
+        </div>
+      </div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome..." oninput="dbSearch('color', this.value)"/></div>
+      <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Amostra</th><th>Nome</th><th>Hex</th><th>Ações</th></tr></thead><tbody id="db-tbody-color"></tbody></table></div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>📊 Quadro de Alocação (Gantt)</span><span class="toggle-icon">▼</span></div>
+      <div class="section-body single" style="padding:20px;">
+        <div class="info-box">
+          Os horários calculados no <strong>Production Job</strong> (botão "Adicionar/Atualizar no Quadro") ficam salvos aqui na Base de Dados — junto com clientes, artigos etc. —
+          então entram automaticamente no <strong>Exportar .json</strong>, <strong>Importar .json</strong> e <strong>Limpar Tudo</strong>. O mesmo Gantt aparece aqui e na aba Production Job, sempre em sincronia.
+        </div>
+        <div id="db-schedule-summary" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;margin-bottom:14px;"></div>
+        <div id="gantt-container-db"></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>📄 Trabalhos — Product Job</span><span class="toggle-icon">▼</span></div>
+      <div class="section-body single" style="padding:16px 20px;">
+        <div class="info-box">Salvo automaticamente toda vez que você clica em <strong>"⬇️ Gerar e Baixar JDF"</strong> na aba Product Job. Use "📋 Duplicar" para uma reimpressão: carrega tudo de novo, só pede um Job ID novo.</div>
+      </div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por Job ID, Article ID ou nome..." oninput="dbSearch('productjob', this.value)"/></div>
+      <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Job ID</th><th>Article ID</th><th>Nome</th><th>Salvo em</th><th>Ações</th></tr></thead><tbody id="db-tbody-productjob"></tbody></table></div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>🏭 Trabalhos — Production Job</span><span class="toggle-icon">▼</span></div>
+      <div class="section-body single" style="padding:16px 20px;">
+        <div class="info-box">Salvo automaticamente toda vez que você clica em <strong>"⬇️ Gerar e Baixar JDF"</strong> na aba Production Job (artigos, ferramenta, mídia, máquinas e CellIndex inclusos). Duplicar é o caminho mais rápido para uma reimpressão: altere Quantidade/Data e recalcule o Scheduler — o Gantt já considera os outros trabalhos salvos.</div>
+      </div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por Job ID ou nome..." oninput="dbSearch('productionjob', this.value)"/></div>
+      <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Job ID</th><th>Nome</th><th>Artigos</th><th>Salvo em</th><th>Ações</th></tr></thead><tbody id="db-tbody-productionjob"></tbody></table></div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>👤 Clientes</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('customer')">+ Novo Cliente</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome, ID, organização ou cidade..." oninput="dbSearch('customer', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Customer ID</th><th>Organização</th><th>Cidade</th><th>País</th><th>Ações</th></tr></thead><tbody id="db-tbody-customer"></tbody></table></div>
     </div>
 
     <div class="db-section">
-      <div class="db-section-header"><span>📦 Artigos</span><button class="db-btn db-btn-primary" onclick="openModal('article')">+ Novo Artigo</button></div>
+      <div class="db-section-header" onclick="toggleSection(this)"><span>📦 Artigos</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('article')">+ Novo Artigo</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome, Article ID ou Shape ID..." oninput="dbSearch('article', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Article ID</th><th>Shape ID</th><th>Shape Name</th><th>Páginas</th><th>Dimensões (mm)</th><th>Ações</th></tr></thead><tbody id="db-tbody-article"></tbody></table></div>
     </div>
 
     <div class="db-section">
-      <div class="db-section-header"><span>✂️ Ferramentas de Corte</span><button class="db-btn db-btn-primary" onclick="openModal('tool')">+ Nova Ferramenta</button></div>
+      <div class="db-section-header" onclick="toggleSection(this)"><span>✂️ Ferramentas de Corte</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('tool')">+ Nova Ferramenta</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome ou Tool ID..." oninput="dbSearch('tool', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Tool ID</th><th>Work Style</th><th>CAD File</th><th>Ações</th></tr></thead><tbody id="db-tbody-tool"></tbody></table></div>
     </div>
 
     <div class="db-section">
-      <div class="db-section-header"><span>📋 Substratos</span><button class="db-btn db-btn-primary" onclick="openModal('media')">+ Novo Substrato</button></div>
+      <div class="db-section-header" onclick="toggleSection(this)"><span>📋 Substratos</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('media')">+ Novo Substrato</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome ou marca..." oninput="dbSearch('media', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome (MediaQuality)</th><th>Brand</th><th>Dimensão (mm)</th><th>Gramatura</th><th>Espessura</th><th>Grain Direction</th><th>Ações</th></tr></thead><tbody id="db-tbody-media"></tbody></table></div>
     </div>
 
     <div class="db-section">
-      <div class="db-section-header"><span>🖨️ Impressoras</span><button class="db-btn db-btn-primary" onclick="openModal('printer')">+ Nova Impressora</button></div>
+      <div class="db-section-header" onclick="toggleSection(this)"><span>🖨️ Impressoras</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('printer')">+ Nova Impressora</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome ou Device ID..." oninput="dbSearch('printer', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Device ID</th><th>Ações</th></tr></thead><tbody id="db-tbody-printer"></tbody></table></div>
     </div>
 
     <div class="db-section">
-      <div class="db-section-header"><span>⚙️ Máquinas de Acabamento</span><button class="db-btn db-btn-primary" onclick="openModal('finishing')">+ Nova Máquina</button></div>
+      <div class="db-section-header" onclick="toggleSection(this)"><span>⚙️ Máquinas de Acabamento</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('finishing')">+ Nova Máquina</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome, ID ou tipo..." oninput="dbSearch('finishing', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Device ID</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="db-tbody-finishing"></tbody></table></div>
       <div class="db-io-bar">
         <span>💾 Base de Dados:</span>
@@ -897,6 +1232,7 @@ let activeTab = 'product';
 let articleCount = 0;
 let modalType = '';
 let modalEditId = null;
+let modalSpotColors = []; // spot colors do campo colorintent, enquanto o modal de Artigo está aberto
 
 // Orientações disponíveis
 const ORIENTATIONS = [
@@ -914,26 +1250,76 @@ const ORIENTATIONS = [
 // RECALCULATE DATES
 // ══════════════════════════════════════════════════════════════
 
-let recalcOriginalXML = '';
-let recalcUpdatedXML  = '';
-let recalcOriginalFilename = '';
+// ══════════════════════════════════════════════════════════════
+// RECALCULATE DATES (multi-arquivo / em lote)
+// ══════════════════════════════════════════════════════════════
 
-function loadJDFFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  recalcOriginalFilename = file.name;
-  const reader = new FileReader();
-  reader.onload = e => {
-    recalcOriginalXML = e.target.result;
+let recalcFiles = [];        // [{ id, filename, originalXML, updatedXML, changes, diffDays, status: 'pending'|'done'|'error' }]
+let recalcPreviewId = null;  // id do arquivo atualmente exibido no preview
+
+function genRecalcId() { return 'rf_' + Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+
+function loadJDFFiles(event) {
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+  const startField = document.getElementById('recalc_newstart');
+  if (!startField.value) {
     const now = new Date();
     const pad = n => String(n).padStart(2,'0');
-    document.getElementById('recalc_newstart').value =
-      `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    showToast(`✅ Arquivo carregado: ${file.name}`,'success');
-    document.getElementById('recalc_result').classList.remove('show');
+    startField.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+  let pending = files.length;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      recalcFiles.push({
+        id: genRecalcId(), filename: file.name, originalXML: e.target.result,
+        updatedXML: null, changes: [], diffDays: null, status: 'pending'
+      });
+      pending--;
+      if (pending === 0) renderRecalcFiles();
+    };
+    reader.onerror = () => {
+      pending--;
+      showToast(`⚠️ Erro ao ler ${file.name}`,'error');
+      if (pending === 0) renderRecalcFiles();
+    };
+    reader.readAsText(file);
+  });
+  showToast(`✅ ${files.length} arquivo(s) adicionado(s) à lista!`,'success');
+  event.target.value = ''; // permite selecionar os mesmos arquivos de novo, se precisar
+}
+
+function removeRecalcFile(id) {
+  recalcFiles = recalcFiles.filter(f => f.id !== id);
+  if (recalcPreviewId === id) {
+    recalcPreviewId = null;
     document.getElementById('recalc_preview_section').style.display = 'none';
-  };
-  reader.readAsText(file);
+  }
+  renderRecalcFiles();
+}
+
+function renderRecalcFiles() {
+  const section = document.getElementById('recalc_files_section');
+  const tbody   = document.getElementById('recalc-files-tbody');
+  if (!recalcFiles.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  tbody.innerHTML = recalcFiles.map(f => {
+    const statusBadge = f.status === 'done'    ? `<span class="badge badge-optional">✅ Recalculado</span>`
+                       : f.status === 'error'   ? `<span class="badge badge-error">⚠️ Sem datas</span>`
+                       :                          `<span class="badge badge-important">⏳ Pendente</span>`;
+    const changesCount = f.status === 'done' ? f.changes.length : '—';
+    const diffTxt = f.diffDays !== null ? `${f.diffDays>=0?'+':''}${f.diffDays} dia(s)` : '—';
+    const viewBtn = f.status === 'done' ? `<button class="db-btn db-btn-secondary" onclick="previewRecalcFile('${f.id}')" title="Visualizar">👁️</button>` : '';
+    const dlBtn   = f.status === 'done' ? `<button class="db-btn db-btn-secondary" onclick="downloadRecalcFile('${f.id}')" title="Baixar">⬇️</button>` : '';
+    return `<tr>
+      <td><strong>${f.filename}</strong></td>
+      <td>${statusBadge}</td>
+      <td>${changesCount}</td>
+      <td>${diffTxt}</td>
+      <td><div class="actions-cell">${viewBtn}${dlBtn}<button class="db-btn db-btn-danger" onclick="removeRecalcFile('${f.id}')" title="Remover">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
 }
 
 function extractDatesFromXML(xml) {
@@ -963,53 +1349,79 @@ function formatISODate(date, originalStr) {
   return `${local.getUTCFullYear()}-${pad(local.getUTCMonth()+1)}-${pad(local.getUTCDate())}T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())}${ms}${tz}`;
 }
 
-function recalculateDates() {
-  if (!recalcOriginalXML) { showToast('⚠️ Selecione um arquivo JDF primeiro.','error'); return; }
-  const newStartStr = document.getElementById('recalc_newstart').value;
-  if (!newStartStr) { showToast('⚠️ Informe a nova data de início.','error'); return; }
-  const allDates = extractDatesFromXML(recalcOriginalXML);
-  if (allDates.length === 0) { showToast('⚠️ Nenhuma data encontrada no arquivo JDF.','error'); return; }
+// Recalcula um único arquivo já carregado (usado internamente pelo recálculo em lote).
+// Desloca a data mais antiga do arquivo para newStartStr, preservando os intervalos internos.
+function recalculateOne(f, newStartStr) {
+  const allDates = extractDatesFromXML(f.originalXML);
+  if (allDates.length === 0) { f.status = 'error'; f.updatedXML = null; f.changes = []; f.diffDays = null; return; }
   const parsedDates = allDates.map(d => ({ ...d, parsed: parseISODate(d.value) }));
-  const minDate = parsedDates.reduce((a,b) => a.parsed < b.parsed ? a : b);
+  const minDate     = parsedDates.reduce((a,b) => a.parsed < b.parsed ? a : b);
   const originalRef = minDate.parsed;
-  const newRef = new Date(newStartStr);
-  const diffMs = newRef.getTime() - originalRef.getTime();
+  const newRef       = new Date(newStartStr);
+  const diffMs        = newRef.getTime() - originalRef.getTime();
   const changes = [];
-  let updatedXML = recalcOriginalXML;
+  let updatedXML = f.originalXML;
   const sortedByIndex = [...parsedDates].sort((a,b) => b.index - a.index);
   sortedByIndex.forEach(d => {
-    const newDate = new Date(d.parsed.getTime() + diffMs);
+    const newDate    = new Date(d.parsed.getTime() + diffMs);
     const newDateStr = formatISODate(newDate, d.value);
     updatedXML = updatedXML.slice(0, d.index) + newDateStr + updatedXML.slice(d.index + d.value.length);
     changes.push({ old: d.value, new: newDateStr });
   });
-  recalcUpdatedXML = updatedXML;
   const uniqueChanges = [];
   const seen = new Set();
   changes.forEach(c => { if (!seen.has(c.old)) { seen.add(c.old); uniqueChanges.push(c); } });
-  const diffDays = Math.round(diffMs / (1000*60*60*24));
-  const diffSign = diffDays >= 0 ? '+' : '';
-  const resultDiv = document.getElementById('recalc_result');
-  resultDiv.innerHTML = `
-    <strong>✅ ${uniqueChanges.length} data(s) recalculada(s) — deslocamento: ${diffSign}${diffDays} dia(s)</strong>
-    <table>
-      <thead><tr><th>Data Original</th><th>Nova Data</th></tr></thead>
-      <tbody>${uniqueChanges.map(c=>`<tr><td><span class="old-date">${c.old}</span></td><td><span class="new-date">${c.new}</span></td></tr>`).join('')}</tbody>
-    </table>`;
-  resultDiv.classList.add('show');
-  document.getElementById('recalc_preview').textContent = updatedXML;
-  document.getElementById('recalc_preview_section').style.display = 'block';
-  showToast(`✅ ${uniqueChanges.length} data(s) recalculada(s) com sucesso!`,'success');
+  f.updatedXML = updatedXML;
+  f.changes    = uniqueChanges;
+  f.diffDays   = Math.round(diffMs / (1000*60*60*24));
+  f.status     = 'done';
 }
 
-function downloadRecalcJDF() {
-  if (!recalcUpdatedXML) { showToast('⚠️ Recalcule as datas primeiro.','error'); return; }
-  const originalName = recalcOriginalFilename.replace(/\.jdf$/i,'').replace(/\.xml$/i,'');
+function recalculateAllDates() {
+  if (!recalcFiles.length) { showToast('⚠️ Carregue ao menos um arquivo JDF.','error'); return; }
+  const newStartStr = document.getElementById('recalc_newstart').value;
+  if (!newStartStr) { showToast('⚠️ Informe a nova data de início.','error'); return; }
+
+  let okCount = 0, errCount = 0, totalChanges = 0;
+  recalcFiles.forEach(f => {
+    recalculateOne(f, newStartStr);
+    if (f.status === 'done') { okCount++; totalChanges += f.changes.length; } else { errCount++; }
+  });
+  renderRecalcFiles();
+
+  const resultDiv = document.getElementById('recalc_result');
+  resultDiv.innerHTML = `<strong>✅ ${okCount} arquivo(s) recalculado(s)</strong> — ${totalChanges} data(s) atualizada(s) no total.` +
+    (errCount ? `<br/><span style="color:#c0392b;">⚠️ ${errCount} arquivo(s) sem nenhuma data reconhecida (ignorado${errCount>1?'s':''}).</span>` : '');
+  resultDiv.classList.add('show');
+  showToast(okCount ? `✅ Recálculo concluído: ${okCount} arquivo(s)!` : '⚠️ Nenhum arquivo pôde ser recalculado.', okCount ? 'success' : 'error');
+
+  const firstDone = recalcFiles.find(f => f.status === 'done');
+  if (firstDone) previewRecalcFile(firstDone.id);
+}
+
+function previewRecalcFile(id) {
+  const f = recalcFiles.find(x => x.id === id);
+  if (!f || f.status !== 'done') return;
+  recalcPreviewId = id;
+  document.getElementById('recalc_preview_filename').textContent = '— ' + f.filename;
+  document.getElementById('recalc_preview').textContent = f.updatedXML;
+  document.getElementById('recalc_preview_changes').innerHTML = `
+    <table class="db-table" style="font-size:12px;background:var(--surface);">
+      <thead><tr><th>Data Original</th><th>Nova Data</th></tr></thead>
+      <tbody>${f.changes.map(c=>`<tr><td><span class="old-date">${c.old}</span></td><td><span class="new-date">${c.new}</span></td></tr>`).join('')}</tbody>
+    </table>`;
+  document.getElementById('recalc_preview_section').style.display = 'block';
+}
+
+function downloadRecalcFile(id) {
+  const f = recalcFiles.find(x => x.id === id);
+  if (!f || f.status !== 'done') return;
+  const originalName = f.filename.replace(/\.jdf$/i,'').replace(/\.xml$/i,'');
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
   const suffix = `_recalc_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
   const filename = originalName + suffix + '.jdf';
-  const blob = new Blob([recalcUpdatedXML],{type:'application/xml'});
+  const blob = new Blob([f.updatedXML],{type:'application/xml'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url; a.download = filename; a.click();
@@ -1017,14 +1429,42 @@ function downloadRecalcJDF() {
   showToast(`✅ JDF baixado: ${filename}`,'success');
 }
 
-function clearRecalc() {
-  recalcOriginalXML = ''; recalcUpdatedXML = ''; recalcOriginalFilename = '';
+function downloadRecalcFileFromPreview() {
+  if (!recalcPreviewId) { showToast('⚠️ Nenhum preview selecionado.','error'); return; }
+  downloadRecalcFile(recalcPreviewId);
+}
+
+async function downloadAllRecalcZip() {
+  const doneFiles = recalcFiles.filter(f => f.status === 'done');
+  if (!doneFiles.length) { showToast('⚠️ Recalcule ao menos um arquivo primeiro.','error'); return; }
+  if (typeof JSZip === 'undefined') { showToast('⚠️ JSZip não carregou (sem internet?). Baixe individualmente pela lista.','error'); return; }
+  const zip = new JSZip();
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const suffix = `_recalc_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  doneFiles.forEach(f => {
+    const originalName = f.filename.replace(/\.jdf$/i,'').replace(/\.xml$/i,'');
+    zip.file(originalName + suffix + '.jdf', f.updatedXML);
+  });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `JDFs_recalculados${suffix}.zip`; a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✅ ${doneFiles.length} JDF(s) baixado(s) em .zip!`,'success');
+}
+
+function clearRecalcAll() {
+  recalcFiles = [];
+  recalcPreviewId = null;
   document.getElementById('recalc_file').value = '';
   document.getElementById('recalc_newstart').value = '';
   document.getElementById('recalc_result').classList.remove('show');
   document.getElementById('recalc_result').innerHTML = '';
+  document.getElementById('recalc_files_section').style.display = 'none';
   document.getElementById('recalc_preview_section').style.display = 'none';
   document.getElementById('recalc_preview').textContent = '';
+  document.getElementById('recalc_preview_changes').innerHTML = '';
   showToast('🗑️ Limpo com sucesso.');
 }
 
@@ -1033,6 +1473,9 @@ function clearRecalc() {
 // ══════════════════════════════════════════════════════════════
 
 const DB_KEY = 'hd_jdf_database';
+// Valores padrão de "Configurações Gerais". Usar Object.assign no load garante que bases
+// salvas antes de um novo campo existir (ex.: jobPrefix) continuem funcionando sem quebrar.
+const SETTINGS_DEFAULTS = { defaultServer: '', jobPrefix: 'SKU_', productionJobCounter: 1000 };
 
 function getDB() {
   try {
@@ -1043,18 +1486,363 @@ function getDB() {
       tools:     db.tools     || [],
       media:     db.media     || [],
       printers:  db.printers  || [],
-      finishing: db.finishing || []
+      finishing: db.finishing || [],
+      colors:    db.colors    || [],
+      scheduleBoard:  db.scheduleBoard  || [],
+      productJobs:    db.productJobs    || [],
+      productionJobs: db.productionJobs || [],
+      settings:  Object.assign({}, SETTINGS_DEFAULTS, db.settings || {})
     };
   } catch(e) {
-    return { customers:[], articles:[], tools:[], media:[], printers:[], finishing:[] };
+    return { customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) };
   }
+}
+
+// Configurações Gerais (Servidor Padrão + Prefixo do Job ID, reaproveitados em Artigos/Ferramentas/Product Job)
+function saveSettings() {
+  const db = getDB();
+  db.settings.defaultServer = (document.getElementById('settings_defaultserver').value||'').trim();
+  db.settings.jobPrefix     = (document.getElementById('settings_jobprefix').value||'').trim();
+  db.settings.productionJobCounter = parseInt(document.getElementById('settings_productioncounter').value) || SETTINGS_DEFAULTS.productionJobCounter;
+  saveDB(db);
+  updateImportPathDisplay();
+  updateJobTicketPathDisplay();
+  onJobIdChangeProduction();     // Job Ticket URL depende do Servidor Padrão
+  onArticleIdChangeProduct();    // Job ID (Product) depende do Prefixo
+  showToast('✅ Configurações salvas!');
 }
 
 function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
 
+// Caixa "Pasta de importação no Prinect" — usa o Servidor Padrão configurado em Configurações Gerais,
+// exibida no Preview do Product Job e do Production Job (ambos caem na mesma pasta JDFImport).
+function getImportPath() {
+  const db = getDB();
+  const server = db.settings.defaultServer || 'SEU-SERVIDOR';
+  return `\\\\${server}\\PTConfig\\Connector\\JDFImport`;
+}
+
+function updateImportPathDisplay() {
+  const path = getImportPath();
+  ['import-path-product','import-path-production'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = path;
+  });
+}
+
+function copyImportPath() {
+  const path = getImportPath();
+  navigator.clipboard.writeText(path).then(() => {
+    showToast('📋 Caminho copiado!','success');
+  }).catch(() => {
+    showToast('⚠️ Não foi possível copiar automaticamente. Selecione o texto manualmente.','error');
+  });
+}
+
+// Caixa "Pasta do JobTicket no Prinect" — mesmo princípio da pasta de importação do JDF,
+// só que aponta para \\Server\PTTransfer\JobTicket (onde Server = Servidor Padrão configurado).
+function getJobTicketPath() {
+  const db = getDB();
+  const server = db.settings.defaultServer || 'SEU-SERVIDOR';
+  return `\\\\${server}\\PTTransfer\\JobTicket`;
+}
+
+function updateJobTicketPathDisplay() {
+  const path = getJobTicketPath();
+  const el = document.getElementById('jobticket-path-production');
+  if (el) el.textContent = path;
+}
+
+function copyJobTicketPath() {
+  const path = getJobTicketPath();
+  navigator.clipboard.writeText(path).then(() => {
+    showToast('📋 Caminho copiado!','success');
+  }).catch(() => {
+    showToast('⚠️ Não foi possível copiar automaticamente. Selecione o texto manualmente.','error');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// JOBTICKET (PDF) — gerado inteiramente no navegador com jsPDF, a partir dos dados do Production Job
+// ══════════════════════════════════════════════════════════════
+
+const JOBTICKET_PROCESS_COLORS = {
+  cyan:    { name:'Cyan',    hex:'#00AEEF' },
+  magenta: { name:'Magenta', hex:'#EC008C' },
+  yellow:  { name:'Yellow',  hex:'#FFF200' },
+  black:   { name:'Black',   hex:'#231F20' },
+};
+
+function hexToRgb(hex) {
+  const h = (hex||'#888888').replace('#','');
+  const full = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
+  const num = parseInt(full,16);
+  if (isNaN(num)) return [136,136,136];
+  return [(num>>16)&255, (num>>8)&255, num&255];
+}
+
+function generateJobTicketPDF() {
+  if (typeof window.jspdf === 'undefined') { showToast('⚠️ Biblioteca de PDF não carregou (sem internet?). Tente novamente.','error'); return; }
+  const jobid = v('pr_jobid');
+  if (!jobid) { showToast('⚠️ Informe o Job ID antes de gerar o JobTicket.','error'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const db  = getDB();
+
+  // Paleta alinhada ao visual do simulador (azul Heidelberg, sem vermelho)
+  const BLUE=[61,111,224], BLUE_DK=[31,69,176], NAVY=[51,64,79], GRAY=[138,150,163], LBLUE=[238,242,250];
+  const M=15, PW=210, PH=297, W=PW-M*2;
+  let y=M;
+
+  function setF(style,size,color){ doc.setFont('helvetica',style); doc.setFontSize(size); doc.setTextColor(color[0],color[1],color[2]); }
+  function ln(x1,yy,x2,yy2,color,wt){ doc.setDrawColor(color[0],color[1],color[2]); doc.setLineWidth(wt||0.3); doc.line(x1,yy,x2,yy2); }
+  function fillRoundRect(x,yy,w,h,color){ doc.setFillColor(color[0],color[1],color[2]); doc.roundedRect(x,yy,w,h,2,2,'F'); }
+  function pageBreakIfNeeded(needed) { if (y+needed > PH-M) { doc.addPage(); y = M; } }
+  function labelValueRow(label, val) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(NAVY[0],NAVY[1],NAVY[2]);
+    doc.text(label, M+2, y+4);
+    doc.setFont('helvetica','normal');
+    const valLines = doc.splitTextToSize(String(val||'—'), W-48);
+    doc.text(valLines, M+42, y+4);
+    y += 5*Math.max(1, valLines.length);
+  }
+
+  // ── Dados do Production Job ──
+  const articles      = getArticles();
+  const totalCartons  = articles.reduce((s,a)=>s+(parseFloat(a.amount)||0),0);
+  const articleIds    = articles.map(a=>a.articleid).filter(Boolean).join(', ');
+  const isConjugado   = articles.length > 1;
+
+  function articleDbRecord(a) { return a.dbid ? db.articles.find(x=>x.id===a.dbid) : null; }
+
+  // Format: usa o campo do Production Job se preenchido; senão busca no cadastro de cada Artigo.
+  // Nunca mistura com Shape ID (isso é outra informação, mostrada só nos Production Hints).
+  const finW = v('pr_finishedwidth_mm'), finH = v('pr_finishedheight_mm');
+  let formatText;
+  if (finW && finH) {
+    formatText = `${finW} x ${finH} mm`;
+  } else {
+    const perArticleFmt = articles.map(a => {
+      const rec = articleDbRecord(a);
+      return { id: a.articleid, fmt: (rec && rec.finishedwidth && rec.finishedheight) ? `${rec.finishedwidth} x ${rec.finishedheight} mm` : null };
+    });
+    const uniqueFmts = [...new Set(perArticleFmt.map(p=>p.fmt).filter(Boolean))];
+    if (uniqueFmts.length === 1) formatText = uniqueFmts[0];
+    else if (uniqueFmts.length > 1) formatText = perArticleFmt.filter(p=>p.fmt).map(p=>`${p.id}: ${p.fmt}`).join(' | ');
+    else formatText = '—';
+  }
+
+  const shapeIds = [...new Set(articles.map(a=>a.shapeid).filter(Boolean))].join(', ');
+
+  const printingDevice     = v('pr_devicename');
+  const shapecuttingDevice = v('pr_shapecutting_devicename');
+  const boxfoldingDevice   = v('pr_boxfolding_devicename');
+  const packingDevice      = v('pr_packing_devicename');
+  const finishingParts = [
+    shapecuttingDevice ? `Shape Cutting: ${shapecuttingDevice}` : '',
+    boxfoldingDevice   ? `Box Folding: ${boxfoldingDevice}`     : '',
+    packingDevice      ? `Packing: ${packingDevice}`            : '',
+  ].filter(Boolean).join(' | ');
+
+  // Arrival date = 1 dia depois do fim da última etapa calculada no Scheduler (Packing, senão a última que existir)
+  function getLastStageEnd() {
+    for (const stage of ['packing','boxfolding','shapecutting','printing']) {
+      const end = v('pr_'+stage+'_end');
+      if (end) return new Date(end);
+    }
+    return null;
+  }
+  const lastStageEnd = getLastStageEnd();
+  let arrivalDateText = '—';
+  if (lastStageEnd) {
+    const arrival = new Date(lastStageEnd.getTime() + 24*3600000);
+    arrivalDateText = arrival.toLocaleDateString('pt-BR');
+  }
+
+  // Cores: CMYK marcados + Cores Especiais (com hex real, cadastradas no Artigo/banco global)
+  const colorCircles = [];
+  ['cyan','magenta','yellow','black'].forEach(k => {
+    const cb = document.getElementById('pr_color_'+k);
+    if (cb && cb.checked) colorCircles.push({ name: JOBTICKET_PROCESS_COLORS[k].name, rgb: hexToRgb(JOBTICKET_PROCESS_COLORS[k].hex) });
+  });
+  getSpotColors('pr').forEach(c => colorCircles.push({ name: c.name, rgb: hexToRgb(c.hex) }));
+  const printColorsText = colorCircles.map(c=>c.name).join(' + ') || '—';
+
+  // Layout físico da chapa (para o desenho do CellIndex)
+  const toolDbid = v('pr_tool_dbid');
+  const toolRecord = toolDbid ? db.tools.find(t=>t.id===toolDbid) : null;
+  const colsPerRow = (toolRecord && toolRecord.layoutcols)
+    ? toolRecord.layoutcols.split(',').map(s=>parseInt(s.trim())).filter(n=>n>0)
+    : [];
+  const cellData = getCellData();
+
+  // ══ CABEÇALHO (azul Heidelberg, sem vermelho) ══
+  setF('bold',16,NAVY);
+  doc.text(v('pr_orgname') || 'Cliente não informado', M, y+6);
+  setF('bold',16,BLUE);
+  doc.text(`Jobticket ${jobid}`, PW-M, y+6, { align:'right' });
+  y += 9;
+  ln(M,y,PW-M,y,BLUE,0.9);
+  y += 6;
+
+  // ── Bloco de contato (3 colunas) ──
+  setF('normal',8,GRAY);
+  const addr = [v('pr_street'), v('pr_city'), v('pr_postalcode'), v('pr_countrycode')].filter(Boolean).join(', ');
+  doc.text(doc.splitTextToSize(addr||'—', 60), M, y);
+  doc.text(`Responsible: ${(v('pr_firstname')+' '+v('pr_familyname')).trim() || '—'}`, M+68, y);
+  doc.text(`Customer ID: ${v('pr_customerid')||'—'}`, M+68, y+4);
+  doc.text(`Customer Order: ${v('pr_orderid')||'—'}`, M+134, y);
+  y += 13;
+  ln(M,y,PW-M,y,LBLUE,0.4);
+  y += 7;
+
+  // ── Título ──
+  setF('bold',14,NAVY); doc.text('Sales orders ganging', M, y);
+  setF('bold',13,NAVY); doc.text('Delivery', PW-M, y, { align:'right' });
+  y += 5;
+  setF('normal',8,GRAY);
+  doc.text(`Ex works: ${v('pr_startdate')||'—'}`, PW-M, y, { align:'right' }); y+=4;
+  doc.text(`Arrival date: ${arrivalDateText}`, PW-M, y, { align:'right' });
+  y += 4;
+
+  // ══ JOB DESCRIPTION ══
+  fillRoundRect(M,y,W,6.5,LBLUE);
+  setF('bold',9,NAVY); doc.text('Job Description', M+2, y+4.5);
+  y += 8;
+
+  labelValueRow('Amount', totalCartons.toLocaleString('pt-BR'));
+  if (isConjugado) {
+    const perArt = articles.map(a => `${a.articleid}: ${(parseFloat(a.amount)||0).toLocaleString('pt-BR')}`).join(' | ');
+    labelValueRow('Por Artigo', perArt);
+  }
+  labelValueRow('Product', v('pr_jobname') || v('pr_customerjobname') || '—');
+  labelValueRow('Article', articleIds || '—');
+  labelValueRow('Format', formatText);
+  labelValueRow('Paper', [v('pr_mediaquality'), v('pr_mediabrand')].filter(Boolean).join(' — ') || '—');
+  labelValueRow('Print', printColorsText);
+  labelValueRow('Finishing', finishingParts || '—');
+  labelValueRow('Comment', v('pr_comment') || '—');
+  y += 3;
+
+  // ── Círculos de cor ──
+  pageBreakIfNeeded(12);
+  setF('bold',9,NAVY); doc.text('Print Colors:', M, y+3);
+  let cx = M+26;
+  colorCircles.forEach(c => {
+    doc.setFillColor(c.rgb[0],c.rgb[1],c.rgb[2]);
+    doc.circle(cx, y+2, 2.3, 'F');
+    doc.setDrawColor(190,196,206); doc.setLineWidth(0.15); doc.circle(cx,y+2,2.3,'S');
+    setF('normal',7,GRAY);
+    doc.text(c.name, cx+3.2, y+3);
+    cx += doc.getTextWidth(c.name) + 13;
+  });
+  y += 10;
+
+  // ── Production hints ──
+  fillRoundRect(M,y,W,6.5,LBLUE);
+  setF('bold',9,NAVY); doc.text('Production Hints', M+2, y+4.5);
+  y += 8;
+  labelValueRow('Printer', printingDevice || '—');
+  labelValueRow('Sheet', (v('pr_sheetwidth_mm')&&v('pr_sheetheight_mm')) ? `1 sheet ${v('pr_sheetwidth_mm')} x ${v('pr_sheetheight_mm')} mm` : '—');
+  labelValueRow('ShapeID', shapeIds || '—');
+  labelValueRow('ToolID', v('pr_toolid') || '—');
+  y += 4;
+
+  // ══ CELLINDEX (desenho da chapa, colorido por Artigo — igual à tela do Production Job) ══
+  pageBreakIfNeeded(55);
+  setF('bold',10,NAVY); doc.text('Layout da Chapa (CellIndex)', M, y); y += 5;
+
+  if (isConjugado) {
+    // Legenda de cores por artigo
+    setF('normal',7,GRAY);
+    let lx = M;
+    articles.forEach(a => {
+      const rgb = hexToRgb(colorForArticle(a.articleid));
+      doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+      doc.roundedRect(lx, y-3, 3, 3, 0.6, 0.6, 'F');
+      const label = a.articlename || a.articleid;
+      doc.text(label, lx+4.5, y-0.5);
+      lx += doc.getTextWidth(label) + 12;
+    });
+    y += 5;
+  }
+
+  if (colsPerRow.length && cellData.length) {
+    const diagH = Math.min(60, Math.max(28, colsPerRow.length*11));
+    pageBreakIfNeeded(diagH+6);
+    const rowH = diagH / colsPerRow.length;
+    const rowStarts = []; let acc=0; colsPerRow.forEach(c => { rowStarts.push(acc); acc+=c; });
+    for (let r=colsPerRow.length-1; r>=0; r--) {
+      const cols = colsPerRow[r];
+      const cellW = W/cols;
+      const rowY = y + (colsPerRow.length-1-r)*rowH;
+      for (let c=0; c<cols; c++) {
+        const idx = rowStarts[r]+c;
+        const cd = cellData.find(cc => cc.index===idx);
+        const artId = (cd && cd.articleid) || '';
+        const fillRgb = hexToRgb(colorForArticle(artId));
+        doc.setDrawColor(200,205,214); doc.setLineWidth(0.2);
+        doc.setFillColor(fillRgb[0],fillRgb[1],fillRgb[2]);
+        doc.roundedRect(M+c*cellW+0.4, rowY+0.4, cellW-0.8, rowH*0.92-0.8, 1, 1, 'FD');
+        setF('normal', Math.max(6, Math.min(8, 60/cols)), NAVY);
+        doc.text(String(artId || '—'), M+c*cellW+cellW/2, rowY+rowH*0.5, { align:'center' });
+      }
+    }
+    y += diagH + 6;
+  } else {
+    setF('normal',8,GRAY);
+    doc.text('(Configure "Layout da Chapa" na Ferramenta de Corte, na Base de Dados, para ver o desenho aqui.)', M, y);
+    y += 8;
+  }
+
+  // ── Rodapé ──
+  pageBreakIfNeeded(10);
+  ln(M,y,PW-M,y,LBLUE,0.4); y += 4;
+  setF('normal',7,GRAY);
+  doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Simulador de MIS/ERP Heidelberg`, M, y);
+
+  doc.save(`JobTicket_${jobid}.pdf`);
+  showToast(`✅ JobTicket gerado: JobTicket_${jobid}.pdf`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// BANCO GLOBAL DE CORES (compartilhado entre todos os Artigos)
+// ══════════════════════════════════════════════════════════════
+
+// Cadastra (ou atualiza o tom de) uma cor no banco global, pelo nome (case-insensitive).
+function upsertGlobalColor(name, hex) {
+  if (!name) return;
+  const db = getDB();
+  const idx = db.colors.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+  if (idx >= 0) { if (hex) db.colors[idx].hex = hex; }
+  else db.colors.push({ id: genId(), name, hex: hex || '#888888' });
+  saveDB(db);
+  refreshGlobalColorsDatalist(db.colors);
+}
+
+// Busca o tom já cadastrado para um nome de cor; se não existir, cinza neutro como fallback.
+function lookupColorHex(name) {
+  const found = getDB().colors.find(c => c.name.toLowerCase() === (name||'').toLowerCase());
+  return found ? found.hex : '#888888';
+}
+
+function refreshGlobalColorsDatalist(colors) {
+  const dl = document.getElementById('global-colors-datalist');
+  if (!dl) return;
+  dl.innerHTML = (colors||[]).map(c => `<option value="${c.name}">`).join('');
+}
+
 function renderDB() {
   const db = getDB();
+  const serverEl = document.getElementById('settings_defaultserver');
+  const prefixEl = document.getElementById('settings_jobprefix');
+  const counterEl = document.getElementById('settings_productioncounter');
+  if (serverEl) serverEl.value = db.settings.defaultServer || '';
+  if (prefixEl) prefixEl.value = db.settings.jobPrefix || '';
+  if (counterEl) counterEl.value = db.settings.productionJobCounter || SETTINGS_DEFAULTS.productionJobCounter;
+  renderColors(db.colors);
   renderCustomers(db.customers);
   renderArticles(db.articles);
   renderTools(db.tools);
@@ -1062,15 +1850,108 @@ function renderDB() {
   renderPrinters(db.printers);
   renderFinishing(db.finishing);
   refreshAllSelectors();
+  refreshGlobalColorsDatalist(db.colors);
+  updateImportPathDisplay();
+  updateJobTicketPathDisplay();
+  renderScheduleBoardSummaryDB(db.scheduleBoard);
+  renderProductJobs(db.productJobs);
+  renderProductionJobs(db.productionJobs);
 }
 
 function emptyRow(cols, msg) {
   return `<tr><td colspan="${cols}" class="db-empty"><span>📭</span>${msg}</td></tr>`;
 }
 
-function renderCustomers(list) {
+function formatSavedAt(iso) {
+  try { return new Date(iso).toLocaleString('pt-BR'); } catch(e) { return '—'; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// BUSCA NOS CADASTROS DA BASE DE DADOS
+// ══════════════════════════════════════════════════════════════
+
+let dbSearchTerms = { customer:'', article:'', tool:'', media:'', printer:'', finishing:'', color:'', productjob:'', productionjob:'' };
+
+function applySearch(list, term, textFn) {
+  if (!term) return list;
+  const t = term.toLowerCase();
+  return list.filter(item => textFn(item).toLowerCase().includes(t));
+}
+
+function emptyRowFor(cols, term, emptyMsg) {
+  return term ? emptyRow(cols, `Nenhum resultado para "${term}".`) : emptyRow(cols, emptyMsg);
+}
+
+function dbSearch(type, term) {
+  dbSearchTerms[type] = term;
+  const db = getDB();
+  const map = {
+    customer:      () => renderCustomers(db.customers),
+    article:       () => renderArticles(db.articles),
+    tool:          () => renderTools(db.tools),
+    media:         () => renderMedia(db.media),
+    printer:       () => renderPrinters(db.printers),
+    finishing:     () => renderFinishing(db.finishing),
+    color:         () => renderColors(db.colors),
+    productjob:    () => renderProductJobs(db.productJobs),
+    productionjob: () => renderProductionJobs(db.productionJobs),
+  };
+  if (map[type]) map[type]();
+}
+
+function renderColors(rawList) {
+  const term = dbSearchTerms.color;
+  const list = applySearch(rawList, term, c => `${c.name}`);
+  const tbody = document.getElementById('db-tbody-color');
+  if (!tbody) return;
+  const sorted = [...list].sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  if (!sorted.length) { tbody.innerHTML = emptyRowFor(4, term, 'Nenhuma cor cadastrada ainda — cadastre uma cor especial em qualquer Artigo e ela aparece aqui.'); return; }
+  tbody.innerHTML = sorted.map(c => `<tr>
+    <td><span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${c.hex||'#888'};border:1.5px solid rgba(0,0,0,0.2);"></span></td>
+    <td><strong>${c.name||'—'}</strong></td><td>${(c.hex||'').toUpperCase()}</td>
+    <td><div class="actions-cell">
+      <button class="db-btn db-btn-warning" onclick="openModal('color','${c.id}')" title="Editar">✏️</button>
+      <button class="db-btn db-btn-danger" onclick="deleteRecord('color','${c.id}')" title="Excluir">🗑️</button>
+    </div></td></tr>`).join('');
+}
+
+function renderProductJobs(rawList) {
+  const term = dbSearchTerms.productjob;
+  const list = applySearch(rawList, term, j => `${j.jobId} ${j.articleId} ${j.label}`);
+  const tbody = document.getElementById('db-tbody-productjob');
+  if (!tbody) return;
+  const sorted = [...list].sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+  if (!sorted.length) { tbody.innerHTML = emptyRowFor(5, term, 'Nenhum Product Job gerado ainda.'); return; }
+  tbody.innerHTML = sorted.map(j => `<tr>
+    <td><strong>${j.jobId}</strong></td><td>${j.articleId||'—'}</td><td>${j.label||'—'}</td><td>${formatSavedAt(j.savedAt)}</td>
+    <td><div class="actions-cell">
+      <button class="db-btn db-btn-secondary" onclick="loadProductJobFromHistory('${j.id}', false)" title="Carregar">📂</button>
+      <button class="db-btn db-btn-secondary" onclick="loadProductJobFromHistory('${j.id}', true)" title="Duplicar (reimpressão)">📋</button>
+      <button class="db-btn db-btn-danger" onclick="deleteJobFromHistory('product','${j.id}')" title="Excluir">🗑️</button>
+    </div></td></tr>`).join('');
+}
+
+function renderProductionJobs(rawList) {
+  const term = dbSearchTerms.productionjob;
+  const list = applySearch(rawList, term, j => `${j.jobId} ${j.label}`);
+  const tbody = document.getElementById('db-tbody-productionjob');
+  if (!tbody) return;
+  const sorted = [...list].sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+  if (!sorted.length) { tbody.innerHTML = emptyRowFor(5, term, 'Nenhum Production Job gerado ainda.'); return; }
+  tbody.innerHTML = sorted.map(j => `<tr>
+    <td><strong>${j.jobId}</strong></td><td>${j.label||'—'}</td><td>${j.articleCount||0}</td><td>${formatSavedAt(j.savedAt)}</td>
+    <td><div class="actions-cell">
+      <button class="db-btn db-btn-secondary" onclick="loadProductionJobFromHistory('${j.id}', false)" title="Carregar">📂</button>
+      <button class="db-btn db-btn-secondary" onclick="loadProductionJobFromHistory('${j.id}', true)" title="Duplicar (reimpressão)">📋</button>
+      <button class="db-btn db-btn-danger" onclick="deleteJobFromHistory('production','${j.id}')" title="Excluir">🗑️</button>
+    </div></td></tr>`).join('');
+}
+
+function renderCustomers(rawList) {
+  const term = dbSearchTerms.customer;
+  const list = applySearch(rawList, term, r => `${r.name} ${r.customerid} ${r.orgname} ${r.city} ${r.countrycode}`);
   const tbody = document.getElementById('db-tbody-customer');
-  if (!list.length) { tbody.innerHTML = emptyRow(6,'Nenhum cliente cadastrado.'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRowFor(6, term, 'Nenhum cliente cadastrado.'); return; }
   tbody.innerHTML = list.map(r => `<tr>
     <td><strong>${r.name||'—'}</strong></td><td>${r.customerid||'—'}</td>
     <td>${r.orgname||'—'}</td><td>${r.city||'—'}</td><td>${r.countrycode||'—'}</td>
@@ -1080,23 +1961,28 @@ function renderCustomers(list) {
     </div></td></tr>`).join('');
 }
 
-function renderArticles(list) {
+function renderArticles(rawList) {
+  const term = dbSearchTerms.article;
+  const list = applySearch(rawList, term, r => `${r.articlename} ${r.articleid} ${r.shapeid} ${r.shapename}`);
   const tbody = document.getElementById('db-tbody-article');
-  if (!list.length) { tbody.innerHTML = emptyRow(7,'Nenhum artigo cadastrado.'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRowFor(7, term, 'Nenhum artigo cadastrado.'); return; }
   tbody.innerHTML = list.map(r => `<tr>
     <td><strong>${r.articlename||'—'}</strong></td><td>${r.articleid||'—'}</td>
     <td>${r.shapeid||'—'}</td><td>${r.shapename||'—'}</td>
     <td>${r.npages==='2'?'2 (F+V)':'1 (Frente)'}</td>
     <td>${r.finishedwidth&&r.finishedheight?r.finishedwidth+'×'+r.finishedheight+' mm':'—'}</td>
     <td><div class="actions-cell">
-      <button class="db-btn db-btn-warning" onclick="openModal('article','${r.id}')">✏️</button>
-      <button class="db-btn db-btn-danger" onclick="deleteRecord('article','${r.id}')">🗑️</button>
+      <button class="db-btn db-btn-warning" onclick="openModal('article','${r.id}')" title="Editar">✏️</button>
+      <button class="db-btn db-btn-secondary" onclick="duplicateRecord('article','${r.id}')" title="Duplicar Artigo">📋</button>
+      <button class="db-btn db-btn-danger" onclick="deleteRecord('article','${r.id}')" title="Excluir">🗑️</button>
     </div></td></tr>`).join('');
 }
 
-function renderTools(list) {
+function renderTools(rawList) {
+  const term = dbSearchTerms.tool;
+  const list = applySearch(rawList, term, r => `${r.toolname} ${r.toolid} ${r.workstyle} ${r.cadfile}`);
   const tbody = document.getElementById('db-tbody-tool');
-  if (!list.length) { tbody.innerHTML = emptyRow(5,'Nenhuma ferramenta cadastrada.'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRowFor(5, term, 'Nenhuma ferramenta cadastrada.'); return; }
   tbody.innerHTML = list.map(r => `<tr>
     <td><strong>${r.toolname||'—'}</strong></td><td>${r.toolid||'—'}</td>
     <td>${r.workstyle||'Simplex'}</td><td>${r.cadfile||'—'}</td>
@@ -1106,9 +1992,11 @@ function renderTools(list) {
     </div></td></tr>`).join('');
 }
 
-function renderMedia(list) {
+function renderMedia(rawList) {
+  const term = dbSearchTerms.media;
+  const list = applySearch(rawList, term, r => `${r.mediaquality} ${r.mediabrand}`);
   const tbody = document.getElementById('db-tbody-media');
-  if (!list.length) { tbody.innerHTML = emptyRow(7,'Nenhum substrato cadastrado.'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRowFor(7, term, 'Nenhum substrato cadastrado.'); return; }
   tbody.innerHTML = list.map(r => {
     const grainLabel = r.graindirection === 'YDirection' ? 'Short Grain' : (r.graindirection === 'XDirection' ? 'Long Grain' : '—');
     const grainClass = r.graindirection === 'YDirection' ? 'grain-y' : (r.graindirection === 'XDirection' ? 'grain-x' : '');
@@ -1126,9 +2014,11 @@ function renderMedia(list) {
   }).join('');
 }
 
-function renderPrinters(list) {
+function renderPrinters(rawList) {
+  const term = dbSearchTerms.printer;
+  const list = applySearch(rawList, term, r => `${r.devicename} ${r.deviceid}`);
   const tbody = document.getElementById('db-tbody-printer');
-  if (!list.length) { tbody.innerHTML = emptyRow(3,'Nenhuma impressora cadastrada.'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRowFor(3, term, 'Nenhuma impressora cadastrada.'); return; }
   tbody.innerHTML = list.map(r => `<tr>
     <td><strong>${r.devicename||'—'}</strong></td><td>${r.deviceid||'—'}</td>
     <td><div class="actions-cell">
@@ -1137,9 +2027,11 @@ function renderPrinters(list) {
     </div></td></tr>`).join('');
 }
 
-function renderFinishing(list) {
+function renderFinishing(rawList) {
+  const term = dbSearchTerms.finishing;
+  const list = applySearch(rawList, term, r => `${r.devicename} ${r.deviceid} ${r.finishingtype}`);
   const tbody = document.getElementById('db-tbody-finishing');
-  if (!list.length) { tbody.innerHTML = emptyRow(4,'Nenhuma máquina de acabamento cadastrada.'); return; }
+  if (!list.length) { tbody.innerHTML = emptyRowFor(4, term, 'Nenhuma máquina de acabamento cadastrada.'); return; }
   const typeLabels = { shapecutting:'✂️ Shape Cutting', boxfolding:'📦 Box Folding', packing:'🏭 Packing', other:'⚙️ Outro' };
   const typeBadges = { shapecutting:'type-badge-sc', boxfolding:'type-badge-bf', packing:'type-badge-pk', other:'type-badge-oth' };
   tbody.innerHTML = list.map(r => `<tr>
@@ -1149,6 +2041,80 @@ function renderFinishing(list) {
       <button class="db-btn db-btn-warning" onclick="openModal('finishing','${r.id}')">✏️</button>
       <button class="db-btn db-btn-danger" onclick="deleteRecord('finishing','${r.id}')">🗑️</button>
     </div></td></tr>`).join('');
+}
+
+// Transforma um <select> comum em um combobox de verdade: ao digitar, a lista já filtrada
+// aparece embaixo do campo (sem precisar abrir o dropdown nativo separadamente). O <select>
+// original continua existindo (oculto) como "dono" do valor real, então nenhuma outra função
+// do sistema (loadFromDB, loadArticleFromDB etc.) precisa mudar — elas continuam lendo .value normalmente.
+function enhanceSearchableSelect(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select || select.dataset.comboBuilt) return;
+  select.dataset.comboBuilt = '1';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'combo-wrap';
+  select.parentNode.insertBefore(wrapper, select);
+  select.classList.add('combo-native-select');
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'combo-input';
+  input.placeholder = '🔍 Buscar...';
+  input.autocomplete = 'off';
+  wrapper.appendChild(input);
+  wrapper.appendChild(select);
+
+  const panel = document.createElement('div');
+  panel.className = 'combo-panel';
+  wrapper.appendChild(panel);
+
+  const realOptions = () => Array.from(select.options).filter(o => o.value !== '');
+
+  function renderPanel(term) {
+    const t = (term||'').trim().toLowerCase();
+    const opts = realOptions().filter(o => !t || o.textContent.toLowerCase().includes(t));
+    panel.innerHTML = opts.length
+      ? opts.map(o => `<div class="combo-option" data-value="${o.value.replace(/"/g,'&quot;')}">${o.textContent}</div>`).join('')
+      : `<div class="combo-empty">Nenhum resultado</div>`;
+    panel.style.display = 'block';
+  }
+  function closePanel() { panel.style.display = 'none'; }
+  function pickOption(value, label) {
+    select.value = value;
+    input.value = label;
+    closePanel();
+  }
+  function syncInputFromSelect() {
+    const cur = select.options[select.selectedIndex];
+    input.value = (cur && cur.value) ? cur.textContent : '';
+  }
+
+  input.addEventListener('focus', () => { renderPanel(''); input.select(); });
+  input.addEventListener('input', () => renderPanel(input.value));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = panel.querySelector('.combo-option');
+      if (first) pickOption(first.getAttribute('data-value'), first.textContent);
+    } else if (e.key === 'Escape') {
+      closePanel(); input.blur();
+    }
+  });
+  panel.addEventListener('mousedown', (e) => {
+    const opt = e.target.closest('.combo-option');
+    if (!opt) return;
+    e.preventDefault(); // evita o blur do input fechar o painel antes do clique registrar
+    pickOption(opt.getAttribute('data-value'), opt.textContent);
+  });
+  input.addEventListener('blur', () => {
+    setTimeout(() => { closePanel(); syncInputFromSelect(); }, 150);
+  });
+
+  syncInputFromSelect();
+
+  // Sempre que refreshAllSelectors() repopula as <option>, mantém o campo de texto em dia
+  new MutationObserver(syncInputFromSelect).observe(select, { childList: true });
 }
 
 function refreshAllSelectors() {
@@ -1225,7 +2191,18 @@ function loadFromDB(type, prefix) {
     if (r.finishedheight) { document.getElementById('p_finishedheight_mm').value = r.finishedheight; convertMmToPt('p_finishedheight_mm','p_finishedheight_pt'); }
     if (r.npages) document.getElementById('p_npages').value = r.npages;
     if (r.sides)  document.getElementById('p_sides').value  = r.sides;
+    // Cores (ColorIntent) agora vêm cadastradas no Artigo, na Base de Dados.
+    document.getElementById('p_color_cyan').checked    = r.colorCyan    !== false;
+    document.getElementById('p_color_magenta').checked = r.colorMagenta !== false;
+    document.getElementById('p_color_yellow').checked  = r.colorYellow  !== false;
+    document.getElementById('p_color_black').checked   = r.colorBlack   !== false;
+    setSpotColors('p', r.spotColors || []);
+    // sv() só seta .value e não dispara oninput, então os campos auto-preenchidos
+    // (PDF File Name / Job ID / Job Name) precisam ser sincronizados manualmente aqui.
+    onArticleIdChangeProduct();
+    onArticleNameChangeProduct();
   } else if (type==='tool') {
+    sv('pr_tool_dbid',r.id);
     sv('pr_toolid',r.toolid); sv('pr_toolname',r.toolname);
     sv('pr_cadserver',r.cadserver); sv('pr_cadpath',r.cadpath); sv('pr_cadfile',r.cadfile);
     if (r.workstyle) document.getElementById('pr_workstyle').value = r.workstyle;
@@ -1233,6 +2210,7 @@ function loadFromDB(type, prefix) {
     if (r.trimtop)    { document.getElementById('pr_trimtop_mm').value    = r.trimtop;    convertMmToPt('pr_trimtop_mm','pr_trimtop_pt'); }
     if (r.trimleft)   { document.getElementById('pr_trimleft_mm').value   = r.trimleft;   convertMmToPt('pr_trimleft_mm','pr_trimleft_pt'); }
     if (r.trimright)  { document.getElementById('pr_trimright_mm').value  = r.trimright;  convertMmToPt('pr_trimright_mm','pr_trimright_pt'); }
+    updateCellIndexGrid();
   } else if (type==='media') {
     sv('pr_mediaquality',r.mediaquality); sv('pr_mediabrand',r.mediabrand);
     sv('pr_mediaproductid',r.mediaproductid); sv('pr_mediaweight',r.mediaweight); sv('pr_mediathickness',r.mediathickness);
@@ -1241,6 +2219,7 @@ function loadFromDB(type, prefix) {
     if (r.graindirection) document.getElementById('pr_graindirection').value = r.graindirection;
     else document.getElementById('pr_graindirection').value = '';
   } else if (type==='printer') {
+    sv('pr_printer_dbid',r.id);
     sv('pr_deviceid',r.deviceid); sv('pr_devicename',r.devicename);
   }
   showToast('✅ Dados carregados com sucesso!');
@@ -1252,6 +2231,7 @@ function loadFinishingFromDB(finishingType) {
   if (!sel||!sel.value) { showToast('⚠️ Selecione uma máquina antes de carregar.','error'); return; }
   const r = db.finishing.find(x=>x.id===sel.value);
   if (!r) return;
+  sv(`pr_${finishingType}_dbid`,       r.id);
   sv(`pr_${finishingType}_deviceid`,   r.deviceid);
   sv(`pr_${finishingType}_devicename`, r.devicename);
   showToast(`✅ Máquina carregada: ${r.devicename||r.deviceid}`);
@@ -1263,11 +2243,14 @@ function loadArticleFromDB(artIdx) {
   if (!sel||!sel.value) { showToast('⚠️ Selecione um artigo antes de carregar.','error'); return; }
   const r = db.articles.find(a=>a.id===sel.value);
   if (!r) return;
+  sv('art_'+artIdx+'_dbid',        r.id);
   sv('art_'+artIdx+'_articleid',   r.articleid);
   sv('art_'+artIdx+'_articlename', r.articlename);
   sv('art_'+artIdx+'_shapeid',     r.shapeid);
   sv('art_'+artIdx+'_shapename',   r.shapename);
+  onArticleIdChangeInCard(artIdx);
   updateCellIndexGrid();
+  syncProductionColorsFromArticles();
   showToast('✅ Artigo carregado! Informe o Station Amount para esta ferramenta.');
 }
 
@@ -1276,9 +2259,358 @@ function sv(id, val) {
   if (el && val !== undefined && val !== null) el.value = val;
 }
 
+// ── PRODUCT JOB: CAMPOS AUTO-PREENCHIDOS A PARTIR DO ARTIGO ───
+// Disparado tanto por digitação manual (oninput) quanto explicitamente pelo loadFromDB('article','p').
+
+function onArticleIdChangeProduct() {
+  const articleid = v('p_articleid');
+  sv('p_pdfname', articleid ? articleid + '.pdf' : '');
+  const prefix = getDB().settings.jobPrefix || '';
+  sv('p_jobid', articleid ? (prefix + articleid) : '');
+}
+
+function onArticleNameChangeProduct() {
+  sv('p_jobname', v('p_articlename'));
+}
+
+// ── PRODUCTION JOB: CAMPOS AUTO-PREENCHIDOS ────────────────────
+
+// Job Ticket URL = file://{Servidor Padrão}/PTTransfer/JobTicket/JobTicket_{Job ID}.pdf
+function onJobIdChangeProduction() {
+  const jobid  = v('pr_jobid');
+  const server = getDB().settings.defaultServer || 'SEU-SERVIDOR';
+  sv('pr_commenturl', jobid ? `file://${server}/PTTransfer/JobTicket/JobTicket_${jobid}.pdf` : '');
+}
+
+// Dentro de cada card de Artigo: Product Job ID = prefixo + Article ID; PDF File Name = Article ID + ".pdf"
+function onArticleIdChangeInCard(idx) {
+  const articleid = v('art_'+idx+'_articleid');
+  sv('art_'+idx+'_pdfname', articleid ? articleid + '.pdf' : '');
+  const prefix = getDB().settings.jobPrefix || '';
+  sv('art_'+idx+'_productjobid', articleid ? (prefix + articleid) : '');
+}
+
+// Soma as cores (CMYK + Spot Colors) de todos os artigos carregados da Base de Dados nos cards.
+// CMYK vira "ligado" se QUALQUER artigo carregado precisar daquele canal. Spot colors são deduplicadas por nome.
+// Cards preenchidos manualmente (sem usar "Carregar") não têm dado de cor associado e são ignorados aqui.
+function syncProductionColorsFromArticles() {
+  const db = getDB();
+  let anyCyan = false, anyMagenta = false, anyYellow = false, anyBlack = false, anyLoaded = false;
+  const allSpots = [];
+  for (let i = 1; i <= articleCount + 20; i++) {
+    const dbidEl = document.getElementById('art_'+i+'_dbid');
+    if (!dbidEl || !dbidEl.value) continue;
+    const r = db.articles.find(a => a.id === dbidEl.value);
+    if (!r) continue;
+    anyLoaded = true;
+    if (r.colorCyan    !== false) anyCyan    = true;
+    if (r.colorMagenta !== false) anyMagenta = true;
+    if (r.colorYellow  !== false) anyYellow  = true;
+    if (r.colorBlack   !== false) anyBlack   = true;
+    (r.spotColors||[]).forEach(c => {
+      const norm = typeof c === 'string' ? { name:c, hex:lookupColorHex(c) } : c;
+      if (!allSpots.some(x => x.name.toLowerCase() === norm.name.toLowerCase())) allSpots.push(norm);
+    });
+  }
+  if (anyLoaded) {
+    document.getElementById('pr_color_cyan').checked    = anyCyan;
+    document.getElementById('pr_color_magenta').checked = anyMagenta;
+    document.getElementById('pr_color_yellow').checked  = anyYellow;
+    document.getElementById('pr_color_black').checked   = anyBlack;
+  }
+  setSpotColors('pr', allSpots);
+}
+
+// ══════════════════════════════════════════════════════════════
+// PRAZOS POR ETAPA — CÁLCULO AUTOMÁTICO + QUADRO DE ALOCAÇÃO (GANTT)
+// ══════════════════════════════════════════════════════════════
+
+const SCHEDULE_STAGES = ['printing','shapecutting','boxfolding','packing'];
+const SCHEDULE_STAGE_LABELS = {
+  printing:     '🖨️ Printing',
+  shapecutting: '✂️ Shape Cutting',
+  boxfolding:   '📦 Box Folding & Glueing',
+  packing:      '🏭 Packing',
+};
+const GANTT_HOUR_PX = 60;
+const GANTT_COLORS  = ['#f5c396','#a9d8f5','#c8e6c9','#e6b8e6','#f0c9d8','#b8c6e6','#f5e396','#c9e6c0','#d8c9f5','#f5b8b8'];
+
+// O Quadro de Alocação agora mora dentro da Base de Dados principal (db.scheduleBoard),
+// então ele é incluído automaticamente em Exportar/Importar/Limpar Tudo.
+function loadScheduleBoard() { return getDB().scheduleBoard || []; }
+function saveScheduleBoard(arr) { const db = getDB(); db.scheduleBoard = arr; saveDB(db); }
+
+// Retorna a máquina (registro completo da Base de Dados) selecionada para uma etapa do Production Job.
+function getStageMachineInfo(stage) {
+  const fieldMap = {
+    printing:     { deviceid:'pr_deviceid',             devicename:'pr_devicename',             dbid:'pr_printer_dbid' },
+    shapecutting: { deviceid:'pr_shapecutting_deviceid', devicename:'pr_shapecutting_devicename', dbid:'pr_shapecutting_dbid' },
+    boxfolding:   { deviceid:'pr_boxfolding_deviceid',   devicename:'pr_boxfolding_devicename',   dbid:'pr_boxfolding_dbid' },
+    packing:      { deviceid:'pr_packing_deviceid',      devicename:'pr_packing_devicename',      dbid:'pr_packing_dbid' },
+  }[stage];
+  const deviceid   = v(fieldMap.deviceid);
+  const devicename = v(fieldMap.devicename);
+  const dbid       = v(fieldMap.dbid);
+  const db = getDB();
+  const list = stage === 'printing' ? db.printers : db.finishing;
+  const record = dbid ? list.find(r => r.id === dbid) : null;
+  return { deviceid, devicename, record, machineKey: devicename || deviceid || null };
+}
+
+function toDatetimeLocalValue(d) {
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Acha o primeiro horário livre de duração "durationMinutes" numa máquina, a partir de "earliestStart",
+// respeitando 30 min de buffer antes/depois de qualquer reserva já existente no Quadro (exceto do próprio job, se for recálculo).
+function findFreeSlot(machineKey, earliestStart, durationMinutes, excludeJobId) {
+  const GAP_MS = 30 * 60000;
+  const bookings = loadScheduleBoard()
+    .filter(e => e.machineKey === machineKey && e.jobId !== excludeJobId)
+    .map(e => ({ start: new Date(e.start), end: new Date(e.end) }))
+    .sort((a,b) => a.start - b.start);
+
+  let candidateStart = new Date(earliestStart);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const candidateEnd = new Date(candidateStart.getTime() + durationMinutes*60000);
+    for (const b of bookings) {
+      const bStartBuffered = new Date(b.start.getTime() - GAP_MS);
+      const bEndBuffered    = new Date(b.end.getTime() + GAP_MS);
+      if (candidateStart < bEndBuffered && bStartBuffered < candidateEnd) {
+        candidateStart = new Date(b.end.getTime() + GAP_MS);
+        changed = true;
+        break;
+      }
+    }
+  }
+  return { start: candidateStart, end: new Date(candidateStart.getTime() + durationMinutes*60000) };
+}
+
+// Motor de cálculo: folhas totais = Σ Amount ÷ Σ Station Amount (dos artigos do trabalho).
+// Para cada etapa (Printing → Shape Cutting → Box Folding → Packing), pega Setup + Velocidade da máquina
+// selecionada e acha o primeiro horário livre dela (via findFreeSlot), encadeando com 30 min entre etapas.
+function calculateProductionSchedule() {
+  const articles = getArticles();
+  const totalCartons  = articles.reduce((s,a) => s + (parseFloat(a.amount)        || 0), 0);
+  const totalStations = articles.reduce((s,a) => s + (parseFloat(a.stationamount) || 0), 0);
+  if (totalCartons <= 0 || totalStations <= 0) {
+    showToast('⚠️ Preencha Amount e Station Amount de ao menos um artigo antes de calcular.','error');
+    return;
+  }
+  const totalSheets = totalCartons / totalStations;
+
+  const anchorStr = v('pr_printing_start');
+  if (!anchorStr) {
+    showToast('⚠️ Informe a Start Date de Printing — é o dia/hora em que a produção pode começar.','error');
+    return;
+  }
+
+  const jobid = v('pr_jobid') || '(sem Job ID)';
+  const GAP_MIN = 30;
+  let earliestNext = new Date(anchorStr);
+  let anyMachine = false;
+  const summaryParts = [];
+
+  SCHEDULE_STAGES.forEach(stage => {
+    const { record, machineKey } = getStageMachineInfo(stage);
+    if (!record) return; // sem máquina selecionada para esta etapa — não mexe nos campos dela
+
+    anyMachine = true;
+    // Printing e Shape Cutting trabalham em cima da folha impressa (folhas/hora).
+    // Box Folding and Glueing e Packing já processam o cartucho individual, depois do corte (unidades/hora).
+    const usesUnits = (stage === 'boxfolding' || stage === 'packing');
+    const basisQty  = usesUnits ? totalCartons : totalSheets;
+    const setupMin  = parseFloat(record.setupminutes)   || 0;
+    const speed     = parseFloat(record.speedsheetshour) || 0;
+    const prodMin   = speed > 0 ? (basisQty / speed) * 60 : 0;
+    const totalMin  = setupMin + prodMin;
+
+    const slot = findFreeSlot(machineKey, earliestNext, totalMin, jobid);
+
+    sv('pr_'+stage+'_start', toDatetimeLocalValue(slot.start));
+    sv('pr_'+stage+'_end',   toDatetimeLocalValue(slot.end));
+    sv('pr_'+stage+'_setup', Math.round(setupMin));
+    sv('pr_'+stage+'_total', Math.round(totalMin));
+
+    earliestNext = new Date(slot.end.getTime() + GAP_MIN*60000);
+    const basisLabel = usesUnits ? `${basisQty.toLocaleString('pt-BR')} unid.` : `${basisQty.toLocaleString('pt-BR',{maximumFractionDigits:2})} folhas`;
+    summaryParts.push(`${SCHEDULE_STAGE_LABELS[stage]}: ${Math.round(totalMin)} min (${machineKey} — ${basisLabel})`);
+  });
+
+  if (!anyMachine) {
+    showToast('⚠️ Selecione ao menos uma máquina (Impressora ou Ferramentas de Acabamento) para calcular.','error');
+    return;
+  }
+
+  const summaryEl = document.getElementById('pr_schedule_summary');
+  summaryEl.style.display = 'block';
+  summaryEl.innerHTML =
+    `<strong>📐 ${totalCartons.toLocaleString('pt-BR')} cartuchos ÷ ${totalStations} (Station Amount) = ${totalSheets.toLocaleString('pt-BR',{maximumFractionDigits:2})} folhas</strong> ` +
+    `<span style="color:#666;">(Printing e Shape Cutting usam folhas/hora; Box Folding e Packing usam os ${totalCartons.toLocaleString('pt-BR')} cartuchos direto, em unidades/hora)</span><br/>` +
+    summaryParts.join(' • ') +
+    `<br/><span style="color:#0066cc;">🔎 Horários ajustados para não conflitar com outros trabalhos já salvos no Quadro de Alocação.</span>`;
+  showToast('✅ Prazos calculados — respeitando a disponibilidade de cada máquina!');
+}
+
+// Salva (ou atualiza) os horários calculados deste Job no Quadro de Alocação persistente (localStorage).
+// Mantém sincronizados o Gantt (Production Job) e o resumo (Base de Dados) sempre que o quadro muda.
+function refreshScheduleViews() {
+  renderScheduleBoard();
+  renderScheduleBoardSummaryDB(loadScheduleBoard());
+}
+
+function addJobToScheduleBoard() {
+  const jobid = v('pr_jobid');
+  if (!jobid) { showToast('⚠️ Informe o Job ID antes de adicionar ao quadro.','error'); return; }
+
+  let board = loadScheduleBoard().filter(e => e.jobId !== jobid); // substitui entradas antigas deste job
+  let added = 0;
+  SCHEDULE_STAGES.forEach(stage => {
+    const { machineKey } = getStageMachineInfo(stage);
+    const startStr = v('pr_'+stage+'_start');
+    const endStr   = v('pr_'+stage+'_end');
+    if (!machineKey || !startStr || !endStr) return;
+    board.push({ id: genId(), jobId: jobid, stage, stageLabel: SCHEDULE_STAGE_LABELS[stage], machineKey, start: startStr, end: endStr });
+    added++;
+  });
+
+  if (!added) { showToast('⚠️ Calcule os prazos automaticamente antes de adicionar ao quadro.','error'); return; }
+  saveScheduleBoard(board);
+  refreshScheduleViews();
+  showToast(`✅ Job "${jobid}" adicionado ao Quadro de Alocação (${added} etapa(s))!`);
+}
+
+function removeJobFromScheduleBoard() {
+  const jobid = v('pr_jobid');
+  if (!jobid) { showToast('⚠️ Informe o Job ID do trabalho que deseja remover.','error'); return; }
+  const board = loadScheduleBoard();
+  const filtered = board.filter(e => e.jobId !== jobid);
+  saveScheduleBoard(filtered);
+  refreshScheduleViews();
+  showToast(filtered.length === board.length ? 'ℹ️ Este Job não estava no quadro.' : `🗑️ Job "${jobid}" removido do quadro.`);
+}
+
+function clearScheduleBoard() {
+  if (!confirm('Deseja limpar todo o Quadro de Alocação? Isso não afeta os formulários, só a visualização de horários salvos.')) return;
+  saveScheduleBoard([]);
+  refreshScheduleViews();
+  showToast('🗑️ Quadro de Alocação limpo.');
+}
+
+// Cor consistente por Article ID — usada no CellIndex (tela e JobTicket) pra enxergar
+// visualmente a conjugação de artigos diferentes na mesma chapa.
+function colorForArticle(articleId) {
+  if (!articleId) return '#FFFFFF';
+  let hash = 0;
+  for (let i=0;i<articleId.length;i++) hash = (hash*31 + articleId.charCodeAt(i)) >>> 0;
+  return GANTT_COLORS[hash % GANTT_COLORS.length];
+}
+
+function colorForJob(jobId) {
+  let hash = 0;
+  for (let i = 0; i < jobId.length; i++) hash = (hash*31 + jobId.charCodeAt(i)) >>> 0;
+  return GANTT_COLORS[hash % GANTT_COLORS.length];
+}
+
+// Constrói o Gantt inteiramente com HTML/CSS (sem lib de gráficos): 1 linha por máquina,
+// colunas de hora em hora, blocos posicionados por left/width em pixels proporcionais ao tempo.
+// Resumo compacto do Quadro de Alocação, exibido na aba Base de Dados (o Gantt em si fica no Production Job).
+function renderScheduleBoardSummaryDB(board) {
+  const el = document.getElementById('db-schedule-summary');
+  if (!el) return;
+  board = board || [];
+  if (!board.length) {
+    el.innerHTML = '<span style="color:#888;">Nenhum trabalho salvo no quadro ainda.</span>';
+    return;
+  }
+  const jobs = new Set(board.map(e => e.jobId));
+  const machines = new Set(board.map(e => e.machineKey));
+  el.innerHTML = `
+    <span><strong>${jobs.size}</strong> trabalho(s) • <strong>${board.length}</strong> etapa(s) salva(s) • <strong>${machines.size}</strong> máquina(s) envolvida(s)</span>
+    <button class="db-btn db-btn-danger" onclick="clearScheduleBoard()">🗑️ Limpar Quadro</button>`;
+}
+
+function renderScheduleBoard() {
+  const containers = ['gantt-container','gantt-container-db']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  if (!containers.length) return;
+  const board = loadScheduleBoard();
+  if (!board.length) {
+    containers.forEach(c => c.innerHTML = '<div class="gantt-empty">Nenhum trabalho no quadro ainda. Calcule os prazos no Production Job e clique em "📊 Adicionar/Atualizar no Quadro".</div>');
+    return;
+  }
+
+  let minStart = new Date(Math.min(...board.map(e => new Date(e.start).getTime())));
+  let maxEnd   = new Date(Math.max(...board.map(e => new Date(e.end).getTime())));
+  minStart.setMinutes(0,0,0);
+  maxEnd = new Date(maxEnd.getTime() + 3600000);
+  maxEnd.setMinutes(0,0,0);
+  const totalHours = Math.max(1, Math.round((maxEnd - minStart) / 3600000));
+
+  const machines = [];
+  board.forEach(e => { if (!machines.includes(e.machineKey)) machines.push(e.machineKey); });
+
+  // Cabeçalho: dias (agrupando horas do mesmo dia) + horas
+  let dayHeaderHtml = '', hourHeaderHtml = '';
+  let cursorDate = new Date(minStart);
+  let hourIdx = 0;
+  while (hourIdx < totalHours) {
+    const hoursLeftInDay = 24 - cursorDate.getHours();
+    const span = Math.min(hoursLeftInDay, totalHours - hourIdx);
+    dayHeaderHtml += `<div class="gantt-day-cell" style="width:${span*GANTT_HOUR_PX}px;">${cursorDate.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</div>`;
+    for (let h = 0; h < span; h++) {
+      const hourLabel = new Date(cursorDate.getTime() + h*3600000);
+      hourHeaderHtml += `<div class="gantt-hour-cell" style="width:${GANTT_HOUR_PX}px;">${String(hourLabel.getHours()).padStart(2,'0')}:00</div>`;
+    }
+    hourIdx += span;
+    cursorDate = new Date(cursorDate.getTime() + span*3600000);
+  }
+
+  let rowsHtml = '';
+  machines.forEach(machineKey => {
+    const entries = board.filter(e => e.machineKey === machineKey).sort((a,b) => new Date(a.start) - new Date(b.start));
+    let blocksHtml = '';
+    entries.forEach((e,i) => {
+      const s = new Date(e.start), en = new Date(e.end);
+      const left  = ((s - minStart) / 3600000) * GANTT_HOUR_PX;
+      const width = Math.max(4, ((en - s) / 3600000) * GANTT_HOUR_PX);
+      const conflict = entries.some((o,j) => j !== i && new Date(o.start) < en && s < new Date(o.end));
+      const color = colorForJob(e.jobId);
+      const tooltip = `${e.jobId} — ${e.stageLabel}\n${s.toLocaleString('pt-BR')} → ${en.toLocaleString('pt-BR')}${conflict ? '\n⚠️ CONFLITO de horário!' : ''}`;
+      blocksHtml += `<div class="gantt-block${conflict?' conflict':''}" style="left:${left}px;width:${width}px;background:${color};" title="${tooltip}">${e.jobId}</div>`;
+    });
+    rowsHtml += `<div class="gantt-row">
+      <div class="gantt-row-label">${machineKey}</div>
+      <div class="gantt-track" style="width:${totalHours*GANTT_HOUR_PX}px;">${blocksHtml}</div>
+    </div>`;
+  });
+
+  const html = `
+    <div class="gantt-wrap">
+      <div class="gantt-inner">
+        <div class="gantt-header-row"><div class="gantt-row-label" style="background:#e8eef7;"></div><div style="display:flex;">${dayHeaderHtml}</div></div>
+        <div class="gantt-header-row" style="top:31px;"><div class="gantt-row-label" style="background:#e8eef7;"></div><div style="display:flex;">${hourHeaderHtml}</div></div>
+        ${rowsHtml}
+      </div>
+    </div>`;
+
+  containers.forEach(c => c.innerHTML = html);
+}
+
 // ── MODAL ─────────────────────────────────────────────────────
 
 const modalConfigs = {
+  color: {
+    title: '🎨 Cor',
+    fields: [
+      { id:'name', label:'Nome da Cor', placeholder:'Ex.: HBR Blue', full:true },
+      { id:'hex',  label:'Amostra (clique para escolher, ou use o conta-gotas do seletor do navegador)', type:'color', defaultValue:'#1768ac' },
+    ]
+  },
   customer: {
     title: '👤 Cliente',
     fields: [
@@ -1300,12 +2632,13 @@ const modalConfigs = {
       { id:'articleid',      label:'Article ID (AssemblyIDs)', placeholder:'Ex.: 617001' },
       { id:'shapeid',        label:'Shape ID',                 placeholder:'Ex.: HBR_001' },
       { id:'shapename',      label:'Shape Name',               placeholder:'Ex.: Caixa_A' },
-      { id:'server',         label:'Server',                   placeholder:'Ex.: SRVPMC04' },
-      { id:'pdfpath',        label:'PDF Path',                 placeholder:'Ex.: PTTransfer/Files/SAMPLE-EX15' },
+      { id:'server',         label:'Server',                   placeholder:'Ex.: SRVPMC04', useDefaultServer:true },
+      { id:'pdfpath',        label:'PDF Path',                 placeholder:'Ex.: PTTransfer/Files', defaultValue:'PTTransfer/Files' },
       { id:'finishedwidth',  label:'Largura Produto (mm)',     placeholder:'Ex.: 155', type:'number' },
       { id:'finishedheight', label:'Altura Produto (mm)',      placeholder:'Ex.: 135', type:'number' },
       { id:'npages',         label:'Número de Páginas',        type:'select', options:[{v:'1',l:'1 página — Frente apenas'},{v:'2',l:'2 páginas — Frente e verso'}] },
       { id:'sides',          label:'Sides',                    type:'select', options:[{v:'OneSided',l:'OneSided'},{v:'TwoSidedHeadToHead',l:'TwoSidedHeadToHead'},{v:'TwoSidedHeadToFoot',l:'TwoSidedHeadToFoot'}] },
+      { id:'colorintent',    label:'Cores (ColorIntent)',      type:'colorintent', full:true },
     ]
   },
   tool: {
@@ -1320,13 +2653,15 @@ const modalConfigs = {
         {v:'WorkAndTurn',l:'WorkAndTurn — Com rotação'},
         {v:'WorkAndTumble',l:'WorkAndTumble — Com tombamento'}
       ]},
-      { id:'cadserver',     label:'CAD File Server',     placeholder:'Ex.: SRVPMC04' },
-      { id:'cadpath',       label:'CAD File Path',       placeholder:'Ex.: PTTransfer/Files/SAMPLE-EX15' },
+      { id:'cadserver',     label:'CAD File Server',     placeholder:'Ex.: SRVPMC04', useDefaultServer:true },
+      { id:'cadpath',       label:'CAD File Path',       placeholder:'Ex.: PTTransfer/CAD', defaultValue:'PTTransfer/CAD' },
       { id:'cadfile',       label:'CAD File Name',       placeholder:'Ex.: PACK-9999_MultiShape.evd' },
       { id:'trimbottom',    label:'Trim Bottom (mm)',    placeholder:'Ex.: 20', type:'number' },
       { id:'trimtop',       label:'Trim Top (mm)',       placeholder:'Ex.: 26', type:'number' },
       { id:'trimleft',      label:'Trim Left (mm)',      placeholder:'Ex.: 3',  type:'number' },
       { id:'trimright',     label:'Trim Right (mm)',     placeholder:'Ex.: 3',  type:'number' },
+      { id:'layoutcols',    label:'Layout da Chapa — Colunas por Linha (de baixo pra cima)', placeholder:'Ex.: 4,4,4,4  ou  4,2 (linhas com quantidades diferentes)', full:true,
+        hint:'Um número por linha, separado por vírgula, começando pela linha de baixo. Ex.: "4,2" = linha de baixo com 4 posições, linha de cima com 2. A soma deve bater com o total de Station Amount dos artigos.' },
     ]
   },
   media: {
@@ -1349,8 +2684,10 @@ const modalConfigs = {
   printer: {
     title: '🖨️ Impressora',
     fields: [
-      { id:'devicename', label:'Device Name', placeholder:'Ex.: XL106-7-LX' },
-      { id:'deviceid',   label:'Device ID',   placeholder:'Ex.: 3451' },
+      { id:'devicename',      label:'Device Name',                          placeholder:'Ex.: XL106-7-LX' },
+      { id:'deviceid',        label:'Device ID',                            placeholder:'Ex.: 3451' },
+      { id:'setupminutes',    label:'Tempo de Acerto / Setup (minutos)',    placeholder:'Ex.: 35', type:'number' },
+      { id:'speedsheetshour', label:'Velocidade de Produção (folhas/hora)', placeholder:'Ex.: 8000', type:'number' },
     ]
   },
   finishing: {
@@ -1364,27 +2701,70 @@ const modalConfigs = {
         {v:'packing',      l:'🏭 Packed in Boxes (Embalagem)'},
         {v:'other',        l:'⚙️ Outro'},
       ]},
+      { id:'setupminutes',    label:'Tempo de Acerto / Setup (minutos)', placeholder:'Ex.: 50', type:'number' },
+      { id:'speedsheetshour', label:'Velocidade de Produção (folhas/hora p/ Shape Cutting; unid./hora p/ Box Folding e Packing)', placeholder:'Ex.: 6000', type:'number' },
     ]
   }
 };
 
-function openModal(type, editId=null) {
+function openModal(type, editId=null, prefillRecord=null) {
   modalType = type; modalEditId = editId;
   const cfg = modalConfigs[type];
   const db  = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing' }[type];
-  const record  = editId ? db[listKey].find(r=>r.id===editId) : null;
-  document.getElementById('modal-title').textContent = (editId?'✏️ Editar ':'➕ Novo ') + cfg.title;
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
+  const record  = editId ? db[listKey].find(r=>r.id===editId) : prefillRecord;
+  const titlePrefix = editId ? '✏️ Editar ' : (prefillRecord ? '📋 Duplicar ' : '➕ Novo ');
+  document.getElementById('modal-title').textContent = titlePrefix + cfg.title;
   document.getElementById('modal-body').innerHTML = cfg.fields.map(f => {
-    const val = record ? (record[f.id]||'') : '';
+    // Sem registro (novo cadastro do zero): aplica valor fixo padrão do campo (defaultValue)
+    // ou o Servidor Padrão configurado em "Configurações Gerais" (useDefaultServer).
+    let val;
+    if (record) {
+      val = record[f.id] || '';
+    } else if (f.useDefaultServer) {
+      val = db.settings.defaultServer || '';
+    } else {
+      val = f.defaultValue || '';
+    }
     const fullClass = f.full ? ' full' : '';
+    if (f.type === 'colorintent') {
+      const cyan    = record ? (record.colorCyan    !== false) : true;
+      const magenta = record ? (record.colorMagenta !== false) : true;
+      const yellow  = record ? (record.colorYellow  !== false) : true;
+      const black   = record ? (record.colorBlack   !== false) : true;
+      modalSpotColors = (record && Array.isArray(record.spotColors))
+        ? record.spotColors.map(c => typeof c === 'string' ? { name:c, hex:lookupColorHex(c) } : c)
+        : [];
+      return `<div class="field full">
+        <label>${f.label}</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" id="mf_colorCyan" ${cyan?'checked':''}/> Cyan</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" id="mf_colorMagenta" ${magenta?'checked':''}/> Magenta</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" id="mf_colorYellow" ${yellow?'checked':''}/> Yellow</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" id="mf_colorBlack" ${black?'checked':''}/> Black</label>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="font-size:13px;font-weight:600;color:#444;">Cores Especiais (Spot Colors)</label>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+            <input type="text" id="mf_spotcolor_input" list="global-colors-datalist" placeholder="Ex.: PANTONE 485 C, Gold..." style="flex:1;" onchange="autofillModalSpotColorHex()" onkeydown="if(event.key==='Enter'){event.preventDefault();addModalSpotColor();}"/>
+            <input type="color" id="mf_spotcolor_hex" value="#1768ac" title="Cor da amostra (use o conta-gotas do seletor do navegador)" style="width:40px;height:38px;padding:2px;border:1.5px solid var(--hd-border);border-radius:8px;cursor:pointer;"/>
+            <button type="button" onclick="addModalSpotColor()" style="padding:9px 18px;background:var(--hd-blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Adicionar</button>
+          </div>
+          <span class="field-hint">Essas cores serão carregadas automaticamente no Product Job ao carregar este Artigo.</span>
+          <div id="mf_spotcolors_list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:10px;"></div>
+        </div>
+      </div>`;
+    }
     if (f.type==='select') {
       const opts = f.options.map(o=>`<option value="${o.v}"${val===o.v?' selected':''}>${o.l}</option>`).join('');
-      return `<div class="field${fullClass}"><label>${f.label}</label><select id="mf_${f.id}">${opts}</select></div>`;
+      const hintHtml = f.hint ? `<span class="field-hint">${f.hint}</span>` : '';
+      return `<div class="field${fullClass}"><label>${f.label}</label><select id="mf_${f.id}">${opts}</select>${hintHtml}</div>`;
     }
     const maxl = f.maxlength ? ` maxlength="${f.maxlength}"` : '';
-    return `<div class="field${fullClass}"><label>${f.label}</label><input type="${f.type||'text'}" id="mf_${f.id}" placeholder="${f.placeholder||''}" value="${val}"${maxl}/></div>`;
+    const hintHtml = f.hint ? `<span class="field-hint">${f.hint}</span>` : '';
+    return `<div class="field${fullClass}"><label>${f.label}</label><input type="${f.type||'text'}" id="mf_${f.id}" placeholder="${f.placeholder||''}" value="${val}"${maxl}/>${hintHtml}</div>`;
   }).join('');
+  renderModalSpotColors();
   document.getElementById('modal-overlay').style.display = 'flex';
 }
 
@@ -1393,12 +2773,63 @@ function closeModal() {
   modalType = ''; modalEditId = null;
 }
 
+// ── Spot colors do campo "Cores (ColorIntent)" dentro do modal de Artigo ──
+function renderModalSpotColors() {
+  const list = document.getElementById('mf_spotcolors_list');
+  if (!list) return;
+  list.innerHTML = modalSpotColors.map((c,i) =>
+    `<span style="display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#3730a3;padding:5px 10px;border-radius:16px;font-size:12px;font-weight:600;">
+      <span style="width:12px;height:12px;border-radius:50%;background:${c.hex||'#888'};display:inline-block;border:1px solid rgba(0,0,0,0.25);"></span>${c.name}
+      <span style="cursor:pointer;font-weight:700;" onclick="removeModalSpotColor(${i})" title="Remover">✕</span></span>`
+  ).join('');
+}
+
+// Se o nome digitado já existir no banco global de cores, puxa o tom salvo automaticamente.
+function autofillModalSpotColorHex() {
+  const nameInput = document.getElementById('mf_spotcolor_input');
+  const hexInput  = document.getElementById('mf_spotcolor_hex');
+  const name = (nameInput.value||'').trim();
+  if (!name || !hexInput) return;
+  const found = getDB().colors.find(c => c.name.toLowerCase() === name.toLowerCase());
+  if (found) hexInput.value = found.hex;
+}
+
+function addModalSpotColor() {
+  const input    = document.getElementById('mf_spotcolor_input');
+  const hexInput = document.getElementById('mf_spotcolor_hex');
+  const val = (input.value||'').trim();
+  if (!val) return;
+  if (modalSpotColors.some(c => c.name.toLowerCase() === val.toLowerCase())) { showToast('⚠️ Esta cor já foi adicionada!','error'); return; }
+  const hex = (hexInput && hexInput.value) ? hexInput.value : '#888888';
+  upsertGlobalColor(val, hex); // salva/atualiza no banco global de cores
+  modalSpotColors.push({ name: val, hex });
+  input.value = '';
+  if (hexInput) hexInput.value = '#1768ac';
+  renderModalSpotColors();
+  input.focus();
+}
+
+function removeModalSpotColor(idx) {
+  modalSpotColors.splice(idx,1);
+  renderModalSpotColors();
+}
+
 function saveModalRecord() {
   const cfg     = modalConfigs[modalType];
   const db      = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing' }[modalType];
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[modalType];
   const record  = {};
-  cfg.fields.forEach(f => { const el = document.getElementById('mf_'+f.id); if (el) record[f.id] = el.value.trim(); });
+  cfg.fields.forEach(f => {
+    if (f.type === 'colorintent') {
+      record.colorCyan    = document.getElementById('mf_colorCyan').checked;
+      record.colorMagenta = document.getElementById('mf_colorMagenta').checked;
+      record.colorYellow  = document.getElementById('mf_colorYellow').checked;
+      record.colorBlack   = document.getElementById('mf_colorBlack').checked;
+      record.spotColors   = [...modalSpotColors];
+      return;
+    }
+    const el = document.getElementById('mf_'+f.id); if (el) record[f.id] = el.value.trim();
+  });
   const required = { customer:'name', article:'articleid', tool:'toolid', media:'mediaquality', printer:'deviceid', finishing:'deviceid' };
   if (!record[required[modalType]]) { showToast('⚠️ Preencha o campo obrigatório!','error'); return; }
   if (modalEditId) {
@@ -1412,10 +2843,29 @@ function saveModalRecord() {
   showToast('✅ Registro salvo com sucesso!');
 }
 
+// Duplica um registro existente e abre o modal já preenchido como "novo cadastro"
+// (só grava no banco quando o usuário clicar em Salvar). O campo obrigatório do
+// tipo é limpo para forçar um identificador novo, evitando duplicar Article ID / Tool ID sem querer.
+function duplicateRecord(type, id) {
+  const db = getDB();
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
+  const src = db[listKey].find(r=>r.id===id);
+  if (!src) return;
+  const copy = { ...src };
+  delete copy.id;
+  if (Array.isArray(src.spotColors)) copy.spotColors = src.spotColors.map(c => typeof c === 'string' ? { name:c, hex:lookupColorHex(c) } : { ...c });
+  const requiredField = { customer:'name', article:'articleid', tool:'toolid', media:'mediaquality', printer:'deviceid', finishing:'deviceid' }[type];
+  if (requiredField) copy[requiredField] = '';
+  const nameField = { customer:'name', article:'articlename', tool:'toolname', media:'mediaquality', printer:'devicename', finishing:'devicename' }[type];
+  if (nameField && copy[nameField]) copy[nameField] = copy[nameField] + ' (cópia)';
+  openModal(type, null, copy);
+  showToast('📋 Registro duplicado — defina um novo identificador e salve.');
+}
+
 function deleteRecord(type, id) {
   if (!confirm('Deseja excluir este registro?')) return;
   const db = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing' }[type];
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
   db[listKey] = db[listKey].filter(r=>r.id!==id);
   saveDB(db); renderDB();
   showToast('🗑️ Registro excluído.');
@@ -1439,7 +2889,13 @@ function importDB(event) {
       const db = JSON.parse(e.target.result);
       if (!db.customers||!db.articles||!db.tools||!db.media||!db.printers) throw new Error();
       if (!db.finishing) db.finishing = [];
+      if (!db.colors) db.colors = [];
+      if (!db.scheduleBoard) db.scheduleBoard = [];
+      if (!db.productJobs) db.productJobs = [];
+      if (!db.productionJobs) db.productionJobs = [];
+      db.settings = Object.assign({}, SETTINGS_DEFAULTS, db.settings || {});
       saveDB(db); renderDB();
+      refreshScheduleViews();
       showToast('✅ Base de dados importada com sucesso!');
     } catch { showToast('⚠️ Arquivo inválido.','error'); }
   };
@@ -1448,13 +2904,35 @@ function importDB(event) {
 }
 
 function clearDB() {
-  if (!confirm('Deseja apagar TODA a base de dados?')) return;
-  saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[] });
+  if (!confirm('Deseja apagar TODA a base de dados? Isso também limpa o Quadro de Alocação (Gantt) e o histórico de Trabalhos (Product/Production Job).')) return;
+  saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
   renderDB();
+  refreshScheduleViews();
   showToast('🗑️ Base de dados apagada.');
 }
 
 // ── UI UTILITIES ──────────────────────────────────────────────
+
+// ── MODO CLARO / ESCURO ──────────────────────────────────────
+const THEME_KEY = 'hd_jdf_theme';
+
+function applyTheme(theme) {
+  const icon = document.getElementById('theme-toggle-icon');
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme','dark');
+    if (icon) icon.textContent = '☀️';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    if (icon) icon.textContent = '🌙';
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+}
 
 function switchTab(tab) {
   activeTab = tab;
@@ -1467,12 +2945,31 @@ function switchTab(tab) {
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('main-actions').style.display =
     (tab==='database'||tab==='recalc') ? 'none' : 'flex';
+  if (tab === 'production' && !v('pr_jobid')) {
+    sv('pr_jobid', getNextProductionJobId());
+    onJobIdChangeProduction();
+  }
+}
+
+// ── Numeração sequencial automática do Job ID (Production Job) ──
+function getNextProductionJobId() {
+  return String(getDB().settings.productionJobCounter || SETTINGS_DEFAULTS.productionJobCounter);
+}
+
+function advanceProductionJobCounter() {
+  const db = getDB();
+  db.settings.productionJobCounter = (parseInt(db.settings.productionJobCounter) || SETTINGS_DEFAULTS.productionJobCounter) + 1;
+  saveDB(db);
+  const el = document.getElementById('settings_productioncounter');
+  if (el) el.value = db.settings.productionJobCounter;
 }
 
 function toggleSection(header) {
-  const body = header.nextElementSibling;
-  body.style.display = body.style.display === 'none' ? '' : 'none';
-  header.classList.toggle('collapsed', body.style.display === 'none');
+  const siblings = Array.from(header.parentElement.children).filter(el => el !== header);
+  if (!siblings.length) return;
+  const collapsing = siblings[0].style.display !== 'none';
+  siblings.forEach(el => { el.style.display = collapsing ? 'none' : ''; });
+  header.classList.toggle('collapsed', collapsing);
 }
 
 function convertMmToPt(inputId, displayId) {
@@ -1514,7 +3011,7 @@ function showToast(msg, type='success') {
 
 function clearForm() {
   if (!confirm('Deseja limpar todos os campos do formulário?')) return;
-  document.querySelectorAll('input[type="text"],input[type="number"],input[type="datetime-local"]')
+  document.querySelectorAll('input[type="text"],input[type="number"],input[type="datetime-local"],input[type="hidden"]')
           .forEach(i => i.value = '');
   document.querySelectorAll('.pt-display').forEach(d => { d.textContent='— pt'; d.style.color='#888'; });
   document.getElementById('articles-container').innerHTML = '';
@@ -1523,35 +3020,207 @@ function clearForm() {
   document.getElementById('cell-index-toolbar').style.display = 'none';
   document.getElementById('p_spotcolors_list').innerHTML = '';
   document.getElementById('pr_spotcolors_list').innerHTML = '';
+  document.querySelectorAll('input[type="checkbox"][id^="p_color_"], input[type="checkbox"][id^="pr_color_"]')
+          .forEach(cb => cb.checked = true);
+  const summaryEl = document.getElementById('pr_schedule_summary');
+  summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
   articleCount = 0;
+  if (activeTab === 'production') {
+    sv('pr_jobid', getNextProductionJobId());
+    onJobIdChangeProduction();
+  }
   showToast('Formulário limpo com sucesso.');
 }
 
-// ── SPOT COLORS ──────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// HISTÓRICO DE TRABALHOS (PRODUCT JOB / PRODUCTION JOB) — para reimpressão fácil
+// Salvo dentro da Base de Dados principal (db.productJobs / db.productionJobs),
+// então também entra em Exportar/Importar/Limpar Tudo.
+// ══════════════════════════════════════════════════════════════
+
+// Lê todo campo (input/select, exceto seletores "Carregar da Base") cujo ID comece com "prefix_".
+function serializeFields(prefix) {
+  const data = {};
+  document.querySelectorAll('input,select').forEach(el => {
+    if (!el.id || !el.id.startsWith(prefix+'_')) return;
+    if (el.id.includes('_db_')) return; // seletor "Carregar da Base" não é dado do job
+    data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+  });
+  return data;
+}
+
+function restoreFields(data) {
+  Object.entries(data||{}).forEach(([id,val]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!val;
+    else el.value = val;
+  });
+}
+
+function buildProductJobSnapshot() {
+  return { fields: serializeFields('p'), spotColors: getSpotColors('p') };
+}
+
+function restoreProductJobSnapshot(snap) {
+  restoreFields(snap.fields);
+  setSpotColors('p', snap.spotColors || []);
+  convertMmToPt('p_finishedwidth_mm','p_finishedwidth_pt');
+  convertMmToPt('p_finishedheight_mm','p_finishedheight_pt');
+}
+
+function buildProductionJobSnapshot() {
+  return {
+    fields:     serializeFields('pr'),
+    spotColors: getSpotColors('pr'),
+    articles:   getArticles(),
+    cellData:   getCellData(),
+  };
+}
+
+function restoreProductionJobSnapshot(snap) {
+  document.getElementById('articles-container').innerHTML = '';
+  articleCount = 0;
+  restoreFields(snap.fields);
+  ['pr_trimbottom','pr_trimtop','pr_trimleft','pr_trimright','pr_sheetwidth','pr_sheetheight','pr_finishedwidth','pr_finishedheight']
+    .forEach(base => { if (document.getElementById(base+'_mm')) convertMmToPt(base+'_mm', base+'_pt'); });
+
+  (snap.articles||[]).forEach(a => {
+    addArticle();
+    const idx = articleCount;
+    sv('art_'+idx+'_dbid',          a.dbid);
+    sv('art_'+idx+'_articleid',     a.articleid);
+    sv('art_'+idx+'_articlename',   a.articlename);
+    sv('art_'+idx+'_productjobid',  a.productjobid);
+    sv('art_'+idx+'_amount',        a.amount);
+    sv('art_'+idx+'_shapeid',       a.shapeid);
+    sv('art_'+idx+'_shapename',     a.shapename);
+    sv('art_'+idx+'_stationamount', a.stationamount);
+    sv('art_'+idx+'_pdfname',       a.pdfname);
+  });
+
+  updateCellIndexGrid();
+  (snap.cellData||[]).forEach(c => { sv('cell_art_'+c.index, c.articleid); sv('cell_ori_'+c.index, c.orientation); });
+
+  setSpotColors('pr', snap.spotColors || []);
+  syncProductionColorsFromArticles();
+  const summaryEl = document.getElementById('pr_schedule_summary');
+  summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
+}
+
+// Salva (ou atualiza, se o Job ID já existir) o trabalho atual no histórico da Base de Dados.
+function saveProductJobToDB() {
+  const jobid = v('p_jobid');
+  if (!jobid) return;
+  const db = getDB();
+  db.productJobs = db.productJobs.filter(j => j.jobId !== jobid);
+  db.productJobs.push({
+    id: genId(), jobId: jobid,
+    articleId: v('p_articleid'), label: v('p_articlename') || v('p_jobname') || jobid,
+    savedAt: new Date().toISOString(),
+    snapshot: buildProductJobSnapshot(),
+  });
+  saveDB(db);
+  renderDB();
+}
+
+function saveProductionJobToDB() {
+  const jobid = v('pr_jobid');
+  if (!jobid) return;
+  const db = getDB();
+  db.productionJobs = db.productionJobs.filter(j => j.jobId !== jobid);
+  db.productionJobs.push({
+    id: genId(), jobId: jobid,
+    label: v('pr_jobname') || jobid,
+    articleCount: getArticles().length,
+    savedAt: new Date().toISOString(),
+    snapshot: buildProductionJobSnapshot(),
+  });
+  saveDB(db);
+  renderDB();
+  advanceProductionJobCounter(); // próximo Production Job já nasce com o número seguinte
+}
+
+function loadProductJobFromHistory(id, duplicate) {
+  const db = getDB();
+  const job = db.productJobs.find(j => j.id === id);
+  if (!job) return;
+  switchTab('product');
+  restoreProductJobSnapshot(job.snapshot);
+  if (duplicate) { sv('p_jobid',''); showToast('📋 Trabalho duplicado — defina um novo Job ID antes de gerar.'); }
+  else showToast(`✅ Trabalho "${job.jobId}" carregado!`);
+}
+
+function loadProductionJobFromHistory(id, duplicate) {
+  const db = getDB();
+  const job = db.productionJobs.find(j => j.id === id);
+  if (!job) return;
+  switchTab('production');
+  restoreProductionJobSnapshot(job.snapshot);
+  if (duplicate) {
+    sv('pr_jobid', getNextProductionJobId());
+    onJobIdChangeProduction();
+    showToast('📋 Trabalho duplicado com novo Job ID — ajuste quantidade/data e recalcule o Scheduler antes de gerar.');
+  }
+  else showToast(`✅ Trabalho "${job.jobId}" carregado!`);
+}
+
+function deleteJobFromHistory(type, id) {
+  if (!confirm('Deseja excluir este trabalho do histórico? (isso não apaga nada da Base de Dados, só o registro deste trabalho)')) return;
+  const db = getDB();
+  const key = type === 'product' ? 'productJobs' : 'productionJobs';
+  db[key] = db[key].filter(j => j.id !== id);
+  saveDB(db);
+  renderDB();
+}
+
+// ── SPOT COLORS (agora carregam nome + hex, para os círculos de cor no JobTicket) ──
+
+function createSpotColorTag(name, hex) {
+  const h = hex || lookupColorHex(name);
+  const tag = document.createElement('div');
+  tag.className = 'spot-tag';
+  tag.setAttribute('data-colorname', name);
+  tag.setAttribute('data-colorhex', h);
+  tag.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:${h};display:inline-block;border:1px solid rgba(0,0,0,.25);"></span>${name}</span>
+    <button type="button" onclick="this.closest('[data-colorname]').remove()" title="Remover">✕</button>`;
+  return tag;
+}
 
 function addSpotColor(prefix) {
-  const input = document.getElementById(prefix + '_spotcolor_input');
-  const list  = document.getElementById(prefix + '_spotcolors_list');
-  const name  = input.value.trim();
+  const input    = document.getElementById(prefix + '_spotcolor_input');
+  const hexInput = document.getElementById(prefix + '_spotcolor_hex');
+  const list     = document.getElementById(prefix + '_spotcolors_list');
+  const name     = input.value.trim();
   if (!name) return;
   const existing = Array.from(list.querySelectorAll('[data-colorname]'))
                         .map(el => el.getAttribute('data-colorname').toLowerCase());
   if (existing.includes(name.toLowerCase())) { showToast('⚠️ Esta cor já foi adicionada!','error'); return; }
-  const tag = document.createElement('div');
-  tag.className = 'spot-tag';
-  tag.setAttribute('data-colorname', name);
-  tag.innerHTML = `<span>🎨 ${name}</span>
-    <button type="button" onclick="this.closest('[data-colorname]').remove()" title="Remover">✕</button>`;
-  list.appendChild(tag);
+  const hex = (hexInput && hexInput.value) ? hexInput.value : lookupColorHex(name);
+  upsertGlobalColor(name, hex); // aprende/atualiza essa cor no banco global
+  list.appendChild(createSpotColorTag(name, hex));
   input.value = '';
+  if (hexInput) hexInput.value = '#1768ac';
   input.focus();
+}
+
+// Substitui todas as tags de cor especial pela lista informada (usado ao carregar um Artigo da Base de Dados).
+// Aceita tanto o formato novo ({name,hex}) quanto o antigo (string simples), pra bases salvas antes não quebrarem.
+function setSpotColors(prefix, colors) {
+  const list = document.getElementById(prefix + '_spotcolors_list');
+  if (!list) return;
+  list.innerHTML = '';
+  (colors||[]).forEach(c => {
+    if (typeof c === 'string') list.appendChild(createSpotColorTag(c, lookupColorHex(c)));
+    else list.appendChild(createSpotColorTag(c.name, c.hex));
+  });
 }
 
 function getSpotColors(prefix) {
   const list = document.getElementById(prefix + '_spotcolors_list');
   if (!list) return [];
   return Array.from(list.querySelectorAll('[data-colorname]'))
-              .map(el => el.getAttribute('data-colorname'));
+              .map(el => ({ name: el.getAttribute('data-colorname'), hex: el.getAttribute('data-colorhex') || '#888888' }));
 }
 
 // ── ARTICLES ─────────────────────────────────────────────────
@@ -1574,6 +3243,7 @@ function addArticle() {
       <button class="btn-remove-article" onclick="removeArticle(${idx})">✕ Remover</button>
     </div>
     <div class="article-card-body">
+      <input type="hidden" id="art_${idx}_dbid" value=""/>
       <div class="db-selector" style="grid-column:1/-1;">
         <label>📚 Carregar Artigo:</label>
         <select id="art_${idx}_db_select">${artOpts}</select>
@@ -1581,7 +3251,7 @@ function addArticle() {
       </div>
       <div class="field">
         <label>Article ID (AssemblyIDs) <span class="badge badge-required">OBRIGATÓRIO</span></label>
-        <input type="text" id="art_${idx}_articleid" placeholder="Ex.: 617001" oninput="updateCellIndexGrid()"/>
+        <input type="text" id="art_${idx}_articleid" placeholder="Ex.: 617001" oninput="updateCellIndexGrid(); onArticleIdChangeInCard(${idx})"/>
       </div>
       <div class="field">
         <label>Article Name <span class="badge badge-optional">OPCIONAL</span></label>
@@ -1589,8 +3259,8 @@ function addArticle() {
       </div>
       <div class="field">
         <label>Product Job ID (HDM:RelatedJobID) <span class="badge badge-required">OBRIGATÓRIO</span></label>
-        <input type="text" id="art_${idx}_productjobid" placeholder="Ex.: EX26_1122"/>
-        <span class="field-hint">O vínculo bidirecional será criado automaticamente.</span>
+        <input type="text" id="art_${idx}_productjobid" placeholder="Ex.: SKU_617001"/>
+        <span class="field-hint">Auto: prefixo (Configurações Gerais) + Article ID. O vínculo bidirecional será criado automaticamente.</span>
       </div>
       <div class="field">
         <label>Amount (Quantidade) <span class="badge badge-important">IMPORTANTE</span></label>
@@ -1612,10 +3282,12 @@ function addArticle() {
       </div>
       <div class="field">
         <label>PDF File Name <span class="badge badge-optional">OPCIONAL</span></label>
-        <input type="text" id="art_${idx}_pdfname" placeholder="Ex.: 617001_Caixa_A.pdf"/>
+        <input type="text" id="art_${idx}_pdfname" placeholder="Ex.: 617001.pdf"/>
+        <span class="field-hint">Preenchido automaticamente com Article ID + ".pdf".</span>
       </div>
     </div>`;
   document.getElementById('articles-container').appendChild(card);
+  enhanceSearchableSelect('art_'+idx+'_db_select');
   updateCellIndexGrid();
 }
 
@@ -1623,6 +3295,7 @@ function removeArticle(idx) {
   const card = document.getElementById('article-' + idx);
   if (card) card.remove();
   updateCellIndexGrid();
+  syncProductionColorsFromArticles();
 }
 
 function getArticles() {
@@ -1634,6 +3307,7 @@ function getArticles() {
     articles.push({
       idx: i,
       partVersion:   pvs[pvIdx] || String(pvIdx+1),
+      dbid:          v('art_'+i+'_dbid'),
       articleid:     v('art_'+i+'_articleid'),
       articlename:   v('art_'+i+'_articlename'),
       productjobid:  v('art_'+i+'_productjobid'),
@@ -1648,7 +3322,7 @@ function getArticles() {
   return articles;
 }
 
-// ⚠️ NOVO v4.7: CellIndex editável com orientação por célula
+// ⚠️ NOVO v4.9: CellIndex com layout visual (linhas/colunas físicas da Ferramenta)
 function updateCellIndexGrid() {
   const grid    = document.getElementById('cell-index-grid');
   const toolbar = document.getElementById('cell-index-toolbar');
@@ -1671,41 +3345,83 @@ function updateCellIndexGrid() {
     if (oriSel) prevOrients[i]  = oriSel.value;
   }
 
-  // Opções de artigos para os seletores
-  const artOpts = articles.map(a =>
-    `<option value="${a.articleid}">${a.articlename||a.articleid||'Artigo '+a.idx}${a.shapeid?' ['+a.shapeid+']':''}</option>`
+  const artSelectOptions = (prevArt) => articles.map(ar =>
+    `<option value="${ar.articleid}"${ar.articleid===prevArt?' selected':''}>${ar.articlename||ar.articleid||'Artigo '+ar.idx}${ar.shapeid?' ['+ar.shapeid+']':''}</option>`
+  ).join('');
+  const oriSelectOptions = (prevOri) => ORIENTATIONS.map(o =>
+    `<option value="${o.v}"${o.v===prevOri?' selected':''}>${o.v}</option>`
   ).join('');
 
-  // Opções de orientação
-  const oriOpts = ORIENTATIONS.map(o =>
-    `<option value="${o.v}">${o.v}</option>`
-  ).join('');
+  function cellHtml(cellIdx, defaultArticleId) {
+    const prevArt = prevArticles[cellIdx] || defaultArticleId;
+    const prevOri = prevOrients[cellIdx]  || 'Rotate0';
+    return `<div class="sheet-cell" style="background:${colorForArticle(prevArt)};">
+      <span class="cell-idx-badge">${cellIdx}</span>
+      <select id="cell_art_${cellIdx}" class="sheet-cell-article" onchange="updateCellColor(${cellIdx})">${artSelectOptions(prevArt)}</select>
+      <select id="cell_ori_${cellIdx}" class="orient-select">${oriSelectOptions(prevOri)}</select>
+    </div>`;
+  }
 
-  // Gera células
-  let html = '';
-  let cellIdx = 0;
+  // Distribui os artigos linearmente (artigo A ocupa suas N primeiras posições, depois artigo B, etc.)
+  // — mesma lógica de sempre, só muda como isso é desenhado na tela.
+  const linearArticleAt = [];
   articles.forEach(a => {
     const amt = parseInt(a.stationamount) || 0;
-    for (let i = 0; i < amt; i++) {
-      const prevArt = prevArticles[cellIdx] || a.articleid;
-      const prevOri = prevOrients[cellIdx]  || 'Rotate0';
-      html += `<div class="cell-index-item">
-        <span class="cell-label">Cell ${cellIdx}:</span>
-        <select id="cell_art_${cellIdx}">${articles.map(ar =>
-          `<option value="${ar.articleid}"${ar.articleid===prevArt?' selected':''}>${ar.articlename||ar.articleid||'Artigo '+ar.idx}${ar.shapeid?' ['+ar.shapeid+']':''}</option>`
-        ).join('')}</select>
-        <select id="cell_ori_${cellIdx}" class="orient-select">${ORIENTATIONS.map(o =>
-          `<option value="${o.v}"${o.v===prevOri?' selected':''}>${o.v}</option>`
-        ).join('')}</select>
-      </div>`;
-      cellIdx++;
-    }
+    for (let i = 0; i < amt; i++) linearArticleAt.push(a.articleid);
   });
 
-  grid.innerHTML = html + `<div style="grid-column:1/-1;font-size:11px;color:#888;padding:8px 0;">
-    Total: ${totalCells} células — ${articles.length} artigo(s)
-  </div>`;
+  // Tenta usar o layout físico (linhas/colunas) configurado na Ferramenta selecionada
+  const toolDbid = v('pr_tool_dbid');
+  const toolRecord = toolDbid ? getDB().tools.find(t => t.id === toolDbid) : null;
+  const colsPerRow = (toolRecord && toolRecord.layoutcols)
+    ? toolRecord.layoutcols.split(',').map(s => parseInt(s.trim())).filter(n => n > 0)
+    : [];
+  const layoutTotal = colsPerRow.reduce((a,b) => a+b, 0);
 
+  const legendHtml = articles.length > 1
+    ? `<div style="display:flex;flex-wrap:wrap;gap:10px;padding:8px 2px 4px;">${articles.map(a =>
+        `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--hd-dark);">
+          <span style="width:12px;height:12px;border-radius:4px;background:${colorForArticle(a.articleid)};display:inline-block;border:1px solid rgba(0,0,0,0.15);"></span>${a.articlename||a.articleid}
+        </span>`).join('')}</div>`
+    : '';
+
+  let bodyHtml = '';
+  if (colsPerRow.length && layoutTotal === totalCells) {
+    // ── MODO VISUAL: linha de baixo = índice 0, empilhando pra cima, colunas compactadas pra caber na "folha" ──
+    const rowStarts = [];
+    let acc = 0;
+    colsPerRow.forEach(c => { rowStarts.push(acc); acc += c; });
+
+    let rowsHtml = '';
+    for (let r = colsPerRow.length - 1; r >= 0; r--) { // desenha de cima pra baixo na tela
+      const cols = colsPerRow[r];
+      const start = rowStarts[r];
+      const densityClass = cols > 20 ? ' sheet-row-ultra-dense' : (cols > 10 ? ' sheet-row-dense' : '');
+      let cellsHtml = '';
+      for (let c = 0; c < cols; c++) {
+        const cellIdx = start + c;
+        cellsHtml += cellHtml(cellIdx, linearArticleAt[cellIdx]);
+      }
+      rowsHtml += `<div class="sheet-row${densityClass}">${cellsHtml}</div>`;
+    }
+    bodyHtml = `${legendHtml}<div class="sheet-layout">${rowsHtml}</div>
+      <div style="font-size:11px;color:#888;padding:8px 2px;">
+        📐 Layout físico de "${toolRecord.toolname||toolRecord.toolid}" (${colsPerRow.join(' , ')} — de baixo pra cima) • Total: ${totalCells} células — ${articles.length} artigo(s)
+      </div>`;
+  } else {
+    // ── MODO SIMPLES (fallback): sem ferramenta com layout configurado, ou soma não bate com Station Amount ──
+    let cellsHtml = '';
+    for (let i = 0; i < totalCells; i++) cellsHtml += cellHtml(i, linearArticleAt[i]);
+    const warning = (toolRecord && colsPerRow.length && layoutTotal !== totalCells)
+      ? `<div class="info-box" style="border-left-color:#e65100;background:#fff3e0;margin-bottom:12px;">
+          ⚠️ A ferramenta "${toolRecord.toolname||toolRecord.toolid}" tem layout configurado para <strong>${layoutTotal} célula(s)</strong>,
+          mas a soma do Station Amount dos artigos é <strong>${totalCells}</strong>. Ajuste um dos dois para ver o layout físico da chapa — por enquanto, exibindo em lista simples.
+        </div>`
+      : (!toolRecord ? `<div class="info-box" style="margin-bottom:12px;">💡 Carregue uma Ferramenta com "Layout da Chapa" configurado (Base de Dados → Ferramentas de Corte) para ver aqui o desenho físico da chapa, igual à faca real.</div>` : '');
+    bodyHtml = `${warning}${legendHtml}<div class="cell-fallback-grid">${cellsHtml}</div>`;
+  }
+
+  grid.innerHTML = bodyHtml;
   toolbar.style.display = 'flex';
 }
 
@@ -1733,6 +3449,14 @@ function setAlternateOrientation() {
 function resetCellIndex() {
   updateCellIndexGrid();
   showToast('✅ CellIndex resetado para o padrão.');
+}
+
+// Recolore uma célula do CellIndex quando o artigo dela é trocado manualmente no dropdown.
+function updateCellColor(cellIdx) {
+  const sel = document.getElementById('cell_art_'+cellIdx);
+  if (!sel) return;
+  const cell = sel.closest('.sheet-cell');
+  if (cell) cell.style.background = colorForArticle(sel.value);
 }
 
 function getCellData() {
@@ -1791,7 +3515,7 @@ function generateProductJDF() {
   if (document.getElementById('p_color_magenta').checked) colors.push('Magenta');
   if (document.getElementById('p_color_yellow').checked)  colors.push('Yellow');
   if (document.getElementById('p_color_black').checked)   colors.push('Black');
-  getSpotColors('p').forEach(c => colors.push(c));
+  getSpotColors('p').forEach(c => colors.push(c.name));
 
   const descAttr    = jobname ? ` DescriptiveName="${jobname}"` : '';
   const lastEndAttr = lastend ? ` LastEnd="${formatDateTime(lastend)}"` : '';
@@ -2081,7 +3805,7 @@ function generateProductionJDF() {
   if (document.getElementById('pr_color_magenta').checked) colors.push('Magenta');
   if (document.getElementById('pr_color_yellow').checked)  colors.push('Yellow');
   if (document.getElementById('pr_color_black').checked)   colors.push('Black');
-  getSpotColors('pr').forEach(c => colors.push(c));
+  getSpotColors('pr').forEach(c => colors.push(c.name));
 
   if (!jobid)              { showToast('⚠️ Job ID é obrigatório!','error'); return null; }
   if (articles.length===0) { showToast('⚠️ Adicione ao menos um artigo!','error'); return null; }
@@ -2621,14 +4345,22 @@ function generateJDF() {
   const a    = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
-  showToast('✅ JDF gerado: '+filename);
+  if (activeTab==='product') saveProductJobToDB(); else saveProductionJobToDB();
+  showToast('✅ JDF gerado: '+filename+' — salvo no histórico de Trabalhos.');
 }
 
 // ── INIT ──────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
   addArticle();
   renderDB();
+  renderScheduleBoard();
+  [
+    'p_db_customer_select','pr_db_customer_select','p_db_article_select',
+    'pr_db_tool_select','pr_db_media_select','pr_db_printer_select',
+    'pr_db_shapecutting_select','pr_db_boxfolding_select','pr_db_packing_select',
+  ].forEach(enhanceSearchableSelect);
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
   document.getElementById('recalc_newstart').value =

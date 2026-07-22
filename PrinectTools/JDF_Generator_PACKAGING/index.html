@@ -7,7 +7,7 @@
     // Aplica o tema salvo antes da página desenhar, pra não "piscar" claro antes do escuro.
     try { if (localStorage.getItem('hd_jdf_theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e) {}
   </script>
-  <title>JDF Generator - PACKAGING</title>
+  <title>Heidelberg — Gerador de JDF</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1726,17 +1726,27 @@ function generateJobTicketPDF() {
   labelValueRow('Comment', v('pr_comment') || '—');
   y += 3;
 
-  // ── Círculos de cor ──
+  // ── Círculos de cor (com quebra automática de linha) ──
   pageBreakIfNeeded(12);
   setF('bold',9,NAVY); doc.text('Print Colors:', M, y+3);
-  let cx = M+26;
+  const colorStartX = M+26;
+  const colorRightLimit = PW-M;
+  const colorLineH = 5.2;
+  let cx = colorStartX;
   colorCircles.forEach(c => {
+    setF('normal',7,GRAY);
+    const tw = doc.getTextWidth(c.name);
+    if (cx + 3.2 + tw > colorRightLimit) {
+      cx = colorStartX;
+      y += colorLineH;
+      pageBreakIfNeeded(colorLineH+2);
+    }
     doc.setFillColor(c.rgb[0],c.rgb[1],c.rgb[2]);
     doc.circle(cx, y+2, 2.3, 'F');
     doc.setDrawColor(190,196,206); doc.setLineWidth(0.15); doc.circle(cx,y+2,2.3,'S');
     setF('normal',7,GRAY);
     doc.text(c.name, cx+3.2, y+3);
-    cx += doc.getTextWidth(c.name) + 13;
+    cx += tw + 13;
   });
   y += 10;
 
@@ -3696,8 +3706,8 @@ ${colorPoolXml}
 \t\t</ComponentLink>${customerLink}
 \t</ResourceLinkPool>
 
-\t<JDF ID="JDF-000989.01" Type="Product" Status="Waiting"
-\t     JobPartID="JDF-000989.01"${articlename?` DescriptiveName="${articlename}"`:''}>
+\t<JDF ID="JDF-${jobid}.01" Type="Product" Status="Waiting"
+\t     JobPartID="JDF-${jobid}.01"${articlename?` DescriptiveName="${articlename}"`:''}>
 \t\t<ResourceLinkPool>${colorLink}${layoutLink}
 \t\t\t<ComponentLink rRef="COMP.1344.F" Usage="Output"/>${shapeLink}
 \t\t</ResourceLinkPool>
@@ -3981,7 +3991,7 @@ function generateProductionJDF() {
 
   const assemblyParts = articles.map((a, i) => {
     const nAttr = a.articlename ? ` DescriptiveName="${a.articlename}"` : '';
-    const relatedJobPartId = `JDF-000989.0${i + 1}`;
+    const relatedJobPartId = `JDF-${jobid}.0${i + 1}`;
     return `\n\t\t\t<Assembly PartVersion="${a.partVersion}" AssemblyIDs="${a.articleid}"${nAttr}
 \t\t\t          HDM:RelatedJobID="${a.productjobid}"
 \t\t\t          HDM:RelatedJobPartID="${relatedJobPartId}"
@@ -4152,8 +4162,8 @@ function generateProductionJDF() {
     const shapeLink2  = artSID  ? `\n\t\t\t<ShapeCuttingIntentLink Usage="Input" rRef="ID_ShapeDef${i+1}"/>` : '';
     const artNameAttr = a.articlename ? ` DescriptiveName="${a.articlename}"` : '';
     productNodesXml += `
-\t<JDF ID="JDF-000989.0${i+1}" Type="Product" Status="Waiting"
-\t     JobPartID="JDF-000989.0${i+1}"${artNameAttr}>
+\t<JDF ID="JDF-${jobid}.0${i+1}" Type="Product" Status="Waiting"
+\t     JobPartID="JDF-${jobid}.0${i+1}"${artNameAttr}>
 \t\t<ResourceLinkPool>${colorLink2}${layoutLink2}
 \t\t\t<ComponentLink rRef="COMP.1344.F" Usage="Output"${amtAttr}>
 \t\t\t\t<Part PartVersion="${a.partVersion}"/>

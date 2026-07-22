@@ -65,6 +65,10 @@
     [data-theme="dark"] .info-box { background: #1C3049; color: #BFD6F2; }
     [data-theme="dark"] .spot-tag { background: #1C3049; color: #BFD6F2; }
     [data-theme="dark"] .db-selector { background: #1C3049; border-color: #2C4A6E; }
+    [data-theme="dark"] .db-selector label { color: #BFD6F2; }
+    [data-theme="dark"] .recalc-result { background: #1C3049; border-color: #2C4A6E; color: #BFD6F2; }
+    [data-theme="dark"] .recalc-result table th { background: #22344A; color: #BFD6F2; border-color: #2C4A6E; }
+    [data-theme="dark"] .recalc-result .new-date { color: var(--hd-blue); }
     [data-theme="dark"] .combo-input, [data-theme="dark"] .field input, [data-theme="dark"] .field select { color: var(--hd-dark); }
     [data-theme="dark"] .db-table th { color: var(--hd-muted); }
     [data-theme="dark"] .preview-body pre { color: var(--hd-dark); }
@@ -205,7 +209,7 @@
     .field { display: flex; flex-direction: column; gap: 5px; }
     .field.full { grid-column: 1 / -1; }
 
-    .field label { font-size: 12px; font-weight: 600; color: #444; display: flex; align-items: center; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--hd-dark); display: flex; align-items: center; gap: 6px; }
 
     .badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
     .badge-required  { background: #e8f0fb; color: #0066cc; }
@@ -297,7 +301,7 @@
 
     .cell-index-item .cell-label {
       font-weight: 700;
-      color: #555;
+      color: var(--hd-dark);
       white-space: nowrap;
       min-width: 45px;
     }
@@ -541,8 +545,8 @@
     .db-selector button { padding: 7px 14px; background: var(--hd-blue); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
     .db-selector button:hover { background: var(--hd-blue-dark); }
 
-    .db-io-bar { padding: 16px 20px; background: #f8f9fa; border-top: 1px solid var(--hd-border); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .db-io-bar span { font-size: 12px; color: #666; font-weight: 600; }
+    .db-io-bar { padding: 16px 20px; background: var(--hd-gray); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .db-io-bar span { font-size: 12px; color: var(--hd-muted); font-weight: 600; }
 
     .type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
     .type-badge-sc  { background: #fff3e0; color: #e65100; }
@@ -791,8 +795,8 @@
         <div class="field"><label>Job Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_jobname" placeholder="Ex.: UC Packaging EX15 - JDF Delicioso"/></div>
         <div class="field"><label>Comment <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_comment" placeholder="Ex.: 1 shape, 3 articles"/></div>
         <div class="field"><label>Job Ticket URL (CommentURL) <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_commenturl" placeholder="Ex.: file://SRVPMC04/PTTransfer/JobTicket/JobTicket_EX26_1125.pdf"/><span class="field-hint">Preenchido automaticamente: file://{Servidor Padrão}/PTTransfer/JobTicket/JobTicket_{Job ID}.pdf</span></div>
-        <div class="field"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_startdate"/></div>
-        <div class="field"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_enddate"/></div>
+        <div class="field" style="display:none"><label>Start Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_startdate"/></div>
+        <div class="field" style="display:none"><label>End Date <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_enddate"/></div>
         <div class="field"><label>Due Date (Prazo de Entrega) <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="pr_duedate"/></div>
       </div>
     </div>
@@ -1106,6 +1110,9 @@
           <strong>ℹ️ Próximo Job ID (Production Job):</strong> toda vez que você entra na aba Production Job com o campo
           Job ID vazio (ex.: depois de "Limpar Formulário"), ele já vem preenchido com este número. Ao gerar o JDF,
           o número avança sozinho pro próximo, pronto pro trabalho seguinte.
+          <br/><br/>
+          <strong>ℹ️ Próximo Article ID (sequencial):</strong> opcional. Se preenchido, todo Artigo novo cadastrado
+          (ou duplicado) já nasce com esse número no campo Article ID, e o número avança sozinho a cada Artigo salvo.
         </div>
         <div class="field">
           <label>Nome do Servidor (Server) <span class="badge badge-optional">OPCIONAL</span></label>
@@ -1129,6 +1136,14 @@
             <button class="db-btn db-btn-primary" onclick="saveSettings()">💾 Salvar</button>
           </div>
           <span class="field-hint">Numeração sequencial automática. Avança +1 sozinho a cada Production Job gerado.</span>
+        </div>
+        <div class="field">
+          <label>Próximo Article ID (sequencial) <span class="badge badge-optional">OPCIONAL</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="settings_articleidcounter" placeholder="Ex.: 600001" style="flex:1;"/>
+            <button class="db-btn db-btn-primary" onclick="saveSettings()">💾 Salvar</button>
+          </div>
+          <span class="field-hint">Se preenchido, todo novo Artigo cadastrado na Base de Dados já vem com o Article ID (AssemblyIDs) preenchido automaticamente com este número, e avança +1 sozinho a cada Artigo salvo. Deixe em branco para preencher o Article ID manualmente, como hoje.</span>
         </div>
       </div>
     </div>
@@ -1209,12 +1224,13 @@
       <div class="db-section-header" onclick="toggleSection(this)"><span>⚙️ Máquinas de Acabamento</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('finishing')">+ Nova Máquina</button><span class="toggle-icon">▼</span></div>
       <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome, ID ou tipo..." oninput="dbSearch('finishing', this.value)"/></div>
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Device ID</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="db-tbody-finishing"></tbody></table></div>
-      <div class="db-io-bar">
-        <span>💾 Base de Dados:</span>
-        <button class="db-btn db-btn-secondary" onclick="exportDB()">⬇️ Exportar .json</button>
-        <label class="db-btn db-btn-secondary" style="cursor:pointer;">⬆️ Importar .json<input type="file" accept=".json" onchange="importDB(event)" style="display:none;"/></label>
-        <button class="db-btn db-btn-danger" onclick="clearDB()">🗑️ Limpar Tudo</button>
-      </div>
+    </div>
+
+    <div class="db-section db-io-bar">
+      <span>💾 Base de Dados:</span>
+      <button class="db-btn db-btn-secondary" onclick="exportDB()">⬇️ Exportar .json</button>
+      <label class="db-btn db-btn-secondary" style="cursor:pointer;">⬆️ Importar .json<input type="file" accept=".json" onchange="importDB(event)" style="display:none;"/></label>
+      <button class="db-btn db-btn-danger" onclick="clearDB()">🗑️ Limpar Tudo</button>
     </div>
 
   </div><!-- end tab-database -->
@@ -1475,7 +1491,7 @@ function clearRecalcAll() {
 const DB_KEY = 'hd_jdf_database';
 // Valores padrão de "Configurações Gerais". Usar Object.assign no load garante que bases
 // salvas antes de um novo campo existir (ex.: jobPrefix) continuem funcionando sem quebrar.
-const SETTINGS_DEFAULTS = { defaultServer: '', jobPrefix: 'SKU_', productionJobCounter: 1000 };
+const SETTINGS_DEFAULTS = { defaultServer: '', jobPrefix: 'SKU_', productionJobCounter: 1000, articleIdCounter: '' };
 
 function getDB() {
   try {
@@ -1504,6 +1520,8 @@ function saveSettings() {
   db.settings.defaultServer = (document.getElementById('settings_defaultserver').value||'').trim();
   db.settings.jobPrefix     = (document.getElementById('settings_jobprefix').value||'').trim();
   db.settings.productionJobCounter = parseInt(document.getElementById('settings_productioncounter').value) || SETTINGS_DEFAULTS.productionJobCounter;
+  const articleIdCounterVal = document.getElementById('settings_articleidcounter').value;
+  db.settings.articleIdCounter = articleIdCounterVal ? (parseInt(articleIdCounterVal) || '') : '';
   saveDB(db);
   updateImportPathDisplay();
   updateJobTicketPathDisplay();
@@ -1849,9 +1867,11 @@ function renderDB() {
   const serverEl = document.getElementById('settings_defaultserver');
   const prefixEl = document.getElementById('settings_jobprefix');
   const counterEl = document.getElementById('settings_productioncounter');
+  const articleCounterEl = document.getElementById('settings_articleidcounter');
   if (serverEl) serverEl.value = db.settings.defaultServer || '';
   if (prefixEl) prefixEl.value = db.settings.jobPrefix || '';
   if (counterEl) counterEl.value = db.settings.productionJobCounter || SETTINGS_DEFAULTS.productionJobCounter;
+  if (articleCounterEl) articleCounterEl.value = db.settings.articleIdCounter || '';
   renderColors(db.colors);
   renderCustomers(db.customers);
   renderArticles(db.articles);
@@ -2639,7 +2659,7 @@ const modalConfigs = {
     title: '📦 Artigo',
     fields: [
       { id:'articlename',    label:'Article Name',             placeholder:'Ex.: Caixa_A' },
-      { id:'articleid',      label:'Article ID (AssemblyIDs)', placeholder:'Ex.: 617001' },
+      { id:'articleid',      label:'Article ID (AssemblyIDs)', placeholder:'Ex.: 617001', useNextArticleId:true },
       { id:'shapeid',        label:'Shape ID',                 placeholder:'Ex.: HBR_001' },
       { id:'shapename',      label:'Shape Name',               placeholder:'Ex.: Caixa_A' },
       { id:'server',         label:'Server',                   placeholder:'Ex.: SRVPMC04', useDefaultServer:true },
@@ -2730,9 +2750,11 @@ function openModal(type, editId=null, prefillRecord=null) {
     // ou o Servidor Padrão configurado em "Configurações Gerais" (useDefaultServer).
     let val;
     if (record) {
-      val = record[f.id] || '';
+      val = record[f.id] || (f.useNextArticleId ? getNextArticleId() : '');
     } else if (f.useDefaultServer) {
       val = db.settings.defaultServer || '';
+    } else if (f.useNextArticleId) {
+      val = getNextArticleId();
     } else {
       val = f.defaultValue || '';
     }
@@ -2754,7 +2776,7 @@ function openModal(type, editId=null, prefillRecord=null) {
           <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:13px;"><input type="checkbox" id="mf_colorBlack" ${black?'checked':''}/> Black</label>
         </div>
         <div style="margin-top:14px;">
-          <label style="font-size:13px;font-weight:600;color:#444;">Cores Especiais (Spot Colors)</label>
+          <label style="font-size:13px;font-weight:600;color:var(--hd-dark);">Cores Especiais (Spot Colors)</label>
           <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
             <input type="text" id="mf_spotcolor_input" list="global-colors-datalist" placeholder="Ex.: PANTONE 485 C, Gold..." style="flex:1;" onchange="autofillModalSpotColorHex()" onkeydown="if(event.key==='Enter'){event.preventDefault();addModalSpotColor();}"/>
             <input type="color" id="mf_spotcolor_hex" value="#1768ac" title="Cor da amostra (use o conta-gotas do seletor do navegador)" style="width:40px;height:38px;padding:2px;border:1.5px solid var(--hd-border);border-radius:8px;cursor:pointer;"/>
@@ -2849,7 +2871,9 @@ function saveModalRecord() {
     record.id = genId();
     db[listKey].push(record);
   }
-  saveDB(db); renderDB(); closeModal();
+  saveDB(db);
+  if (!modalEditId && modalType === 'article') advanceArticleIdCounter(); // próximo Artigo já nasce com o número seguinte (depois de salvar, pra não perder o incremento)
+  renderDB(); closeModal();
   showToast('✅ Registro salvo com sucesso!');
 }
 
@@ -2972,6 +2996,23 @@ function advanceProductionJobCounter() {
   saveDB(db);
   const el = document.getElementById('settings_productioncounter');
   if (el) el.value = db.settings.productionJobCounter;
+}
+
+// ── Numeração sequencial automática do Article ID (AssemblyIDs) ──
+// Só entra em ação se "Próximo Article ID" estiver preenchido em Configurações Gerais;
+// em branco, o comportamento continua o de sempre (Article ID em branco, preenchido manualmente).
+function getNextArticleId() {
+  const counter = getDB().settings.articleIdCounter;
+  return counter ? String(counter) : '';
+}
+
+function advanceArticleIdCounter() {
+  const db = getDB();
+  if (!db.settings.articleIdCounter) return; // recurso desligado, nada a avançar
+  db.settings.articleIdCounter = (parseInt(db.settings.articleIdCounter) || 0) + 1;
+  saveDB(db);
+  const el = document.getElementById('settings_articleidcounter');
+  if (el) el.value = db.settings.articleIdCounter;
 }
 
 function toggleSection(header) {
@@ -4375,6 +4416,12 @@ window.addEventListener('DOMContentLoaded', () => {
   const pad = n => String(n).padStart(2,'0');
   document.getElementById('recalc_newstart').value =
     `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  // ⚠️ NOVO: seções da aba Base de Dados começam fechadas por padrão (as demais abas continuam abertas)
+  document.querySelectorAll('#tab-database .db-section-header').forEach(header => {
+    const siblings = Array.from(header.parentElement.children).filter(el => el !== header);
+    siblings.forEach(el => { el.style.display = 'none'; });
+    header.classList.add('collapsed');
+  });
 });
 </script>
 </body>

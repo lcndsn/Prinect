@@ -412,7 +412,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       padding: 16px;
-      background: #f8f9fa;
+      background: var(--hd-gray);
       border-radius: 6px;
       border: 1px solid var(--hd-border);
       margin-bottom: 12px;
@@ -422,7 +422,7 @@
       grid-column: 1 / -1;
       font-size: 12px;
       font-weight: 700;
-      color: #1e3a5f;
+      color: var(--hd-dark);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -675,7 +675,7 @@
             <option value="2">2 páginas — Frente e verso (TwoSided)</option>
           </select>
         </div>
-        <div class="field"><label>Due Date (NodeInfo LastEnd) <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="p_nodeinfo_lastend"/></div>
+        <div class="field" style="display:none"><label>Due Date (NodeInfo LastEnd) <span class="badge badge-optional">OPCIONAL</span></label><input type="datetime-local" id="p_nodeinfo_lastend"/></div>
       </div>
     </div>
 
@@ -917,17 +917,17 @@
       <div class="section-header" onclick="toggleSection(this)">⚙️ Máquinas de Acabamento<span class="toggle-icon">▼</span></div>
       <div class="section-body">
         <div class="info-box"><strong>ℹ️ Acabamento:</strong> Selecione as máquinas cadastradas na Base de Dados ou preencha manualmente.</div>
-        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:#1e3a5f;padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">✂️ Shape Cutting</div>
+        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--hd-dark);padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">✂️ Shape Cutting</div>
         <div class="db-selector"><label>📚 Carregar:</label><select id="pr_db_shapecutting_select"><option value="">— Selecione —</option></select><button onclick="loadFinishingFromDB('shapecutting')">Carregar</button></div>
         <input type="hidden" id="pr_shapecutting_dbid" value=""/>
         <div class="field"><label>Device ID — Shape Cutting <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_shapecutting_deviceid" placeholder="Ex.: 4212"/></div>
         <div class="field"><label>Device Name — Shape Cutting <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_shapecutting_devicename" placeholder="Ex.: MMATRIX-106-CSB"/></div>
-        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:#1e3a5f;padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">📦 Box Folding and Glueing</div>
+        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--hd-dark);padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">📦 Box Folding and Glueing</div>
         <div class="db-selector"><label>📚 Carregar:</label><select id="pr_db_boxfolding_select"><option value="">— Selecione —</option></select><button onclick="loadFinishingFromDB('boxfolding')">Carregar</button></div>
         <input type="hidden" id="pr_boxfolding_dbid" value=""/>
         <div class="field"><label>Device ID — Box Folding <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_boxfolding_deviceid" placeholder="Ex.: 5224"/></div>
         <div class="field"><label>Device Name — Box Folding <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_boxfolding_devicename" placeholder="Ex.: FOLDER-GLUER"/></div>
-        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:#1e3a5f;padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">🏭 Packed in Boxes</div>
+        <div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--hd-dark);padding:8px 0 4px;border-bottom:1px solid var(--hd-border);margin-bottom:8px;">🏭 Packed in Boxes</div>
         <div class="db-selector"><label>📚 Carregar:</label><select id="pr_db_packing_select"><option value="">— Selecione —</option></select><button onclick="loadFinishingFromDB('packing')">Carregar</button></div>
         <input type="hidden" id="pr_packing_dbid" value=""/>
         <div class="field"><label>Device ID — Packing <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_packing_deviceid" placeholder="Ex.: 7224"/></div>

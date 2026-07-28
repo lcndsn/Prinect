@@ -206,7 +206,7 @@
     .section-body > * { min-width: 0; }
     .section-body.single { grid-template-columns: 1fr; }
 
-    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .field.full { grid-column: 1 / -1; }
 
     .field label { font-size: 12px; font-weight: 600; color: var(--hd-dark); display: flex; align-items: center; gap: 6px; }
@@ -412,7 +412,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       padding: 16px;
-      background: var(--hd-gray);
+      background: var(--surface);
       border-radius: 6px;
       border: 1px solid var(--hd-border);
       margin-bottom: 12px;
@@ -532,7 +532,7 @@
     .db-empty span { font-size: 32px; display: block; margin-bottom: 8px; }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(51,64,79,0.45); backdrop-filter: blur(2px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .modal { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; }
     .modal-header { background: var(--navy-fixed); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
     .modal-header button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; line-height: 1; padding: 0; }
     .modal-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -897,6 +897,38 @@
             <option value="">— Não informar (mantém valor do MDS) —</option>
             <option value="XDirection">XDirection — Long Grain (fibra no comprimento)</option>
             <option value="YDirection">YDirection — Short Grain (fibra na largura)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ISO Paper Substrate — Frente <span class="badge badge-optional">OPCIONAL</span></label>
+          <select id="pr_isopapersubstrate" onchange="toggleCoatingField('front')">
+            <option value="">— Não informado —</option>
+            <option value="PS1">HD ISO Paper type 1 (gloss-coated) — PS1</option>
+            <option value="PS5">HD ISO Paper type 5 (uncoated, yellowish) — PS5</option>
+          </select>
+        </div>
+        <div class="field" id="pr_frontcoating_wrap" style="display:none">
+          <label>Acabamento — Frente <span class="badge badge-important">OBRIGATÓRIO</span></label>
+          <select id="pr_frontcoating">
+            <option value="">— Selecione —</option>
+            <option value="Glossy">Brilho (Glossy)</option>
+            <option value="Matte">Fosco (Matte)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ISO Paper Substrate — Verso <span class="badge badge-optional">OPCIONAL</span></label>
+          <select id="pr_backisopapersubstrate" onchange="toggleCoatingField('back')">
+            <option value="">— Não informado —</option>
+            <option value="PS1">HD ISO Paper type 1 (gloss-coated) — PS1</option>
+            <option value="PS5">HD ISO Paper type 5 (uncoated, yellowish) — PS5</option>
+          </select>
+        </div>
+        <div class="field" id="pr_backcoating_wrap" style="display:none">
+          <label>Acabamento — Verso <span class="badge badge-important">OBRIGATÓRIO</span></label>
+          <select id="pr_backcoating">
+            <option value="">— Selecione —</option>
+            <option value="Glossy">Brilho (Glossy)</option>
+            <option value="Matte">Fosco (Matte)</option>
           </select>
         </div>
       </div>
@@ -1786,8 +1818,9 @@ function generateJobTicketPDF() {
     // Legenda de cores por artigo
     setF('normal',7,GRAY);
     let lx = M;
+    const jtColorMap = articleColorMap(articles);
     articles.forEach(a => {
-      const rgb = hexToRgb(colorForArticle(a.articleid));
+      const rgb = hexToRgb(jtColorMap[a.articleid] || '#FFFFFF');
       doc.setFillColor(rgb[0],rgb[1],rgb[2]);
       doc.roundedRect(lx, y-3, 3, 3, 0.6, 0.6, 'F');
       const label = a.articlename || a.articleid;
@@ -1802,6 +1835,7 @@ function generateJobTicketPDF() {
     pageBreakIfNeeded(diagH+6);
     const rowH = diagH / colsPerRow.length;
     const rowStarts = []; let acc=0; colsPerRow.forEach(c => { rowStarts.push(acc); acc+=c; });
+    const cellColorMap = articleColorMap(articles);
     for (let r=colsPerRow.length-1; r>=0; r--) {
       const cols = colsPerRow[r];
       const cellW = W/cols;
@@ -1810,7 +1844,7 @@ function generateJobTicketPDF() {
         const idx = rowStarts[r]+c;
         const cd = cellData.find(cc => cc.index===idx);
         const artId = (cd && cd.articleid) || '';
-        const fillRgb = hexToRgb(colorForArticle(artId));
+        const fillRgb = hexToRgb(cellColorMap[artId] || '#FFFFFF');
         doc.setDrawColor(200,205,214); doc.setLineWidth(0.2);
         doc.setFillColor(fillRgb[0],fillRgb[1],fillRgb[2]);
         doc.roundedRect(M+c*cellW+0.4, rowY+0.4, cellW-0.8, rowH*0.92-0.8, 1, 1, 'FD');
@@ -2164,7 +2198,6 @@ function refreshAllSelectors() {
     { id:'pr_db_customer_select', list:db.customers, label: r=>`${r.name||r.orgname||'Cliente'} (${r.customerid||'—'})` },
     { id:'p_db_article_select',   list:db.articles,  label: r=>`${r.articlename||'Artigo'} (${r.articleid||'—'})${r.shapeid?' ['+r.shapeid+']':''}` },
     { id:'pr_db_tool_select',     list:db.tools,     label: r=>`${r.toolname||'Ferramenta'} (${r.toolid||'—'})` },
-    { id:'pr_db_media_select',    list:db.media,     label: r=>`${r.mediaquality||'Substrato'} — ${r.sheetwidth||'?'}×${r.sheetheight||'?'} mm${r.graindirection?' ('+(r.graindirection==='YDirection'?'Short':'Long')+' Grain)':''}` },
     { id:'pr_db_printer_select',  list:db.printers,  label: r=>`${r.devicename||'Impressora'} (${r.deviceid||'—'})` },
   ];
   configs.forEach(s => {
@@ -2174,6 +2207,30 @@ function refreshAllSelectors() {
     el.innerHTML = '<option value="">— Selecione —</option>' +
       s.list.map(r=>`<option value="${r.id}"${r.id===cur?' selected':''}>${s.label(r)}</option>`).join('');
   });
+
+  // ⚠️ Substrato: se a Ferramenta carregada tiver "Formato do Papel Exigido"/"Direção da Fibra
+  // Exigida" preenchidos, mostra SÓ os Substratos compatíveis (mesmo formato + fibra, gramatura
+  // livre). Sem filtro configurado na Ferramenta, mostra todos, como sempre. Não afeta o JDF em nada.
+  const mediaEl = document.getElementById('pr_db_media_select');
+  if (mediaEl) {
+    const cur = mediaEl.value;
+    const mediaLabel = r=>`${r.mediaquality||'Substrato'}${r.mediabrand?' — '+r.mediabrand:''} — ${r.sheetwidth||'?'}×${r.sheetheight||'?'} mm${r.graindirection?' ('+(r.graindirection==='YDirection'?'Short':'Long')+' Grain)':''}`;
+    const toolDbId = v('pr_tool_dbid');
+    const tool = toolDbId ? db.tools.find(t => t.id === toolDbId) : null;
+    const hasFilter = !!(tool && (tool.reqsheetwidth || tool.reqsheetheight || tool.reqgraindirection));
+    let list = db.media;
+    if (hasFilter) {
+      list = db.media.filter(r => {
+        const wOk = !tool.reqsheetwidth      || String(r.sheetwidth)  === String(tool.reqsheetwidth);
+        const hOk = !tool.reqsheetheight     || String(r.sheetheight) === String(tool.reqsheetheight);
+        const gOk = !tool.reqgraindirection  || r.graindirection === tool.reqgraindirection;
+        return wOk && hOk && gOk;
+      });
+    }
+    const emptyMsg = hasFilter ? `— Nenhum substrato ${tool.reqsheetwidth||tool.reqsheetheight?`${tool.reqsheetwidth||'?'}×${tool.reqsheetheight||'?'}mm `:''}compatível cadastrado —` : '— Selecione —';
+    mediaEl.innerHTML = (list.length ? '<option value="">— Selecione —</option>' : `<option value="">${emptyMsg}</option>`) +
+      list.map(r=>`<option value="${r.id}"${r.id===cur?' selected':''}>${mediaLabel(r)}</option>`).join('');
+  }
 
   const finishingTypes = {
     'pr_db_shapecutting_select': 'shapecutting',
@@ -2205,6 +2262,19 @@ function refreshAllSelectors() {
     sel.innerHTML = '<option value="">— Selecione —</option>' +
       db.articles.map(r=>`<option value="${r.id}"${r.id===cur?' selected':''}>${r.articlename||'Artigo'} (${r.articleid||'—'})${r.shapeid?' ['+r.shapeid+']':''}</option>`).join('');
   });
+}
+
+// ⚠️ Acabamento (Glossy/Matte) só se aplica quando o substrato daquele lado é PS1 (Couché).
+// Com PS5 (Não Revestido) ou em branco, o campo some e o valor é limpo — o FrontCoatings/BackCoatings
+// do JDF sai "None" pra PS5, ou nem aparece se o substrato estiver em branco (ver generateProductionJDF).
+function toggleCoatingField(side) {
+  const substrateEl = document.getElementById(side==='front' ? 'pr_isopapersubstrate' : 'pr_backisopapersubstrate');
+  const wrap = document.getElementById('pr_'+side+'coating_wrap');
+  const sel  = document.getElementById('pr_'+side+'coating');
+  if (!substrateEl || !wrap || !sel) return;
+  const show = substrateEl.value === 'PS1';
+  wrap.style.display = show ? '' : 'none';
+  if (!show) sel.value = '';
 }
 
 function loadFromDB(type, prefix) {
@@ -2251,6 +2321,7 @@ function loadFromDB(type, prefix) {
     if (r.trimleft)   { document.getElementById('pr_trimleft_mm').value   = r.trimleft;   convertMmToPt('pr_trimleft_mm','pr_trimleft_pt'); }
     if (r.trimright)  { document.getElementById('pr_trimright_mm').value  = r.trimright;  convertMmToPt('pr_trimright_mm','pr_trimright_pt'); }
     updateCellIndexGrid();
+    refreshAllSelectors(); // reagrupa o seletor de Substrato pelo formato/fibra exigidos por esta Ferramenta
   } else if (type==='media') {
     sv('pr_mediaquality',r.mediaquality); sv('pr_mediabrand',r.mediabrand);
     sv('pr_mediaproductid',r.mediaproductid); sv('pr_mediaweight',r.mediaweight); sv('pr_mediathickness',r.mediathickness);
@@ -2258,6 +2329,12 @@ function loadFromDB(type, prefix) {
     if (r.sheetheight) { document.getElementById('pr_sheetheight_mm').value = r.sheetheight; convertMmToPt('pr_sheetheight_mm','pr_sheetheight_pt'); }
     if (r.graindirection) document.getElementById('pr_graindirection').value = r.graindirection;
     else document.getElementById('pr_graindirection').value = '';
+    document.getElementById('pr_isopapersubstrate').value = r.isopapersubstrate || '';
+    document.getElementById('pr_backisopapersubstrate').value = r.backisopapersubstrate || '';
+    document.getElementById('pr_frontcoating').value = r.frontcoating || '';
+    document.getElementById('pr_backcoating').value = r.backcoating || '';
+    toggleCoatingField('front');
+    toggleCoatingField('back');
   } else if (type==='printer') {
     sv('pr_printer_dbid',r.id);
     sv('pr_deviceid',r.deviceid); sv('pr_devicename',r.devicename);
@@ -2540,11 +2617,52 @@ function removeJobFromScheduleBoard() {
   showToast(filtered.length === board.length ? 'ℹ️ Este Job não estava no quadro.' : `🗑️ Job "${jobid}" removido do quadro.`);
 }
 
+// ── Confirmação própria (substitui window.confirm) ──
+// O confirm() nativo do navegador, quando rodando dentro do app Electron, é um diálogo
+// SÍNCRONO do sistema operacional — no Windows isso pode fazer a janela perder o foco de
+// teclado depois de fechado (os campos continuam clicáveis, mas param de aceitar digitação,
+// só resolve fechando e abrindo o app de novo). Esse diálogo próprio evita o problema por
+// completo, porque é só HTML normal (mesmo comportamento em qualquer navegador ou no app).
+function customConfirm(message) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.zIndex = '400';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header"><span>⚠️ Confirmar</span></div>
+        <div class="modal-body" style="display:block;font-size:14px;line-height:1.5;color:var(--hd-dark);"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-action="cancel">Cancelar</button>
+          <button class="btn btn-primary" data-action="ok">Confirmar</button>
+        </div>
+      </div>`;
+    overlay.querySelector('.modal-body').textContent = message;
+    document.body.appendChild(overlay);
+    const keyHandler = (e) => {
+      if (e.key === 'Escape') cleanup(false);
+      if (e.key === 'Enter')  cleanup(true);
+    };
+    function cleanup(result) {
+      overlay.remove();
+      document.removeEventListener('keydown', keyHandler);
+      resolve(result);
+    }
+    overlay.querySelector('[data-action="ok"]').onclick = () => cleanup(true);
+    overlay.querySelector('[data-action="cancel"]').onclick = () => cleanup(false);
+    overlay.addEventListener('mousedown', e => { if (e.target === overlay) cleanup(false); });
+    document.addEventListener('keydown', keyHandler);
+    overlay.querySelector('[data-action="ok"]').focus();
+  });
+}
+
 function clearScheduleBoard() {
-  if (!confirm('Deseja limpar todo o Quadro de Alocação? Isso não afeta os formulários, só a visualização de horários salvos.')) return;
-  saveScheduleBoard([]);
-  refreshScheduleViews();
-  showToast('🗑️ Quadro de Alocação limpo.');
+  customConfirm('Deseja limpar todo o Quadro de Alocação? Isso não afeta os formulários, só a visualização de horários salvos.').then(ok => {
+    if (!ok) return;
+    saveScheduleBoard([]);
+    refreshScheduleViews();
+    showToast('🗑️ Quadro de Alocação limpo.');
+  });
 }
 
 // Cor consistente por Article ID — usada no CellIndex (tela e JobTicket) pra enxergar
@@ -2554,6 +2672,29 @@ function colorForArticle(articleId) {
   let hash = 0;
   for (let i=0;i<articleId.length;i++) hash = (hash*31 + articleId.charCodeAt(i)) >>> 0;
   return GANTT_COLORS[hash % GANTT_COLORS.length];
+}
+
+// ⚠️ Paleta de cores do CellIndex/JobTicket — matizes espaçados em 30° ao redor do círculo de
+// cores (não pastéis parecidos como o GANTT_COLORS acima), pra ficarem bem diferentes visualmente
+// mesmo entre artigos vizinhos. Usada junto com articleColorMap() abaixo, que atribui a cor pela
+// POSIÇÃO do artigo dentro do trabalho atual — não por hash do Article ID. Isso evita o problema de
+// dois artigos diferentes (ex.: um artigo duplicado na Base de Dados, com Article ID parecido)
+// caírem por acaso na mesma cor.
+const DISTINCT_ARTICLE_COLORS = [
+  '#E5A8A8','#E5C6A8','#E5E5A8','#C6E5A8','#A8E5A8','#A8E5C6',
+  '#A8E5E5','#A8C6E5','#A8A8E5','#C6A8E5','#E5A8E5','#E5A8C6',
+];
+
+// Monta { articleid: corHex } pra um conjunto de artigos, na ordem em que eles aparecem no
+// trabalho — cada artigo pega uma cor diferente da paleta acima, sem repetir até estourar os 12.
+function articleColorMap(articles) {
+  const map = {};
+  const seen = [];
+  (articles||[]).forEach(a => {
+    if (a.articleid && !(a.articleid in map)) seen.push(a.articleid);
+  });
+  seen.forEach((id, i) => { map[id] = DISTINCT_ARTICLE_COLORS[i % DISTINCT_ARTICLE_COLORS.length]; });
+  return map;
 }
 
 function colorForJob(jobId) {
@@ -2650,6 +2791,14 @@ function renderScheduleBoard() {
 
 // ── MODAL ─────────────────────────────────────────────────────
 
+// Lista de ISO Paper Substrate (mesma paleta que aparece no seletor nativo do Prinect) —
+// usada tanto no cadastro do Substrato (Base de Dados) quanto no formulário do Production Job.
+const ISO_PAPER_SUBSTRATE_OPTIONS = [
+  {v:'',  l:'— Não informado —'},
+  {v:'PS1', l:'HD ISO Paper type 1 (gloss-coated) — PS1'},
+  {v:'PS5', l:'HD ISO Paper type 5 (uncoated, yellowish) — PS5'},
+];
+
 const modalConfigs = {
   color: {
     title: '🎨 Cor',
@@ -2709,6 +2858,13 @@ const modalConfigs = {
       { id:'trimright',     label:'Trim Right (mm)',     placeholder:'Ex.: 3',  type:'number' },
       { id:'layoutcols',    label:'Layout da Chapa — Colunas por Linha (de baixo pra cima)', placeholder:'Ex.: 4,4,4,4  ou  4,2 (linhas com quantidades diferentes)', full:true,
         hint:'Um número por linha, separado por vírgula, começando pela linha de baixo. Ex.: "4,2" = linha de baixo com 4 posições, linha de cima com 2. A soma deve bater com o total de Station Amount dos artigos.' },
+      { id:'reqsheetwidth',     label:'Formato do Papel Exigido — Largura (mm)', placeholder:'Ex.: 1040', type:'number' },
+      { id:'reqsheetheight',    label:'Formato do Papel Exigido — Altura (mm)',  placeholder:'Ex.: 720',  type:'number' },
+      { id:'reqgraindirection', label:'Direção da Fibra Exigida', type:'select', options:[
+        {v:'',           l:'— Qualquer direção —'},
+        {v:'XDirection', l:'XDirection — Long Grain (fibra no comprimento)'},
+        {v:'YDirection', l:'YDirection — Short Grain (fibra na largura)'},
+      ], full:true, hint:'Usados só como FILTRO na hora de escolher o Substrato no Production Job (mostra primeiro os substratos com esse formato/fibra). Gramatura pode variar livremente. Não entra no JDF gerado — deixe em branco se a ferramenta aceitar qualquer formato/fibra.' },
     ]
   },
   media: {
@@ -2726,6 +2882,18 @@ const modalConfigs = {
         {v:'XDirection', l:'XDirection — Long Grain (fibra no comprimento)'},
         {v:'YDirection', l:'YDirection — Short Grain (fibra na largura)'},
       ], full:true },
+      { id:'isopapersubstrate', label:'ISO Paper Substrate — Frente', type:'select', options: ISO_PAPER_SUBSTRATE_OPTIONS },
+      { id:'backisopapersubstrate', label:'ISO Paper Substrate — Verso', type:'select', options: ISO_PAPER_SUBSTRATE_OPTIONS },
+      { id:'frontcoating', label:'Acabamento — Frente', type:'select', options:[
+        {v:'',       l:'— Selecione —'},
+        {v:'Glossy', l:'Brilho (Glossy)'},
+        {v:'Matte',  l:'Fosco (Matte)'},
+      ], showWhen:{id:'isopapersubstrate', equals:'PS1'} },
+      { id:'backcoating', label:'Acabamento — Verso', type:'select', options:[
+        {v:'',       l:'— Selecione —'},
+        {v:'Glossy', l:'Brilho (Glossy)'},
+        {v:'Matte',  l:'Fosco (Matte)'},
+      ], showWhen:{id:'backisopapersubstrate', equals:'PS1'} },
     ]
   },
   printer: {
@@ -2807,14 +2975,35 @@ function openModal(type, editId=null, prefillRecord=null) {
     if (f.type==='select') {
       const opts = f.options.map(o=>`<option value="${o.v}"${val===o.v?' selected':''}>${o.l}</option>`).join('');
       const hintHtml = f.hint ? `<span class="field-hint">${f.hint}</span>` : '';
-      return `<div class="field${fullClass}"><label>${f.label}</label><select id="mf_${f.id}">${opts}</select>${hintHtml}</div>`;
+      const showWhenAttr = f.showWhen ? ` data-showwhen="${f.showWhen.id}" data-showwhen-value="${f.showWhen.equals}"` : '';
+      return `<div class="field${fullClass}"${showWhenAttr}><label>${f.label}</label><select id="mf_${f.id}">${opts}</select>${hintHtml}</div>`;
     }
     const maxl = f.maxlength ? ` maxlength="${f.maxlength}"` : '';
     const hintHtml = f.hint ? `<span class="field-hint">${f.hint}</span>` : '';
     return `<div class="field${fullClass}"><label>${f.label}</label><input type="${f.type||'text'}" id="mf_${f.id}" placeholder="${f.placeholder||''}" value="${val}"${maxl}/>${hintHtml}</div>`;
   }).join('');
   renderModalSpotColors();
+  applyModalConditionalFields();
   document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+// Mostra/esconde campos do modal que dependem do valor de outro campo (ex.: Acabamento
+// só aparece quando o ISO Paper Substrate correspondente for PS1). Reavalia a cada mudança.
+function applyModalConditionalFields() {
+  document.querySelectorAll('#modal-body [data-showwhen]').forEach(wrapper => {
+    const depId  = wrapper.getAttribute('data-showwhen');
+    const depVal = wrapper.getAttribute('data-showwhen-value');
+    const depEl  = document.getElementById('mf_'+depId);
+    if (!depEl) return;
+    const sync = () => {
+      const match = depEl.value === depVal;
+      wrapper.style.display = match ? '' : 'none';
+      const innerField = wrapper.querySelector('select,input');
+      if (innerField && !match) innerField.value = '';
+    };
+    depEl.addEventListener('change', sync);
+    sync();
+  });
 }
 
 function closeModal() {
@@ -2914,12 +3103,14 @@ function duplicateRecord(type, id) {
 }
 
 function deleteRecord(type, id) {
-  if (!confirm('Deseja excluir este registro?')) return;
-  const db = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
-  db[listKey] = db[listKey].filter(r=>r.id!==id);
-  saveDB(db); renderDB();
-  showToast('🗑️ Registro excluído.');
+  customConfirm('Deseja excluir este registro?').then(ok => {
+    if (!ok) return;
+    const db = getDB();
+    const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
+    db[listKey] = db[listKey].filter(r=>r.id!==id);
+    saveDB(db); renderDB();
+    showToast('🗑️ Registro excluído.');
+  });
 }
 
 function exportDB() {
@@ -2955,11 +3146,13 @@ function importDB(event) {
 }
 
 function clearDB() {
-  if (!confirm('Deseja apagar TODA a base de dados? Isso também limpa o Quadro de Alocação (Gantt) e o histórico de Trabalhos (Product/Production Job).')) return;
-  saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
-  renderDB();
-  refreshScheduleViews();
-  showToast('🗑️ Base de dados apagada.');
+  customConfirm('Deseja apagar TODA a base de dados? Isso também limpa o Quadro de Alocação (Gantt) e o histórico de Trabalhos (Product/Production Job).').then(ok => {
+    if (!ok) return;
+    saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
+    renderDB();
+    refreshScheduleViews();
+    showToast('🗑️ Base de dados apagada.');
+  });
 }
 
 // ── UI UTILITIES ──────────────────────────────────────────────
@@ -3106,26 +3299,28 @@ function showToast(msg, type='success') {
 }
 
 function clearForm() {
-  if (!confirm('Deseja limpar todos os campos do formulário?')) return;
-  document.querySelectorAll('input[type="text"],input[type="number"],input[type="datetime-local"],input[type="hidden"]')
-          .forEach(i => i.value = '');
-  document.querySelectorAll('.pt-display').forEach(d => { d.textContent='— pt'; d.style.color='#888'; });
-  document.getElementById('articles-container').innerHTML = '';
-  document.getElementById('cell-index-grid').innerHTML =
-    '<span style="color:#888;font-size:13px;">Adicione artigos com Station Amount para configurar o layout da chapa.</span>';
-  document.getElementById('cell-index-toolbar').style.display = 'none';
-  document.getElementById('p_spotcolors_list').innerHTML = '';
-  document.getElementById('pr_spotcolors_list').innerHTML = '';
-  document.querySelectorAll('input[type="checkbox"][id^="p_color_"], input[type="checkbox"][id^="pr_color_"]')
-          .forEach(cb => cb.checked = true);
-  const summaryEl = document.getElementById('pr_schedule_summary');
-  summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
-  articleCount = 0;
-  if (activeTab === 'production') {
-    sv('pr_jobid', getNextProductionJobId());
-    onJobIdChangeProduction();
-  }
-  showToast('Formulário limpo com sucesso.');
+  customConfirm('Deseja limpar todos os campos do formulário?').then(ok => {
+    if (!ok) return;
+    document.querySelectorAll('input[type="text"],input[type="number"],input[type="datetime-local"],input[type="hidden"]')
+            .forEach(i => i.value = '');
+    document.querySelectorAll('.pt-display').forEach(d => { d.textContent='— pt'; d.style.color='#888'; });
+    document.getElementById('articles-container').innerHTML = '';
+    document.getElementById('cell-index-grid').innerHTML =
+      '<span style="color:#888;font-size:13px;">Adicione artigos com Station Amount para configurar o layout da chapa.</span>';
+    document.getElementById('cell-index-toolbar').style.display = 'none';
+    document.getElementById('p_spotcolors_list').innerHTML = '';
+    document.getElementById('pr_spotcolors_list').innerHTML = '';
+    document.querySelectorAll('input[type="checkbox"][id^="p_color_"], input[type="checkbox"][id^="pr_color_"]')
+            .forEach(cb => cb.checked = true);
+    const summaryEl = document.getElementById('pr_schedule_summary');
+    summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
+    articleCount = 0;
+    if (activeTab === 'production') {
+      sv('pr_jobid', getNextProductionJobId());
+      onJobIdChangeProduction();
+    }
+    showToast('Formulário limpo com sucesso.');
+  });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3262,12 +3457,14 @@ function loadProductionJobFromHistory(id, duplicate) {
 }
 
 function deleteJobFromHistory(type, id) {
-  if (!confirm('Deseja excluir este trabalho do histórico? (isso não apaga nada da Base de Dados, só o registro deste trabalho)')) return;
-  const db = getDB();
-  const key = type === 'product' ? 'productJobs' : 'productionJobs';
-  db[key] = db[key].filter(j => j.id !== id);
-  saveDB(db);
-  renderDB();
+  customConfirm('Deseja excluir este trabalho do histórico? (isso não apaga nada da Base de Dados, só o registro deste trabalho)').then(ok => {
+    if (!ok) return;
+    const db = getDB();
+    const key = type === 'product' ? 'productJobs' : 'productionJobs';
+    db[key] = db[key].filter(j => j.id !== id);
+    saveDB(db);
+    renderDB();
+  });
 }
 
 // ── SPOT COLORS (agora carregam nome + hex, para os círculos de cor no JobTicket) ──
@@ -3441,6 +3638,8 @@ function updateCellIndexGrid() {
     if (oriSel) prevOrients[i]  = oriSel.value;
   }
 
+  const cellColorMap = articleColorMap(articles);
+
   const artSelectOptions = (prevArt) => articles.map(ar =>
     `<option value="${ar.articleid}"${ar.articleid===prevArt?' selected':''}>${ar.articlename||ar.articleid||'Artigo '+ar.idx}${ar.shapeid?' ['+ar.shapeid+']':''}</option>`
   ).join('');
@@ -3451,7 +3650,7 @@ function updateCellIndexGrid() {
   function cellHtml(cellIdx, defaultArticleId) {
     const prevArt = prevArticles[cellIdx] || defaultArticleId;
     const prevOri = prevOrients[cellIdx]  || 'Rotate0';
-    return `<div class="sheet-cell" style="background:${colorForArticle(prevArt)};">
+    return `<div class="sheet-cell" style="background:${cellColorMap[prevArt] || '#FFFFFF'};">
       <span class="cell-idx-badge">${cellIdx}</span>
       <select id="cell_art_${cellIdx}" class="sheet-cell-article" onchange="updateCellColor(${cellIdx})">${artSelectOptions(prevArt)}</select>
       <select id="cell_ori_${cellIdx}" class="orient-select">${oriSelectOptions(prevOri)}</select>
@@ -3477,7 +3676,7 @@ function updateCellIndexGrid() {
   const legendHtml = articles.length > 1
     ? `<div style="display:flex;flex-wrap:wrap;gap:10px;padding:8px 2px 4px;">${articles.map(a =>
         `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--hd-dark);">
-          <span style="width:12px;height:12px;border-radius:4px;background:${colorForArticle(a.articleid)};display:inline-block;border:1px solid rgba(0,0,0,0.15);"></span>${a.articlename||a.articleid}
+          <span style="width:12px;height:12px;border-radius:4px;background:${cellColorMap[a.articleid] || '#FFFFFF'};display:inline-block;border:1px solid rgba(0,0,0,0.15);"></span>${a.articlename||a.articleid}
         </span>`).join('')}</div>`
     : '';
 
@@ -3552,7 +3751,7 @@ function updateCellColor(cellIdx) {
   const sel = document.getElementById('cell_art_'+cellIdx);
   if (!sel) return;
   const cell = sel.closest('.sheet-cell');
-  if (cell) cell.style.background = colorForArticle(sel.value);
+  if (cell) cell.style.background = articleColorMap(getArticles())[sel.value] || '#FFFFFF';
 }
 
 function getCellData() {
@@ -3880,11 +4079,41 @@ function generateProductionJDF() {
   const mediaweight = v('pr_mediaweight');
   const mediathick  = v('pr_mediathickness');
   const graindirection = v('pr_graindirection');
+  const isopapersubstrate     = v('pr_isopapersubstrate');
+  const backisopapersubstrate = v('pr_backisopapersubstrate');
+  const frontcoating = v('pr_frontcoating');
+  const backcoating  = v('pr_backcoating');
   const deviceid    = v('pr_deviceid');
   const devicename  = v('pr_devicename');
   const fw          = getMmAsPt('pr_finishedwidth_mm');
   const fh          = getMmAsPt('pr_finishedheight_mm');
   const articles    = getArticles();
+
+  // ⚠️ CORREÇÃO CRÍTICA (achada comparando testes reais no Prinect): o Prinect resolve "qual produto
+  // vai em qual CellIndex" usando a posição do CellIndex como ÍNDICE DIRETO na ordem de criação dos
+  // artigos (PartVersion A,B,C,D...) — e não pelo AssemblyIDs que o StrippingParams realmente informa
+  // pra aquela célula. Se a ordem de criação diverge da ordem física do CellIndex (ex.: usuário reorganiza
+  // no editor visual depois de já ter cadastrado os artigos numa ordem diferente), o Prinect aloca o
+  // produto errado na célula. Pra nunca divergir, reordenamos os artigos pela menor posição de CellIndex
+  // já atribuída a cada um ANTES de gerar PartVersion/Assembly/PageData/RunList/JobPart — assim "1º na
+  // ordem de criação" e "1º no CellIndex" são sempre o mesmo artigo, não importa a ordem de cadastro.
+  const cellDataForOrder = getCellData();
+  const minCellIndexByArticle = {};
+  cellDataForOrder.forEach(c => {
+    if (c.articleid && (minCellIndexByArticle[c.articleid] === undefined || c.index < minCellIndexByArticle[c.articleid])) {
+      minCellIndexByArticle[c.articleid] = c.index;
+    }
+  });
+  articles.sort((a, b) => {
+    const ai = minCellIndexByArticle[a.articleid];
+    const bi = minCellIndexByArticle[b.articleid];
+    if (ai === undefined && bi === undefined) return 0;
+    if (ai === undefined) return 1;
+    if (bi === undefined) return -1;
+    return ai - bi;
+  });
+  const pvLetters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P'];
+  articles.forEach((a, i) => { a.partVersion = pvLetters[i] || String(i+1); });
 
   const scDeviceId   = v('pr_shapecutting_deviceid');
   const scDeviceName = v('pr_shapecutting_devicename');
@@ -4158,7 +4387,17 @@ function generateProductionJDF() {
     const wAttr   = mediaweight     ? ` Weight="${mediaweight}"` : '';
     const tAttr   = mediathick      ? ` Thickness="${mediathick}"` : '';
     const gAttr   = graindirection  ? ` GrainDirection="${graindirection}"` : '';
-    mediaXml = `\n\t\t<Media${bAttr} Class="Consumable" Dimension="${sheetw} ${sheeth}"${gAttr}
+    const isoAttr     = isopapersubstrate     ? ` ISOPaperSubstrate="${isopapersubstrate}"` : '';
+    const backIsoAttr = backisopapersubstrate ? ` BackISOPaperSubstrate="${backisopapersubstrate}"` : '';
+    // ⚠️ FrontCoatings/BackCoatings: PS1 (Couché) exige Glossy ou Matte (escolhido no campo "Acabamento");
+    // PS5 (Não Revestido) sempre fixa "None"; substrato em branco não emite o atributo.
+    let frontCoatingsAttr = '';
+    if (isopapersubstrate === 'PS1') frontCoatingsAttr = ` FrontCoatings="${frontcoating || 'Glossy'}"`;
+    else if (isopapersubstrate === 'PS5') frontCoatingsAttr = ` FrontCoatings="None"`;
+    let backCoatingsAttr = '';
+    if (backisopapersubstrate === 'PS1') backCoatingsAttr = ` BackCoatings="${backcoating || 'Glossy'}"`;
+    else if (backisopapersubstrate === 'PS5') backCoatingsAttr = ` BackCoatings="None"`;
+    mediaXml = `\n\t\t<Media${bAttr} Class="Consumable" Dimension="${sheetw} ${sheeth}"${gAttr}${isoAttr}${frontCoatingsAttr}${backIsoAttr}${backCoatingsAttr}
 \t\t    ID="MEDIA_1"${qAttr} MediaType="Paper"${pidAttr}
 \t\t    Status="Available"${tAttr}${wAttr}/>`;
   }

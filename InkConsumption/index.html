@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Consumo de Tinta — Offset & Digital</title>
+<style>
+:root{
+  --ink:#1c1b1a;
+  --ink-soft:#2b2a28;
+  --paper:#f7f5f0;
+  --paper-dim:#ece8df;
+  --kraft:#c9b79c;
+  --kraft-line:#a99879;
+  --press-blue:#2b4570;
+  --press-blue-dark:#1e3252;
+  --c:#00aeef;
+  --m:#ec008c;
+  --y:#f2c300;
+  --k:#141414;
+  --spot:#7a5c3e;
+  --gold:#b8894b;
+  --good:#3f7d4f;
+  --danger:#a4342b;
+  --sans: -apple-system, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", "Consolas", monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--sans);
+  background:
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.015) 0 2px, transparent 2px 8px),
+    var(--paper-dim);
+  color:var(--ink);
+  min-height:100vh;
+  padding-bottom:60px;
+}
+
+/* ===== HEADER / TABS ===== */
+header.app-head{
+  background:var(--ink);
+  color:var(--paper);
+  padding:22px 28px 0 28px;
+  position:relative;
+}
+.brand{
+  display:flex;
+  align-items:baseline;
+  gap:14px;
+  margin-bottom:18px;
+}
+.brand .marks{
+  display:flex;
+  gap:3px;
+}
+.brand .marks span{
+  width:10px;height:10px;border-radius:50%;display:inline-block;
+}
+.brand h1{
+  font-size:19px;
+  font-weight:600;
+  letter-spacing:0.2px;
+  margin:0;
+}
+.brand .sub{
+  font-family:var(--mono);
+  font-size:11.5px;
+  color:#b9b3a8;
+  letter-spacing:0.3px;
+}
+nav.tabs{
+  display:flex;
+  gap:6px;
+}
+nav.tabs button{
+  font-family:var(--mono);
+  font-size:12.5px;
+  letter-spacing:0.4px;
+  background:var(--ink-soft);
+  color:#c8c2b6;
+  border:1px solid #3a3835;
+  border-bottom:none;
+  padding:10px 20px 12px 20px;
+  border-radius:6px 6px 0 0;
+  cursor:pointer;
+  position:relative;
+  top:1px;
+  transition:background .15s, color .15s;
+}
+nav.tabs button .dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:8px;
+}
+nav.tabs button.active{
+  background:var(--paper);
+  color:var(--ink);
+  border-color:var(--paper);
+  font-weight:600;
+}
+nav.tabs button:not(.active):hover{ background:#37352f; color:var(--paper);}
+
+/* ===== LAYOUT ===== */
+main{
+  max-width:1180px;
+  margin:0 auto;
+  padding:26px 28px 10px 28px;
+}
+.view{ display:none; }
+.view.active{ display:block; }
+
+.grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:20px;
+  align-items:start;
+}
+@media (max-width: 900px){
+  .grid{ grid-template-columns: 1fr; }
+}
+
+.card{
+  background:var(--paper);
+  border:1px solid var(--kraft-line);
+  border-radius:3px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04);
+}
+.card .card-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 18px;
+  border-bottom:1px dashed var(--kraft-line);
+  background:linear-gradient(var(--paper), var(--paper-dim));
+}
+.card .card-head h2{
+  font-size:13px;
+  margin:0;
+  letter-spacing:0.3px;
+  font-weight:600;
+  color:var(--ink);
+}
+.card .card-head .tag{
+  font-family:var(--mono);
+  font-size:10.5px;
+  color:#8a8375;
+}
+.card-body{ padding:16px 18px 18px 18px; }
+
+.field{ margin-bottom:13px; }
+.field label{
+  display:block;
+  font-size:11.5px;
+  color:#63594a;
+  margin-bottom:4px;
+  font-weight:600;
+}
+.field .hint{ font-size:10.5px; color:#9b917f; margin-top:3px; font-family:var(--mono); }
+.field input[type=text], .field input[type=number], .field select{
+  width:100%;
+  font-family:var(--mono);
+  font-size:13.5px;
+  padding:8px 10px;
+  border:1px solid var(--kraft-line);
+  border-radius:2px;
+  background:#fffdf9;
+  color:var(--ink);
+}
+.field input:focus, .field select:focus{ outline:2px solid var(--press-blue); outline-offset:0; }
+.row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+.area-readout{
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--press-blue-dark);
+  background:#eef1f6;
+  border:1px solid #cfd8e6;
+  padding:7px 10px;
+  border-radius:2px;
+  margin-top:4px;
+}
+
+/* coverage table */
+table.coverage{ width:100%; border-collapse:collapse; margin-top:6px;}
+table.coverage th{
+  text-align:left; font-size:10.5px; color:#8a8375; font-weight:600;
+  padding:4px 6px; border-bottom:1px solid var(--kraft-line);
+}
+table.coverage td{ padding:5px 6px; vertical-align:middle; }
+table.coverage tr td:first-child{ width:26px; }
+.swatch{ width:14px;height:14px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.25);}
+.chan-name{ font-size:12.5px; font-weight:600; }
+table.coverage input{
+  width:70px; font-family:var(--mono); font-size:12.5px;
+  padding:5px 7px; border:1px solid var(--kraft-line); border-radius:2px; background:#fffdf9;
+}
+
+/* results */
+.result-row{
+  display:grid;
+  grid-template-columns: 20px 100px 1fr 90px;
+  align-items:center;
+  gap:10px;
+  padding:7px 0;
+  border-bottom:1px solid #e7e1d3;
+}
+.result-row.total{
+  border-top:2px solid var(--ink);
+  border-bottom:none;
+  margin-top:6px;
+  padding-top:10px;
+  font-weight:700;
+}
+.result-row .name{ font-size:12.5px; font-weight:600; }
+.result-row .bar-track{
+  display:block; height:10px; background:#eee9dc; border-radius:2px; overflow:hidden;
+}
+.result-row .bar-fill{ display:block; height:100%; border-radius:2px; }
+.result-row .val{
+  font-family:var(--mono); font-size:12.5px; text-align:right; white-space:nowrap; line-height:1.4;
+}
+.unit-toggle{
+  display:inline-flex; border:1px solid var(--kraft-line); border-radius:3px; overflow:hidden;
+}
+.unit-toggle button{
+  font-family:var(--mono); font-size:11px; padding:4px 9px; background:#fffdf9; border:none; cursor:pointer; color:#63594a;
+}
+.unit-toggle button.on{ background:var(--press-blue); color:#fff; }
+
+.totals-box{
+  margin-top:14px; border-radius:3px; overflow:hidden;
+  display:grid; grid-template-columns:1fr 1fr;
+}
+.totals-box .seg{ padding:12px 14px; background:var(--ink); color:var(--paper); }
+.totals-box .seg.cost{ background:var(--press-blue-dark); }
+.totals-box .lbl{ display:block; font-size:10.5px; letter-spacing:.3px; color:#c8c2b6; margin-bottom:2px; }
+.totals-box .num{ font-family:var(--mono); font-size:19px; font-weight:700; }
+
+.btn{
+  font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer;
+  padding:10px 16px; border-radius:3px; border:1px solid transparent;
+}
+.btn-primary{ background:var(--press-blue); color:#fff; }
+.btn-primary:hover{ background:var(--press-blue-dark); }
+.btn-ghost{ background:transparent; border-color:var(--kraft-line); color:var(--ink); }
+.btn-ghost:hover{ background:var(--paper-dim); }
+.btn-danger{ background:transparent; border-color:var(--danger); color:var(--danger); font-size:11.5px; padding:5px 9px;}
+.btn-danger:hover{ background:#fbeceb; }
+.btn-row{ display:flex; gap:10px; margin-top:16px; align-items:center; }
+.save-flag{ font-family:var(--mono); font-size:11px; color:var(--good); opacity:0; transition:opacity .3s; }
+.save-flag.show{ opacity:1; }
+
+/* config tab */
+table.cfg{ width:100%; border-collapse:collapse; }
+table.cfg th{ text-align:left; font-size:10.5px; color:#8a8375; padding:6px 8px; border-bottom:1px solid var(--kraft-line);}
+table.cfg td{ padding:5px 8px; border-bottom:1px solid #ece7d9; }
+table.cfg input{ width:100%; font-family:var(--mono); font-size:12.5px; padding:6px 8px; border:1px solid var(--kraft-line); border-radius:2px; background:#fffdf9;}
+table.cfg tr:last-child td{ border-bottom:none; }
+.cfg-note{ font-size:11px; color:#8a8375; margin-top:8px; line-height:1.5; }
+.add-row-btn{ margin-top:10px; }
+
+footer.credit{
+  max-width:1180px; margin:20px auto 0 auto; padding:0 28px;
+  font-family:var(--mono); font-size:10.5px; color:#9b917f;
+}
+
+/* ===== PRINT REPORT (hidden until export) ===== */
+#report{ display:none; }
+*{ -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact; }
+@media print{
+  header.app-head, main, footer.credit{ display:none !important; }
+  html, body{ margin:0; padding:0; height:auto; background:#fff; }
+  #report{
+    display:block !important;
+    width:210mm;
+    background:#fff; color:#231f1a; font-family:var(--sans);
+    position:static;
+  }
+  @page{ size:A4; margin:0; }
+}
+
+.rep-regmark{ position:absolute; width:16px; height:16px; opacity:.35; }
+.rep-regmark svg{ width:100%; height:100%; }
+.rep-regmark.tl{ top:8mm; left:8mm; }
+.rep-regmark.tr{ top:8mm; right:8mm; }
+.rep-regmark.bl{ bottom:8mm; left:8mm; }
+.rep-regmark.br{ bottom:8mm; right:8mm; }
+
+.rep-band{
+  background:linear-gradient(120deg, #1c1b1a 0%, #26324a 100%);
+  color:#f7f5f0;
+  padding:13mm 16mm 9mm 16mm;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  position:relative; overflow:hidden;
+}
+.rep-band::after{
+  content:"";
+  position:absolute; right:-10px; top:-40px; width:180px; height:180px;
+  background:radial-gradient(circle, rgba(255,255,255,.06) 0%, transparent 70%);
+}
+.rep-band .marks{ display:flex; gap:4px; margin-bottom:9px; }
+.rep-band .marks span{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+.rep-head h1{ font-size:21px; margin:0 0 4px 0; letter-spacing:.2px; font-weight:700; }
+.rep-head .rep-sub{ font-family:var(--mono); font-size:10.5px; color:#c8c2b6; letter-spacing:.2px;}
+.rep-badge{
+  font-family:var(--mono); font-size:11px; letter-spacing:.6px; font-weight:700;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.35);
+  padding:6px 14px; border-radius:20px; height:fit-content; backdrop-filter:blur(2px);
+}
+
+.rep-body{ padding:9mm 16mm 14mm 16mm; }
+
+.rep-meta{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; margin-bottom:6px; margin-top:-14mm; position:relative; z-index:2; }
+.rep-meta div{
+  background:#fffdf9; border:1px solid #e2ded3; border-left:3px solid var(--press-blue);
+  border-radius:5px; padding:9px 11px; box-shadow:0 2px 5px rgba(0,0,0,.06);
+}
+.rep-meta .k{ font-family:var(--mono); font-size:9px; color:#8a8375; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px;}
+.rep-meta .v{ font-size:13px; font-weight:700; color:#231f1a; }
+
+.rep-section-title{
+  font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:#8a8375; font-weight:700;
+  margin:20px 0 9px 0; display:flex; align-items:center; gap:8px;
+}
+.rep-section-title::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg,#d8d2c2,transparent); }
+
+table.rep-table{ width:100%; border-collapse:separate; border-spacing:0; font-size:12px; border-radius:6px; overflow:hidden; border:1px solid #e2ded3;}
+table.rep-table th{ text-align:left; background:#1c1b1a; color:#e9e4d8; padding:8px 10px; font-size:9.5px; text-transform:uppercase; letter-spacing:.4px; font-weight:600;}
+table.rep-table td{ padding:8px 10px; border-bottom:1px solid #ece7d9; }
+table.rep-table tr:nth-child(even) td{ background:#faf8f3; }
+table.rep-table tr:last-child td{ border-bottom:none; }
+table.rep-table .bar-cell{ width:150px; }
+table.rep-table td.num-cell{ text-align:right; font-family:var(--mono); }
+.rep-bar-track{ height:8px; background:#eee9dc; border-radius:4px; overflow:hidden; }
+.rep-bar-fill{ height:100%; border-radius:4px; }
+
+.rep-totals{
+  display:grid; grid-template-columns:1fr 1fr; gap:1px; margin-top:16px;
+  background:#1c1b1a; border-radius:7px; overflow:hidden;
+}
+.rep-totals .cell{ padding:13px 18px; background:#1c1b1a; }
+.rep-totals .cell.accent{ background:var(--press-blue-dark); }
+.rep-totals .lbl{ font-size:10px; letter-spacing:.4px; color:#b9b3a8; text-transform:uppercase; font-family:var(--mono); }
+.rep-totals .num{ font-family:var(--mono); font-size:21px; font-weight:700; color:#fff; margin-top:3px; }
+
+.rep-footer{
+  margin-top:22px; padding-top:11px; border-top:1px dashed #c9b79c;
+  font-family:var(--mono); font-size:9.5px; color:#8a8375; display:flex; justify-content:space-between;
+}
+</style>
+</head>
+<body>
+
+<header class="app-head">
+  <div class="brand">
+    <div class="marks">
+      <span style="background:var(--c)"></span>
+      <span style="background:var(--m)"></span>
+      <span style="background:var(--y)"></span>
+      <span style="background:#e9e4d8"></span>
+    </div>
+    <h1>Consumo de Tinta</h1>
+    <span class="sub">estimativa · offset & digital</span>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-view="offset"><span class="dot" style="background:var(--press-blue)"></span>Offset</button>
+    <button class="tab-btn" data-view="digital"><span class="dot" style="background:var(--gold)"></span>Digital</button>
+    <button class="tab-btn" data-view="config"><span class="dot" style="background:#8a8375"></span>Configurações</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ OFFSET VIEW ============ -->
+  <section class="view active" id="view-offset">
+    <div class="grid">
+      <div class="card">
+        <div class="card-head"><h2>Dados do trabalho</h2><span class="tag">OFFSET</span></div>
+        <div class="card-body">
+          <div class="row2">
+            <div class="field"><label>Nome do trabalho</label><input type="text" id="of-job" placeholder="Ex.: Revista Institucional 32p"></div>
+            <div class="field"><label>Cliente</label><input type="text" id="of-client" placeholder="Ex.: Editora XYZ"></div>
+          </div>
+          <div class="field"><label>Responsável</label><input type="text" id="of-resp" placeholder="Seu nome"></div>
+
+          <div class="field">
+            <label>Substrato</label>
+            <select id="of-substrato"></select>
+          </div>
+
+          <label style="display:block;font-size:11.5px;color:#63594a;font-weight:600;margin-bottom:4px;">Área de impressão (trim box)</label>
+          <div class="row3">
+            <div class="field"><label>Largura (mm)</label><input type="number" id="of-largura" value="960" min="0"></div>
+            <div class="field"><label>Altura (mm)</label><input type="number" id="of-altura" value="660" min="0"></div>
+            <div class="field"><label>Lados</label>
+              <select id="of-lados"><option value="1">1 (simples)</option><option value="2">2 (frente/verso)</option></select>
+            </div>
+          </div>
+          <div class="area-readout">Área total: <b id="of-area-readout">0,6336</b> m²</div>
+
+          <div class="field" style="margin-top:14px;"><label>Tiragem (exemplares)</label><input type="number" id="of-tiragem" value="50000" min="0"></div>
+
+          <label style="display:block;font-size:11.5px;color:#63594a;font-weight:600;margin:14px 0 2px 0;">Área de cobertura por canal (%)</label>
+          <table class="coverage" id="of-coverage-table"></table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Resultado estimado</h2>
+          <div class="unit-toggle" id="of-unit-toggle">
+            <button data-u="kg" class="on">kg</button><button data-u="g">g</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="of-results"></div>
+          <div class="totals-box">
+            <div class="seg"><span class="lbl">Consumo total estimado</span><span class="num" id="of-total-num">0 kg</span></div>
+            <div class="seg cost"><span class="lbl">Custo total estimado</span><span class="num" id="of-total-cost">R$ 0,00</span></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="exportReport('offset')">Exportar relatório A4</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DIGITAL VIEW ============ -->
+  <section class="view" id="view-digital">
+    <div class="grid">
+      <div class="card">
+        <div class="card-head"><h2>Dados do trabalho</h2><span class="tag">DIGITAL</span></div>
+        <div class="card-body">
+          <div class="row2">
+            <div class="field"><label>Nome do trabalho</label><input type="text" id="dg-job" placeholder="Ex.: Folder promocional"></div>
+            <div class="field"><label>Cliente</label><input type="text" id="dg-client" placeholder="Ex.: Loja ABC"></div>
+          </div>
+          <div class="field"><label>Responsável</label><input type="text" id="dg-resp" placeholder="Seu nome"></div>
+
+          <label style="display:block;font-size:11.5px;color:#63594a;font-weight:600;margin-bottom:4px;">Área de impressão (trim box)</label>
+          <div class="row3">
+            <div class="field"><label>Largura (mm)</label><input type="number" id="dg-largura" value="210" min="0"></div>
+            <div class="field"><label>Altura (mm)</label><input type="number" id="dg-altura" value="297" min="0"></div>
+            <div class="field"><label>Lados</label>
+              <select id="dg-lados"><option value="1">1 (simples)</option><option value="2">2 (frente/verso)</option></select>
+            </div>
+          </div>
+          <div class="area-readout">Área total: <b id="dg-area-readout">0,6336</b> m²</div>
+
+          <div class="field" style="margin-top:14px;"><label>Tiragem (exemplares)</label><input type="number" id="dg-tiragem" value="1000" min="0"></div>
+
+          <label style="display:block;font-size:11.5px;color:#63594a;font-weight:600;margin:14px 0 2px 0;">Área de cobertura por canal (%)</label>
+          <table class="coverage" id="dg-coverage-table"></table>
+          <p class="cfg-note">Impressão digital neste modelo considera apenas os canais CMYK (sem spot / branco / ouro).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Resultado estimado</h2>
+          <div class="unit-toggle" id="dg-unit-toggle">
+            <button data-u="g" class="on">g</button><button data-u="kg">kg</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="dg-results"></div>
+          <div class="totals-box">
+            <div class="seg"><span class="lbl">Consumo total estimado</span><span class="num" id="dg-total-num">0 g</span></div>
+            <div class="seg cost"><span class="lbl">Custo total estimado</span><span class="num" id="dg-total-cost">R$ 0,00</span></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="exportReport('digital')">Exportar relatório A4</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONFIG VIEW ============ -->
+  <section class="view" id="view-config">
+    <div class="grid">
+      <div class="card">
+        <div class="card-head"><h2>Substratos</h2><span class="tag">FATOR POR SUBSTRATO</span></div>
+        <div class="card-body">
+          <table class="cfg">
+            <thead><tr><th>Substrato</th><th style="width:110px;">Fator</th><th style="width:40px;"></th></tr></thead>
+            <tbody id="cfg-substratos-body"></tbody>
+          </table>
+          <button class="btn btn-ghost add-row-btn" onclick="addSubstrato()">+ adicionar substrato</button>
+          <p class="cfg-note">O fator do substrato multiplica diretamente o consumo no cálculo do OFFSET (o DIGITAL não usa este fator).</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Processo, peso e constante</h2><span class="tag">FATORES GERAIS</span></div>
+        <div class="card-body">
+          <div class="row2">
+            <div class="field"><label>Fator processo — Offset</label><input type="number" step="any" id="cfg-proc-offset"></div>
+            <div class="field"><label>Fator processo — Digital</label><input type="number" step="any" id="cfg-proc-digital"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Peso da tinta — CMYK / Spot</label><input type="number" step="any" id="cfg-peso-normal"></div>
+            <div class="field"><label>Peso da tinta — Ouro / Branco</label><input type="number" step="any" id="cfg-peso-ouro"></div>
+          </div>
+          <div class="field"><label>Constante de conversão (Offset)</label><input type="number" step="any" id="cfg-constante"></div>
+          <p class="cfg-note">
+            Fórmula Offset: (fator substrato × fator processo × área m² × lados × tiragem × cobertura × peso da tinta) ÷ constante.<br>
+            Fórmula Digital: área m² × 10.000 × cobertura × fator processo × tiragem × lados.
+          </p>
+          <div class="btn-row">
+            <button class="btn btn-ghost" onclick="resetConfig()">Restaurar padrões</button>
+            <span class="save-flag" id="cfg-save-flag">✓ configuração salva</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Preço das tintas — Offset</h2><span class="tag">R$ / kg</span></div>
+        <div class="card-body">
+          <table class="cfg">
+            <thead><tr><th>Canal</th><th style="width:130px;">Preço (R$/kg)</th></tr></thead>
+            <tbody id="cfg-precos-offset-body"></tbody>
+          </table>
+          <p class="cfg-note">Usado para calcular o custo estimado de tinta no relatório da aba Offset.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Preço do toner — Digital</h2><span class="tag">R$ / kg</span></div>
+        <div class="card-body">
+          <table class="cfg">
+            <thead><tr><th>Canal</th><th style="width:130px;">Preço (R$/kg)</th></tr></thead>
+            <tbody id="cfg-precos-digital-body"></tbody>
+          </table>
+          <p class="cfg-note">Usado para calcular o custo estimado de toner no relatório da aba Digital.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Backup da configuração</h2><span class="tag">JSON</span></div>
+        <div class="card-body">
+          <p class="cfg-note" style="margin-top:0;">Exporte todos os fatores, pesos e preços configurados em um arquivo .json, ou restaure a partir de um backup salvo anteriormente.</p>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="exportConfigJSON()">Exportar JSON</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('cfg-import-input').click()">Importar JSON</button>
+            <input type="file" id="cfg-import-input" accept="application/json" style="display:none;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="credit">calculadora local · dados salvos no navegador · nenhuma informação é enviada para servidores</footer>
+
+<!-- ============ PRINT REPORT TEMPLATE ============ -->
+<div id="report">
+  <div class="rep-regmark tl"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1"/><line x1="12" y1="0" x2="12" y2="24" stroke="#fff" stroke-width="1"/><line x1="0" y1="12" x2="24" y2="12" stroke="#fff" stroke-width="1"/></svg></div>
+  <div class="rep-regmark tr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1"/><line x1="12" y1="0" x2="12" y2="24" stroke="#fff" stroke-width="1"/><line x1="0" y1="12" x2="24" y2="12" stroke="#fff" stroke-width="1"/></svg></div>
+  <div class="rep-regmark bl"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#231f1a" stroke-width="1"/><line x1="12" y1="0" x2="12" y2="24" stroke="#231f1a" stroke-width="1"/><line x1="0" y1="12" x2="24" y2="12" stroke="#231f1a" stroke-width="1"/></svg></div>
+  <div class="rep-regmark br"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#231f1a" stroke-width="1"/><line x1="12" y1="0" x2="12" y2="24" stroke="#231f1a" stroke-width="1"/><line x1="0" y1="12" x2="24" y2="12" stroke="#231f1a" stroke-width="1"/></svg></div>
+
+  <div class="rep-band">
+    <div class="rep-head">
+      <div class="marks">
+        <span style="background:var(--c)"></span>
+        <span style="background:var(--m)"></span>
+        <span style="background:var(--y)"></span>
+        <span style="background:#e9e4d8"></span>
+      </div>
+      <h1>Relatório de Consumo de Tinta</h1>
+      <div class="rep-sub" id="rep-date"></div>
+    </div>
+    <div class="rep-badge" id="rep-badge">OFFSET</div>
+  </div>
+
+  <div class="rep-body">
+    <div class="rep-meta">
+      <div><div class="k">Trabalho</div><div class="v" id="rep-job">—</div></div>
+      <div><div class="k">Cliente</div><div class="v" id="rep-client">—</div></div>
+      <div><div class="k">Responsável</div><div class="v" id="rep-resp">—</div></div>
+      <div><div class="k">Substrato</div><div class="v" id="rep-substrato">—</div></div>
+      <div><div class="k">Área impressa</div><div class="v" id="rep-area">—</div></div>
+      <div><div class="k">Tiragem / Lados</div><div class="v" id="rep-tiragem">—</div></div>
+    </div>
+
+    <div class="rep-section-title">Consumo e custo por canal</div>
+    <table class="rep-table">
+      <thead><tr><th>Canal</th><th>Cobertura</th><th class="bar-cell">Proporção</th><th style="text-align:right;">Consumo</th><th style="text-align:right;">Custo</th></tr></thead>
+      <tbody id="rep-table-body"></tbody>
+    </table>
+
+    <div class="rep-totals">
+      <div class="cell">
+        <div class="lbl">Consumo total estimado</div>
+        <div class="num" id="rep-total-num">0</div>
+      </div>
+      <div class="cell accent">
+        <div class="lbl">Custo total estimado</div>
+        <div class="num" id="rep-total-cost">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="rep-footer">
+      <span>Estimativa calculada a partir de fatores de substrato, processo, peso e preço de tinta configurados.</span>
+      <span id="rep-gen-tag"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — persisted in localStorage
+   ============================================================ */
+const DEFAULT_CONFIG = {
+  substratos: [
+    {nome:'Couche', fator:1},
+    {nome:'Offset', fator:1.6},
+    {nome:'Cartão Duplex e Triplex', fator:1.5},
+    {nome:'Jornal', fator:1.8},
+    {nome:'Kraft', fator:2.2}
+  ],
+  processo: { offset:0.5, digital:0.00042251 },
+  pesoTinta: { normal:1, ouroBranco:2 },
+  constanteOffset:353,
+  precos: {
+    offset: { c:0, m:0, y:0, k:0, s1:0, s2:0, gold:0 },
+    digital: { c:0, m:0, y:0, k:0 }
+  }
+};
+
+let CONFIG = loadConfig();
+function loadConfig(){
+  try{
+    const raw = localStorage.getItem('inkcalc_config');
+    if(!raw) return structuredClone(DEFAULT_CONFIG);
+    const parsed = JSON.parse(raw);
+    return Object.assign(structuredClone(DEFAULT_CONFIG), parsed);
+  }catch(e){ return structuredClone(DEFAULT_CONFIG); }
+}
+function saveConfig(){
+  localStorage.setItem('inkcalc_config', JSON.stringify(CONFIG));
+  const flag = document.getElementById('cfg-save-flag');
+  flag.classList.add('show');
+  clearTimeout(saveConfig._t);
+  saveConfig._t = setTimeout(()=>flag.classList.remove('show'), 1400);
+}
+function resetConfig(){
+  if(!confirm('Restaurar todos os fatores para os valores padrão?')) return;
+  CONFIG = structuredClone(DEFAULT_CONFIG);
+  saveConfig();
+  renderConfigView();
+  populateSubstratoSelect();
+  calcOffset(); calcDigital();
+}
+
+/* ============================================================
+   CHANNEL DEFINITIONS
+   ============================================================ */
+const OFFSET_CHANNELS = [
+  {key:'c', label:'Cyan', color:'var(--c)', weight:'normal'},
+  {key:'m', label:'Magenta', color:'var(--m)', weight:'normal'},
+  {key:'y', label:'Amarelo', color:'var(--y)', weight:'normal'},
+  {key:'k', label:'Preto', color:'var(--k)', weight:'normal'},
+  {key:'s1', label:'Spot 01', color:'var(--spot)', weight:'normal'},
+  {key:'s2', label:'Spot 02', color:'#5a4530', weight:'normal'},
+  {key:'gold', label:'Ouro / Branco', color:'var(--gold)', weight:'ouroBranco'}
+];
+const DIGITAL_CHANNELS = [
+  {key:'c', label:'Cyan', color:'var(--c)'},
+  {key:'m', label:'Magenta', color:'var(--m)'},
+  {key:'y', label:'Amarelo', color:'var(--y)'},
+  {key:'k', label:'Preto', color:'var(--k)'}
+];
+const OFFSET_DEFAULTS = {c:9, m:15, y:25, k:10, s1:0, s2:0, gold:0};
+const DIGITAL_DEFAULTS = {c:9, m:15, y:25, k:10};
+
+let offsetUnit = 'kg';
+let digitalUnit = 'g';
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ============================================================
+   BUILD COVERAGE TABLES
+   ============================================================ */
+function buildCoverageTable(tbodyId, channels, defaults, prefix){
+  const table = document.getElementById(tbodyId);
+  let html = '<thead><tr><th></th><th>Canal</th><th>Cobertura %</th></tr></thead><tbody>';
+  channels.forEach(ch=>{
+    html += `<tr>
+      <td><span class="swatch" style="background:${ch.color}"></span></td>
+      <td class="chan-name">${ch.label}</td>
+      <td><input type="number" min="0" max="100" step="any" id="${prefix}-cov-${ch.key}" value="${defaults[ch.key]}"></td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+buildCoverageTable('of-coverage-table', OFFSET_CHANNELS, OFFSET_DEFAULTS, 'of');
+buildCoverageTable('dg-coverage-table', DIGITAL_CHANNELS, DIGITAL_DEFAULTS, 'dg');
+
+/* ============================================================
+   SUBSTRATO SELECT
+   ============================================================ */
+function populateSubstratoSelect(){
+  const sel = document.getElementById('of-substrato');
+  const prevVal = sel.value;
+  sel.innerHTML = CONFIG.substratos.map((s,i)=>`<option value="${i}">${s.nome} (${s.fator})</option>`).join('');
+  if(prevVal && +prevVal < CONFIG.substratos.length) sel.value = prevVal;
+}
+populateSubstratoSelect();
+
+/* ============================================================
+   NUMBER FORMATTING (pt-BR)
+   ============================================================ */
+function fmt(n, decimals){
+  if(!isFinite(n)) n = 0;
+  return n.toLocaleString('pt-BR', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+function fmtArea(n){ return fmt(n, 4); }
+
+/* ============================================================
+   OFFSET CALCULATION
+   ============================================================ */
+function calcOffset(){
+  const substratoIdx = +document.getElementById('of-substrato').value || 0;
+  const substrato = CONFIG.substratos[substratoIdx] || CONFIG.substratos[0];
+  const largura = +document.getElementById('of-largura').value || 0;
+  const altura = +document.getElementById('of-altura').value || 0;
+  const lados = +document.getElementById('of-lados').value || 1;
+  const tiragem = +document.getElementById('of-tiragem').value || 0;
+  const areaTotal = (largura*altura)/1000000;
+  document.getElementById('of-area-readout').textContent = fmtArea(areaTotal);
+
+  const procOffset = CONFIG.processo.offset;
+  const results = OFFSET_CHANNELS.map(ch=>{
+    const cov = (+document.getElementById('of-cov-'+ch.key).value || 0)/100;
+    const peso = CONFIG.pesoTinta[ch.weight];
+    const kg = (substrato.fator * procOffset * areaTotal * lados * tiragem * cov * peso) / CONFIG.constanteOffset;
+    const preco = CONFIG.precos.offset[ch.key] || 0;
+    return {label:ch.label, color:ch.color, kg, cov:cov*100, custo: kg*preco};
+  });
+  renderResults('of-results', results, offsetUnit, 'kg');
+  const total = results.reduce((a,r)=>a+r.kg,0);
+  const totalCusto = results.reduce((a,r)=>a+r.custo,0);
+  document.getElementById('of-total-num').textContent = displayVal(total,'kg',offsetUnit) + ' ' + offsetUnit;
+  document.getElementById('of-total-cost').textContent = fmtBRL(totalCusto);
+
+  return {substrato, largura, altura, lados, tiragem, areaTotal, results, total, totalCusto};
+}
+
+/* ============================================================
+   DIGITAL CALCULATION
+   ============================================================ */
+function calcDigital(){
+  const largura = +document.getElementById('dg-largura').value || 0;
+  const altura = +document.getElementById('dg-altura').value || 0;
+  const lados = +document.getElementById('dg-lados').value || 1;
+  const tiragem = +document.getElementById('dg-tiragem').value || 0;
+  const areaTotal = (largura*altura)/1000000;
+  document.getElementById('dg-area-readout').textContent = fmtArea(areaTotal);
+
+  const procDigital = CONFIG.processo.digital;
+  const results = DIGITAL_CHANNELS.map(ch=>{
+    const cov = (+document.getElementById('dg-cov-'+ch.key).value || 0)/100;
+    const g = (areaTotal*10000) * cov * procDigital * tiragem * lados;
+    const preco = CONFIG.precos.digital[ch.key] || 0;
+    return {label:ch.label, color:ch.color, g, cov:cov*100, custo:(g/1000)*preco};
+  });
+  // normalize key name to 'kg' base field expected by renderResults -> use grams as base unit
+  const normalized = results.map(r=>({label:r.label, color:r.color, kg:r.g/1000, cov:r.cov, custo:r.custo}));
+  renderResults('dg-results', normalized, digitalUnit, 'kg');
+  const totalG = results.reduce((a,r)=>a+r.g,0);
+  const totalCusto = results.reduce((a,r)=>a+r.custo,0);
+  document.getElementById('dg-total-num').textContent = displayVal(totalG/1000,'kg',digitalUnit) + ' ' + digitalUnit;
+  document.getElementById('dg-total-cost').textContent = fmtBRL(totalCusto);
+
+  return {largura, altura, lados, tiragem, areaTotal, results:normalized, total:totalG/1000, totalCusto};
+}
+
+function fmtBRL(v){
+  if(!isFinite(v)) v = 0;
+  return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+
+/* value stored internally in kg; convert to display unit */
+function displayVal(kgValue, baseUnit, targetUnit){
+  let v = kgValue; // kg
+  if(targetUnit === 'g') v = kgValue*1000;
+  const decimals = targetUnit === 'g' ? (v < 10 ? 2 : 0) : 3;
+  return fmt(v, decimals);
+}
+
+function renderResults(containerId, results, unit, baseUnit){
+  const maxVal = Math.max(...results.map(r=>r.kg), 0.0000001);
+  const container = document.getElementById(containerId);
+  container.innerHTML = results.map(r=>{
+    const pct = Math.max(2, (r.kg/maxVal)*100);
+    return `<div class="result-row">
+      <span class="swatch" style="background:${r.color}"></span>
+      <span class="name">${r.label}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${pct}%;background:${r.color}"></span></span>
+      <span class="val">${displayVal(r.kg, baseUnit, unit)} ${unit}<br><span style="color:#8a8375;font-weight:400;">${fmtBRL(r.custo||0)}</span></span>
+    </div>`;
+  }).join('');
+}
+
+/* unit toggles */
+document.getElementById('of-unit-toggle').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  offsetUnit = b.dataset.u;
+  document.querySelectorAll('#of-unit-toggle button').forEach(x=>x.classList.toggle('on', x===b));
+  calcOffset();
+});
+document.getElementById('dg-unit-toggle').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  digitalUnit = b.dataset.u;
+  document.querySelectorAll('#dg-unit-toggle button').forEach(x=>x.classList.toggle('on', x===b));
+  calcDigital();
+});
+
+/* recalc on any input change */
+['of-substrato','of-largura','of-altura','of-lados','of-tiragem',
+ ...OFFSET_CHANNELS.map(c=>'of-cov-'+c.key)
+].forEach(id=>{
+  document.getElementById(id).addEventListener('input', calcOffset);
+  document.getElementById(id).addEventListener('change', calcOffset);
+});
+['dg-largura','dg-altura','dg-lados','dg-tiragem',
+ ...DIGITAL_CHANNELS.map(c=>'dg-cov-'+c.key)
+].forEach(id=>{
+  document.getElementById(id).addEventListener('input', calcDigital);
+  document.getElementById(id).addEventListener('change', calcDigital);
+});
+
+/* ============================================================
+   CONFIG VIEW RENDERING
+   ============================================================ */
+function renderConfigView(){
+  const body = document.getElementById('cfg-substratos-body');
+  body.innerHTML = CONFIG.substratos.map((s,i)=>`
+    <tr>
+      <td><input type="text" value="${s.nome}" onchange="updateSubstrato(${i},'nome',this.value)"></td>
+      <td><input type="number" step="any" value="${s.fator}" onchange="updateSubstrato(${i},'fator',this.value)"></td>
+      <td><button class="btn btn-danger" onclick="removeSubstrato(${i})">✕</button></td>
+    </tr>`).join('');
+
+  document.getElementById('cfg-proc-offset').value = CONFIG.processo.offset;
+  document.getElementById('cfg-proc-digital').value = CONFIG.processo.digital;
+  document.getElementById('cfg-peso-normal').value = CONFIG.pesoTinta.normal;
+  document.getElementById('cfg-peso-ouro').value = CONFIG.pesoTinta.ouroBranco;
+  document.getElementById('cfg-constante').value = CONFIG.constanteOffset;
+
+  renderPrecoTable('cfg-precos-offset-body', OFFSET_CHANNELS, CONFIG.precos.offset, 'offset');
+  renderPrecoTable('cfg-precos-digital-body', DIGITAL_CHANNELS, CONFIG.precos.digital, 'digital');
+}
+function renderPrecoTable(tbodyId, channels, precoObj, group){
+  const body = document.getElementById(tbodyId);
+  body.innerHTML = channels.map(ch=>`
+    <tr>
+      <td><span class="swatch" style="background:${ch.color};margin-right:7px;"></span>${ch.label}</td>
+      <td><input type="number" step="any" min="0" value="${precoObj[ch.key] ?? 0}" onchange="updatePreco('${group}','${ch.key}',this.value)"></td>
+    </tr>`).join('');
+}
+function updatePreco(group, key, val){
+  CONFIG.precos[group][key] = +val || 0;
+  saveConfig(); calcOffset(); calcDigital();
+}
+function updateSubstrato(i, field, val){
+  CONFIG.substratos[i][field] = field==='fator' ? (+val||0) : val;
+  saveConfig(); populateSubstratoSelect(); calcOffset();
+}
+function addSubstrato(){
+  CONFIG.substratos.push({nome:'Novo substrato', fator:1});
+  saveConfig(); renderConfigView(); populateSubstratoSelect();
+}
+function removeSubstrato(i){
+  if(CONFIG.substratos.length<=1){ alert('É preciso manter ao menos um substrato.'); return; }
+  CONFIG.substratos.splice(i,1);
+  saveConfig(); renderConfigView(); populateSubstratoSelect(); calcOffset();
+}
+['cfg-proc-offset','cfg-proc-digital','cfg-peso-normal','cfg-peso-ouro','cfg-constante'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', e=>{
+    const v = +e.target.value || 0;
+    if(id==='cfg-proc-offset') CONFIG.processo.offset = v;
+    if(id==='cfg-proc-digital') CONFIG.processo.digital = v;
+    if(id==='cfg-peso-normal') CONFIG.pesoTinta.normal = v;
+    if(id==='cfg-peso-ouro') CONFIG.pesoTinta.ouroBranco = v;
+    if(id==='cfg-constante') CONFIG.constanteOffset = v;
+    saveConfig(); calcOffset(); calcDigital();
+  });
+});
+renderConfigView();
+
+/* ============================================================
+   REPORT EXPORT
+   ============================================================ */
+function exportReport(mode){
+  const isOffset = mode === 'offset';
+  const data = isOffset ? calcOffset() : calcDigital();
+  const unit = isOffset ? offsetUnit : digitalUnit;
+
+  document.getElementById('rep-badge').textContent = isOffset ? 'OFFSET' : 'DIGITAL';
+  document.getElementById('rep-badge').style.borderColor = isOffset ? '#2b4570' : '#b8894b';
+  document.getElementById('rep-date').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+
+  const jobId = isOffset ? 'of-job' : 'dg-job';
+  const clientId = isOffset ? 'of-client' : 'dg-client';
+  const respId = isOffset ? 'of-resp' : 'dg-resp';
+  document.getElementById('rep-job').textContent = document.getElementById(jobId).value || '—';
+  document.getElementById('rep-client').textContent = document.getElementById(clientId).value || '—';
+  document.getElementById('rep-resp').textContent = document.getElementById(respId).value || '—';
+
+  const substratoRow = document.getElementById('rep-substrato').closest('div').parentElement;
+  if(isOffset){
+    substratoRow.style.display = '';
+    document.getElementById('rep-substrato').textContent = data.substrato.nome + ' (fator ' + data.substrato.fator + ')';
+  } else {
+    document.getElementById('rep-substrato').textContent = 'Não aplicável (digital)';
+  }
+
+  document.getElementById('rep-area').textContent = data.largura + ' × ' + data.altura + ' mm  (' + fmtArea(data.areaTotal) + ' m²)';
+  document.getElementById('rep-tiragem').textContent = data.tiragem.toLocaleString('pt-BR') + ' exemplares / ' + data.lados + ' lado(s)';
+
+  const maxVal = Math.max(...data.results.map(r=>r.kg), 0.0000001);
+  document.getElementById('rep-table-body').innerHTML = data.results.map(r=>{
+    const pct = Math.max(2,(r.kg/maxVal)*100);
+    return `<tr>
+      <td><span class="swatch" style="background:${r.color};margin-right:7px;"></span>${r.label}</td>
+      <td>${fmt(r.cov,1)}%</td>
+      <td class="bar-cell"><div class="rep-bar-track"><div class="rep-bar-fill" style="width:${pct}%;background:${r.color}"></div></div></td>
+      <td class="num-cell">${displayVal(r.kg,'kg',unit)} ${unit}</td>
+      <td class="num-cell">${fmtBRL(r.custo||0)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rep-total-num').textContent = displayVal(data.total,'kg',unit) + ' ' + unit;
+  document.getElementById('rep-total-cost').textContent = fmtBRL(data.totalCusto||0);
+  document.getElementById('rep-gen-tag').textContent = 'Calculadora de Consumo de Tinta — ' + (isOffset?'Offset':'Digital');
+
+  window.print();
+}
+
+/* ============================================================
+   CONFIG BACKUP — JSON EXPORT / IMPORT
+   ============================================================ */
+function exportConfigJSON(){
+  const blob = new Blob([JSON.stringify(CONFIG, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `config-consumo-tinta-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('cfg-import-input').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const parsed = JSON.parse(evt.target.result);
+      if(!parsed.substratos || !parsed.processo || !parsed.pesoTinta){
+        alert('Arquivo JSON inválido: não parece ser um backup desta calculadora.');
+        return;
+      }
+      CONFIG = Object.assign(structuredClone(DEFAULT_CONFIG), parsed);
+      saveConfig();
+      renderConfigView();
+      populateSubstratoSelect();
+      calcOffset(); calcDigital();
+      alert('Configuração importada com sucesso.');
+    }catch(err){
+      alert('Não foi possível ler o arquivo JSON: ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* initial calc */
+calcOffset();
+calcDigital();
+</script>
+</body>
+</html>

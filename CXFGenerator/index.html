@@ -229,75 +229,131 @@
 
   .rows{
     border-top: 1px solid var(--ink);
-  }
-  .row{
+    padding-top: 16px;
+    max-height: 58vh;
+    min-height: 160px;
+    overflow-y: auto;
     display:grid;
-    grid-template-columns: 20px 34px 1fr 44px 44px 44px 80px 26px;
-    align-items:center;
-    gap: 10px;
-    padding: 10px 0;
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+    gap: 14px;
+    align-content:start;
+  }
+
+  /* ---------- Card (single swatch) ---------- */
+  .card{
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--white);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .card:hover{ border-color: var(--ink-soft); }
+  .card.in-group{ border-color: var(--line); }
+
+  .card-swatch{
+    aspect-ratio: 5 / 4;
+    position:relative;
     border-bottom: 1px solid var(--line);
   }
-  .row .lab-input{
-    width: 100%;
-    padding: 5px 5px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    background: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    text-align:center;
+  .card-swatch .card-select{
+    position:absolute; top:6px; left:6px;
+    width:15px; height:15px;
+    accent-color: var(--plate);
   }
-  .row .lab-input:focus{ outline: 1.5px solid var(--plate); outline-offset: -1px; }
-  .row input[type=checkbox]{ width:15px; height:15px; }
-  .row .chip{
-    width: 34px; height: 34px;
-    border-radius: 2px;
-    border: 1px solid var(--line);
-    flex-shrink:0;
+  .card-swatch .remove{
+    position:absolute; top:5px; right:5px;
+    width:19px; height:19px;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(251,250,247,.82);
+    border: none; border-radius: 50%;
+    color: var(--ink-soft);
+    font-size: 14px; line-height:1;
+    cursor:pointer; padding:0;
   }
-  .row .info{ min-width:0; }
-  .row .info .nm{
-    font-size: 14px;
-    font-weight: 500;
+  .card-swatch .remove:hover{ color: var(--warn); background: var(--white); }
+
+  .card-body{ padding: 8px 9px 9px; }
+  .card-name{
+    font-size: 13px;
+    font-weight: 600;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
   }
-  .row .info .lab{
-    font-size: 11.5px;
-    color: var(--ink-soft);
-  }
-  .row .finish-tag{
+  .card-desc{
     font-size: 10.5px;
     color: var(--ink-soft);
-    text-align:right;
     white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin: 1px 0 7px;
   }
-  .row .remove{
-    background:none; border:none; cursor:pointer;
+  .card-lab-row{ display:flex; gap:4px; margin-bottom:6px; }
+  .card-lab-row .lab-input{
+    width: 100%;
+    min-width:0;
+    padding: 4px 3px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    text-align:center;
+  }
+  .card-lab-row .lab-input:focus{ outline: 1.5px solid var(--plate); outline-offset: -1px; }
+  .card-finish{
+    font-size: 9.5px;
     color: var(--ink-soft);
-    font-size: 16px;
-    line-height:1;
-    padding: 4px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
   }
-  .row .remove:hover{ color: var(--warn); }
+
+  /* ---------- Group card (trinca C/M/U) ---------- */
+  .card-group{
+    grid-column: 1 / -1;
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 12px;
+  }
+  .card-group-head{
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 10px;
+  }
+  .card-group-body{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
 
   .empty{
+    grid-column: 1 / -1;
     padding: 40px 0;
     text-align:center;
     color: var(--ink-soft);
     font-size: 13.5px;
-    border-bottom: 1px solid var(--line);
   }
+
 
   /* ---------- Export bar ---------- */
   .export-bar{
-    margin-top: 22px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
     display:flex;
     gap: 12px;
     align-items:center;
     flex-wrap: wrap;
+    position: sticky;
+    bottom: 0;
+    background: var(--paper);
+    z-index: 4;
   }
   .export-bar input[type=text]{
     flex:1;
@@ -367,13 +423,6 @@
   }
   .ghost-btn:hover{ border-color: var(--ink); }
 
-  .row .info .desc{
-    font-size: 11px;
-    color: var(--ink-soft);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
 </style>
 </head>
 <body>
@@ -865,10 +914,45 @@
     return row.name.toLowerCase().includes(term) || (row.description||'').toLowerCase().includes(term);
   }
 
+  function renderCard(row, inGroup){
+    const div = document.createElement('div');
+    div.className = 'card' + (inGroup ? ' in-group' : '');
+    const rgb = labToRgb(row.L, row.A, row.B);
+    div.innerHTML = `
+      <div class="card-swatch" data-chip-id="${row.id}" style="background:${rgbToCss(rgb)}">
+        <input type="checkbox" ${row.selected ? 'checked' : ''} data-id="${row.id}" class="rowCheck card-select">
+        <button class="remove" data-id="${row.id}" title="Remover">×</button>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${escapeXml(row.name)}</div>
+        ${row.description ? `<div class="card-desc">${escapeXml(row.description)}</div>` : ''}
+        <div class="card-lab-row">
+          <input type="text" class="lab-input" data-id="${row.id}" data-axis="L" value="${row.L}">
+          <input type="text" class="lab-input" data-id="${row.id}" data-axis="A" value="${row.A}">
+          <input type="text" class="lab-input" data-id="${row.id}" data-axis="B" value="${row.B}">
+        </div>
+        <div class="card-finish">${finishLabels[row.finish]}</div>
+      </div>
+    `;
+    return div;
+  }
+
+  function renderGroupCard(members){
+    const wrap = document.createElement('div');
+    wrap.className = 'card-group';
+    const sharedDesc = members[0] && members[0].description;
+    const allSameDesc = sharedDesc && members.every(m => m.description === sharedDesc);
+    wrap.innerHTML = `<div class="card-group-head">Trinca C / M / U${allSameDesc ? ' — ' + escapeXml(sharedDesc) : ''}</div>
+      <div class="card-group-body"></div>`;
+    const body = wrap.querySelector('.card-group-body');
+    members.forEach(m => body.appendChild(renderCard(m, true)));
+    return wrap;
+  }
+
   function renderRows(){
     rowsEl.innerHTML = '';
     const term = elSearch.value.trim();
-    const visible = rows.filter(r => matchesSearch(r, term));
+
     if(rows.length === 0){
       rowsEl.appendChild(emptyMsg);
       rowCount.textContent = '0 cores';
@@ -876,32 +960,30 @@
       btnExport.textContent = 'Baixar .cxf (0 selecionadas)';
       return;
     }
+
+    const visible = rows.filter(r => matchesSearch(r, term));
+
     if(visible.length === 0){
       const div = document.createElement('div');
       div.className = 'empty';
       div.textContent = 'Nenhuma cor encontrada para essa busca.';
       rowsEl.appendChild(div);
+    }else{
+      const rendered = new Set();
+      visible.forEach(row=>{
+        if(rendered.has(row.id)) return;
+        if(row.groupId){
+          const groupMembers = visible.filter(r => r.groupId === row.groupId);
+          groupMembers.forEach(m => rendered.add(m.id));
+          rowsEl.appendChild(renderGroupCard(groupMembers));
+        }else{
+          rendered.add(row.id);
+          rowsEl.appendChild(renderCard(row, false));
+        }
+      });
     }
-    visible.forEach(row=>{
-      const div = document.createElement('div');
-      div.className = 'row';
-      const rgb = labToRgb(row.L, row.A, row.B);
-      div.innerHTML = `
-        <input type="checkbox" ${row.selected ? 'checked' : ''} data-id="${row.id}" class="rowCheck">
-        <div class="chip" data-chip-id="${row.id}" style="background:${rgbToCss(rgb)}"></div>
-        <div class="info">
-          <div class="nm">${escapeXml(row.name)}</div>
-          ${row.description ? `<div class="desc">${escapeXml(row.description)}</div>` : ''}
-        </div>
-        <input type="text" class="lab-input" data-id="${row.id}" data-axis="L" value="${row.L}">
-        <input type="text" class="lab-input" data-id="${row.id}" data-axis="A" value="${row.A}">
-        <input type="text" class="lab-input" data-id="${row.id}" data-axis="B" value="${row.B}">
-        <div class="finish-tag">${finishLabels[row.finish]}</div>
-        <button class="remove" data-id="${row.id}" title="Remover">×</button>
-      `;
-      rowsEl.appendChild(div);
-    });
 
+    // ---- listeners: checkbox de seleção (para exportação) ----
     rowsEl.querySelectorAll('.rowCheck').forEach(cb=>{
       cb.addEventListener('change', e=>{
         const row = rows.find(r=>r.id === e.target.dataset.id);
@@ -910,14 +992,18 @@
         saveState();
       });
     });
+
+    // ---- listeners: remover linha ----
     rowsEl.querySelectorAll('.remove').forEach(btn=>{
       btn.addEventListener('click', e=>{
-        rows = rows.filter(r=>r.id !== e.target.dataset.id);
+        rows = rows.filter(r=>r.id !== e.currentTarget.dataset.id);
         renderRows();
         updateExportState();
         saveState();
       });
     });
+
+    // ---- listeners: edição de L/a/b (com compensação entre suportes do mesmo grupo) ----
     rowsEl.querySelectorAll('.lab-input').forEach(inp=>{
       inp.addEventListener('input', e=>{
         const row = rows.find(r=>r.id === e.target.dataset.id);
@@ -925,7 +1011,7 @@
         const val = parseFloat(e.target.value);
         if(isNaN(val)) return;
         row[e.target.dataset.axis] = val;
-        const chip = rowsEl.querySelector(`.chip[data-chip-id="${row.id}"]`);
+        const chip = rowsEl.querySelector(`.card-swatch[data-chip-id="${row.id}"]`);
         if(chip) chip.style.background = rgbToCss(labToRgb(row.L, row.A, row.B));
 
         if(row.groupId && elAutoCompensate.checked){
@@ -938,7 +1024,7 @@
             if(sL) sL.value = sibling.L;
             if(sA) sA.value = sibling.A;
             if(sB) sB.value = sibling.B;
-            const sChip = rowsEl.querySelector(`.chip[data-chip-id="${sibling.id}"]`);
+            const sChip = rowsEl.querySelector(`.card-swatch[data-chip-id="${sibling.id}"]`);
             if(sChip) sChip.style.background = rgbToCss(labToRgb(sibling.L, sibling.A, sibling.B));
           });
         }

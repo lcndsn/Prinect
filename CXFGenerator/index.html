@@ -511,7 +511,7 @@
       </div>
 
       <div class="export-bar">
-        <input type="text" id="inFilename" value="HBR_CoresEspeciais">
+        <input type="text" id="inFilename" value="cores_especiais">
         <span class="ext">.cxf</span>
         <button class="export-btn" id="btnExport" disabled>Baixar .cxf (0 selecionadas)</button>
       </div>
@@ -620,7 +620,7 @@
   // ---------- banco de dados local (localStorage) ----------
   function saveState(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows, rowSeq, groupSeq }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows, rowSeq, groupSeq, nextVar: elVar.value }));
     }catch(e){ /* localStorage indisponível — ignora silenciosamente */ }
   }
   function loadState(){
@@ -631,6 +631,7 @@
       if(Array.isArray(data.rows)) rows = data.rows;
       if(typeof data.rowSeq === 'number') rowSeq = data.rowSeq;
       if(typeof data.groupSeq === 'number') groupSeq = data.groupSeq;
+      if(typeof data.nextVar === 'string' && data.nextVar) elVar.value = data.nextVar;
     }catch(e){ /* ignora dado corrompido */ }
   }
 
@@ -891,6 +892,7 @@
   }
 
   [elL, elA, elB, elTemplate, elVar].forEach(el=> el.addEventListener('input', refreshPreview));
+  elVar.addEventListener('input', saveState);
 
   finishPicker.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1123,7 +1125,7 @@
     const blob = new Blob([xml], {type:'application/xml'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const filename = (document.getElementById('inFilename').value || 'HBR_CoresEspeciais').replace(/[^\w\-]+/g,'_');
+    const filename = (document.getElementById('inFilename').value || 'cores_especiais').replace(/[^\w\-]+/g,'_');
     a.href = url;
     a.download = filename + '.cxf';
     document.body.appendChild(a);

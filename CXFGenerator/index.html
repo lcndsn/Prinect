@@ -396,6 +396,77 @@
     max-width: 70ch;
   }
 
+  /* ---------- Palette preview ---------- */
+  .palette-block{ margin-bottom: 14px; }
+  .palette-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom: 7px;
+  }
+  .palette-head h3{
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin: 0;
+  }
+  .palette-count{
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .palette-toggle{
+    font-size: 11px;
+    color: var(--plate);
+    background:none; border:none; cursor:pointer;
+    font-family: inherit;
+    padding: 0;
+  }
+  .palette-toggle:hover{ text-decoration: underline; }
+  .palette-strip{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper-dark);
+    max-height: 108px;
+    overflow-y: auto;
+    transition: max-height .22s ease;
+  }
+  .palette-strip.expanded{
+    max-height: 640px;
+  }
+  .palette-chip{
+    width: 24px; height: 24px;
+    border-radius: 2px;
+    border: 1px solid rgba(35,32,25,.18);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .palette-chip:hover{
+    transform: scale(1.18);
+    box-shadow: 0 2px 6px rgba(0,0,0,.22);
+    z-index: 2;
+  }
+  .palette-empty{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+
+  @keyframes jumpFlash{
+    0%{ background-color: rgba(43,58,85,.16); }
+    100%{ background-color: var(--white); }
+  }
+  .card.jump-highlight{
+    outline: 2px solid var(--plate);
+    outline-offset: 2px;
+    animation: jumpFlash 1.3s ease;
+  }
+
   .toolbar-row{
     display:flex;
     gap: 8px;
@@ -497,6 +568,18 @@
           &nbsp;·&nbsp;
           <button class="select-all" id="btnSelectAll">marcar/desmarcar todas</button>
         </div>
+      </div>
+
+      <div class="palette-block">
+        <div class="palette-head">
+          <h3>Paleta</h3>
+          <div>
+            <span class="palette-count" id="paletteCount">0 cores</span>
+            &nbsp;·&nbsp;
+            <button class="palette-toggle" id="paletteToggle">expandir</button>
+          </div>
+        </div>
+        <div class="palette-strip" id="paletteStrip"></div>
       </div>
 
       <div class="toolbar-row">
@@ -909,6 +992,15 @@
   const rowCount = document.getElementById('rowCount');
   const btnExport = document.getElementById('btnExport');
   const elSearch = document.getElementById('inSearch');
+  const paletteStrip = document.getElementById('paletteStrip');
+  const paletteCount = document.getElementById('paletteCount');
+  const paletteToggle = document.getElementById('paletteToggle');
+  let paletteExpanded = false;
+  paletteToggle.addEventListener('click', ()=>{
+    paletteExpanded = !paletteExpanded;
+    paletteStrip.classList.toggle('expanded', paletteExpanded);
+    paletteToggle.textContent = paletteExpanded ? 'recolher' : 'expandir';
+  });
 
   function matchesSearch(row, term){
     if(!term) return true;
@@ -919,6 +1011,7 @@
   function renderCard(row, inGroup){
     const div = document.createElement('div');
     div.className = 'card' + (inGroup ? ' in-group' : '');
+    div.id = 'card-' + row.id;
     const rgb = labToRgb(row.L, row.A, row.B);
     div.innerHTML = `
       <div class="card-swatch" data-chip-id="${row.id}" style="background:${rgbToCss(rgb)}">
@@ -951,6 +1044,44 @@
     return wrap;
   }
 
+  function renderPalette(){
+    paletteStrip.innerHTML = '';
+    if(rows.length === 0){
+      const span = document.createElement('div');
+      span.className = 'palette-empty';
+      span.textContent = 'Nenhuma cor ainda.';
+      paletteStrip.appendChild(span);
+      paletteCount.textContent = '0 cores';
+      return;
+    }
+    rows.forEach(row=>{
+      const rgb = labToRgb(row.L, row.A, row.B);
+      const chip = document.createElement('div');
+      chip.className = 'palette-chip';
+      chip.style.background = rgbToCss(rgb);
+      chip.title = row.description ? `${row.name} — ${row.description}` : row.name;
+      chip.addEventListener('click', ()=> jumpToCard(row.id));
+      paletteStrip.appendChild(chip);
+    });
+    paletteCount.textContent = `${rows.length} cor${rows.length===1?'':'es'}`;
+  }
+
+  function jumpToCard(id){
+    // se uma busca estiver filtrando a lista, limpa antes de tentar saltar
+    if(elSearch.value.trim()){
+      elSearch.value = '';
+      renderRows();
+    }
+    const target = document.getElementById('card-' + id);
+    if(!target) return;
+    target.scrollIntoView({ behavior:'smooth', block:'center', inline:'center' });
+    target.classList.remove('jump-highlight');
+    // força reflow para permitir reiniciar a animação em cliques seguidos na mesma cor
+    void target.offsetWidth;
+    target.classList.add('jump-highlight');
+    setTimeout(()=> target.classList.remove('jump-highlight'), 1300);
+  }
+
   function renderRows(){
     rowsEl.innerHTML = '';
     const term = elSearch.value.trim();
@@ -960,6 +1091,7 @@
       rowCount.textContent = '0 cores';
       btnExport.disabled = true;
       btnExport.textContent = 'Baixar .cxf (0 selecionadas)';
+      renderPalette();
       return;
     }
 
@@ -1031,10 +1163,12 @@
           });
         }
         saveState();
+        renderPalette();
       });
     });
 
     rowCount.textContent = `${rows.length} cor${rows.length===1?'':'es'}`;
+    renderPalette();
   }
 
   elSearch.addEventListener('input', renderRows);

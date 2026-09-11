@@ -347,6 +347,7 @@
 
     .cad-section {
         padding: 24px 24px 20px;
+        min-width: 0;
     }
 
     .cad-section + .cad-section {
@@ -378,6 +379,12 @@
     .cad-form-row {
         display: flex;
         gap: 8px;
+        min-width: 0;
+    }
+
+    .cad-form-row input {
+        flex: 1 1 0;
+        min-width: 0;
     }
 
     .cad-form input {

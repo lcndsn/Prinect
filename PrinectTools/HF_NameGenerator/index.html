@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hot Folder Name Generator</title>
+<title>Gerador de Código de Produção</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -21,6 +21,8 @@
         --amber-soft: #e8ddc7;
         --line: #d3c9b2;
         --success: #4a7a52;
+        --danger: #a5423a;
+        --danger-soft: #f1ded9;
     }
 
     * { box-sizing: border-box; }
@@ -37,7 +39,7 @@
     }
 
     .wrap {
-        max-width: 620px;
+        max-width: 660px;
         margin: 0 auto;
     }
 
@@ -64,14 +66,51 @@
     .sub {
         color: var(--ink-soft);
         font-size: 14.5px;
-        margin: 0 0 32px;
-        max-width: 46ch;
+        margin: 0 0 28px;
+        max-width: 50ch;
     }
+
+    /* ---- Tabs ---- */
+    .tabs {
+        display: flex;
+        gap: 4px;
+        padding-left: 4px;
+    }
+
+    .tab-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        padding: 11px 20px;
+        border: 1px solid var(--line);
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        background: var(--paper-dark);
+        color: var(--ink-soft);
+        cursor: pointer;
+        position: relative;
+        top: 1px;
+    }
+
+    .tab-btn.active {
+        background: var(--card);
+        color: var(--ink);
+        border-color: var(--line);
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--ink);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     .ticket {
         background: var(--card);
         border: 1px solid var(--line);
-        border-radius: 10px;
+        border-radius: 0 10px 10px 10px;
         box-shadow: 0 1px 2px rgba(28,26,23,0.04), 0 12px 32px -18px rgba(28,26,23,0.25);
         overflow: hidden;
     }
@@ -128,7 +167,7 @@
         color: var(--ink-soft);
     }
 
-    input {
+    input, select {
         width: 100%;
         padding: 11px 12px;
         border: 1px solid var(--line);
@@ -140,11 +179,16 @@
         transition: border-color 0.15s ease, background 0.15s ease;
     }
 
-    input:hover {
+    select {
+        appearance: auto;
+        cursor: pointer;
+    }
+
+    input:hover, select:hover {
         border-color: #b9ac8c;
     }
 
-    input:focus-visible {
+    input:focus-visible, select:focus-visible {
         outline: none;
         border-color: var(--steel);
         background: var(--card);
@@ -273,7 +317,7 @@
         border-color: var(--steel);
     }
 
-    #status {
+    #status, .status-msg {
         margin-top: 10px;
         min-height: 18px;
         font-family: 'IBM Plex Mono', monospace;
@@ -289,9 +333,178 @@
         transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
-    #status.show {
+    #status.show, .status-msg.show {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    /* ---- Cadastros tab ---- */
+    .cad-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+    }
+
+    .cad-section {
+        padding: 24px 24px 20px;
+    }
+
+    .cad-section + .cad-section {
+        border-left: 1px dashed var(--line);
+    }
+
+    .cad-section h2 {
+        font-family: 'Oswald', Arial, sans-serif;
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin: 0 0 4px;
+        color: var(--ink);
+    }
+
+    .cad-hint {
+        font-size: 12px;
+        color: var(--ink-soft);
+        margin: 0 0 14px;
+    }
+
+    .cad-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .cad-form-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .cad-form input {
+        font-size: 13.5px;
+        padding: 9px 10px;
+    }
+
+    .cad-form-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .cad-form-actions button {
+        padding: 9px 14px;
+        font-size: 11.5px;
+    }
+
+    .cad-table-wrap {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+    }
+
+    .cad-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 12px;
+    }
+
+    .cad-table th {
+        text-align: left;
+        padding: 8px 10px;
+        background: var(--paper-dark);
+        color: var(--ink-soft);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 10.5px;
+        position: sticky;
+        top: 0;
+    }
+
+    .cad-table td {
+        padding: 7px 10px;
+        border-top: 1px solid var(--line);
+        vertical-align: top;
+    }
+
+    .cad-table td.desc {
+        font-family: 'IBM Plex Sans', Arial, sans-serif;
+        color: var(--ink-soft);
+    }
+
+    .cad-table td.acoes {
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .cad-empty {
+        padding: 16px 10px;
+        text-align: center;
+        color: var(--ink-soft);
+        font-size: 12px;
+    }
+
+    .mini-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        cursor: pointer;
+        text-transform: uppercase;
+    }
+
+    .mini-btn:hover {
+        border-color: var(--ink-soft);
+    }
+
+    .mini-btn.danger {
+        color: var(--danger);
+        border-color: var(--danger-soft);
+    }
+
+    .mini-btn.danger:hover {
+        background: var(--danger-soft);
+    }
+
+    .import-export {
+        margin: 4px 24px 24px;
+        padding-top: 20px;
+        border-top: 2px dashed var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .import-export .ie-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .import-export button {
+        padding: 10px 16px;
+    }
+
+    .import-export p {
+        margin: 0;
+        font-size: 11.5px;
+        color: var(--ink-soft);
+        max-width: 30ch;
+    }
+
+    @media (max-width: 640px) {
+        .cad-grid {
+            grid-template-columns: 1fr;
+        }
+        .cad-section + .cad-section {
+            border-left: none;
+            border-top: 1px dashed var(--line);
+        }
     }
 
     @media (max-width: 520px) {
@@ -309,6 +522,10 @@
         form, .ticket-head, .actions {
             padding-left: 20px;
             padding-right: 20px;
+        }
+        .import-export {
+            flex-direction: column;
+            align-items: stretch;
         }
     }
 
@@ -328,66 +545,174 @@
     <h1>Gerador de código</h1>
     <p class="sub">Preencha os dados da ordem para montar o código de identificação, separado por #.</p>
 
-    <div class="ticket">
-
-        <div class="ticket-head">
-            <span class="label">Ficha de dados</span>
-            <span class="id">#GEN</span>
-        </div>
-
-        <form onsubmit="return false;">
-            <div class="campo">
-                <label for="jobNumber">Job number</label>
-                <input id="jobNumber">
-            </div>
-
-            <div class="campo">
-                <label for="productCode">Product code</label>
-                <input id="productCode">
-            </div>
-
-            <div class="campo full">
-                <label for="jobName">Job name</label>
-                <input id="jobName">
-            </div>
-
-            <div class="campo">
-                <label for="deliveryQuantity">Delivery quantity</label>
-                <input id="deliveryQuantity">
-            </div>
-
-            <div class="campo">
-                <label for="dueDate">Due date</label>
-                <input id="dueDate" type="date">
-            </div>
-
-            <div class="campo">
-                <label for="mediaQuality">Media quality</label>
-                <input id="mediaQuality">
-            </div>
-
-            <div class="campo">
-                <label for="customerId">Customer ID</label>
-                <input id="customerId">
-            </div>
-        </form>
-
-        <div class="actions">
-            <button class="btn-primary" onclick="gerarTexto()">Gerar texto</button>
-            <button class="btn-secondary" onclick="copiarTexto()">Copiar</button>
-        </div>
-
-        <div class="stub">
-            <div class="stub-label"><span class="dot"></span>Código gerado</div>
-            <textarea id="resultado" readonly placeholder="O código aparece aqui depois de gerado."></textarea>
-            <div id="status">✓ Texto copiado!</div>
-        </div>
-
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="gerador" onclick="mudarAba('gerador')">Gerador</button>
+        <button class="tab-btn" data-tab="cadastros" onclick="mudarAba('cadastros')">Cadastros</button>
     </div>
+
+    <!-- ================= ABA GERADOR ================= -->
+    <div id="tab-gerador" class="tab-content active">
+        <div class="ticket">
+
+            <div class="ticket-head">
+                <span class="label">Ficha de dados</span>
+                <span class="id">#GEN</span>
+            </div>
+
+            <form onsubmit="return false;">
+                <div class="campo">
+                    <label for="jobNumber">Job number</label>
+                    <input id="jobNumber">
+                </div>
+
+                <div class="campo">
+                    <label for="productCode">Product code</label>
+                    <select id="productCode">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+
+                <div class="campo full">
+                    <label for="jobName">Job name</label>
+                    <input id="jobName">
+                </div>
+
+                <div class="campo">
+                    <label for="deliveryQuantity">Delivery quantity</label>
+                    <input id="deliveryQuantity">
+                </div>
+
+                <div class="campo">
+                    <label for="dueDate">Due date</label>
+                    <input id="dueDate" type="date">
+                </div>
+
+                <div class="campo">
+                    <label for="mediaQuality">Media quality</label>
+                    <select id="mediaQuality">
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="customerId">Customer ID</label>
+                    <input id="customerId">
+                </div>
+            </form>
+
+            <div class="actions">
+                <button class="btn-primary" onclick="gerarTexto()">Gerar texto</button>
+                <button class="btn-secondary" onclick="copiarTexto()">Copiar</button>
+            </div>
+
+            <div class="stub">
+                <div class="stub-label"><span class="dot"></span>Código gerado</div>
+                <textarea id="resultado" readonly placeholder="O código aparece aqui depois de gerado."></textarea>
+                <div id="status">✓ Texto copiado!</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= ABA CADASTROS ================= -->
+    <div id="tab-cadastros" class="tab-content">
+        <div class="ticket">
+
+            <div class="ticket-head">
+                <span class="label">Base de cadastros</span>
+                <span class="id">#DB</span>
+            </div>
+
+            <div class="cad-grid">
+
+                <!-- Product Code -->
+                <div class="cad-section">
+                    <h2>Product code</h2>
+                    <p class="cad-hint">O código selecionado vai para o gerador; a descrição é só para ajudar na escolha.</p>
+
+                    <div class="cad-form">
+                        <input type="hidden" id="pcEditIndex" value="">
+                        <div class="cad-form-row">
+                            <input id="pcCodigo" placeholder="Código">
+                            <input id="pcDescricao" placeholder="Descrição">
+                        </div>
+                        <div class="cad-form-actions">
+                            <button class="btn-primary" id="pcBtnAcao" onclick="salvarItem('productCodes')">Adicionar</button>
+                            <button class="btn-secondary" id="pcBtnCancelar" style="display:none;" onclick="cancelarEdicao('productCodes')">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <div class="cad-table-wrap">
+                        <table class="cad-table">
+                            <thead>
+                                <tr><th>Código</th><th>Descrição</th><th></th></tr>
+                            </thead>
+                            <tbody id="listaProductCodes"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Media Quality -->
+                <div class="cad-section">
+                    <h2>Media quality</h2>
+                    <p class="cad-hint">O código selecionado vai para o gerador; a descrição é só para ajudar na escolha.</p>
+
+                    <div class="cad-form">
+                        <input type="hidden" id="mqEditIndex" value="">
+                        <div class="cad-form-row">
+                            <input id="mqCodigo" placeholder="Código">
+                            <input id="mqDescricao" placeholder="Descrição">
+                        </div>
+                        <div class="cad-form-actions">
+                            <button class="btn-primary" id="mqBtnAcao" onclick="salvarItem('mediaQualities')">Adicionar</button>
+                            <button class="btn-secondary" id="mqBtnCancelar" style="display:none;" onclick="cancelarEdicao('mediaQualities')">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <div class="cad-table-wrap">
+                        <table class="cad-table">
+                            <thead>
+                                <tr><th>Código</th><th>Descrição</th><th></th></tr>
+                            </thead>
+                            <tbody id="listaMediaQualities"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="import-export">
+                <p>Backup local (JSON) dos cadastros de Product Code e Media Quality.</p>
+                <div class="ie-buttons">
+                    <button class="btn-secondary" onclick="exportarJSON()">Exportar JSON</button>
+                    <button class="btn-secondary" onclick="document.getElementById('inputImportar').click()">Importar JSON</button>
+                    <input type="file" id="inputImportar" accept=".json,application/json" style="display:none" onchange="importarJSON(event)">
+                </div>
+            </div>
+            <div id="statusCadastro" class="status-msg" style="margin: 0 24px 20px;"></div>
+
+        </div>
+    </div>
+
 </div>
 
 <script>
 
+/* ============================================================
+   ABAS
+   ============================================================ */
+function mudarAba(aba) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === aba);
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === 'tab-' + aba);
+    });
+}
+
+/* ============================================================
+   GERADOR (inalterado na lógica)
+   ============================================================ */
 function gerarTexto() {
 
     let dueDate =
@@ -402,7 +727,7 @@ function gerarTexto() {
         dueDate,
         document.getElementById("mediaQuality").value,
         document.getElementById("customerId").value
-    ].join("#");
+    ].filter(campo => campo !== "").join("#");
 
     document.getElementById("resultado").value = texto;
     document.getElementById("status").classList.remove("show");
@@ -425,6 +750,242 @@ async function copiarTexto() {
     clearTimeout(window._statusTimeout);
     window._statusTimeout = setTimeout(() => status.classList.remove("show"), 2200);
 }
+
+/* ============================================================
+   CADASTROS - banco local (localStorage) + import/export JSON
+   ============================================================ */
+const STORAGE_KEY = "hf_cadastros_v1";
+
+const TIPOS = {
+    productCodes: {
+        codigoInput: "pcCodigo",
+        descInput: "pcDescricao",
+        editIndexInput: "pcEditIndex",
+        btnAcao: "pcBtnAcao",
+        btnCancelar: "pcBtnCancelar",
+        listaBody: "listaProductCodes",
+        selectId: "productCode"
+    },
+    mediaQualities: {
+        codigoInput: "mqCodigo",
+        descInput: "mqDescricao",
+        editIndexInput: "mqEditIndex",
+        btnAcao: "mqBtnAcao",
+        btnCancelar: "mqBtnCancelar",
+        listaBody: "listaMediaQualities",
+        selectId: "mediaQuality"
+    }
+};
+
+function carregarCadastros() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { productCodes: [], mediaQualities: [] };
+        const data = JSON.parse(raw);
+        return {
+            productCodes: Array.isArray(data.productCodes) ? data.productCodes : [],
+            mediaQualities: Array.isArray(data.mediaQualities) ? data.mediaQualities : []
+        };
+    } catch (e) {
+        console.error("Erro ao ler cadastros salvos:", e);
+        return { productCodes: [], mediaQualities: [] };
+    }
+}
+
+function salvarCadastros() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cadastros));
+}
+
+let cadastros = carregarCadastros();
+
+function salvarItem(tipo) {
+    const cfg = TIPOS[tipo];
+    const codigoEl = document.getElementById(cfg.codigoInput);
+    const descEl = document.getElementById(cfg.descInput);
+    const editIndexEl = document.getElementById(cfg.editIndexInput);
+
+    const codigo = codigoEl.value.trim();
+    const descricao = descEl.value.trim();
+
+    if (!codigo) {
+        alert("Informe o código.");
+        codigoEl.focus();
+        return;
+    }
+
+    const editIndex = editIndexEl.value;
+
+    if (editIndex !== "") {
+        cadastros[tipo][parseInt(editIndex, 10)] = { codigo, descricao };
+    } else {
+        const jaExiste = cadastros[tipo].some(item => item.codigo === codigo);
+        if (jaExiste) {
+            alert("Esse código já está cadastrado.");
+            return;
+        }
+        cadastros[tipo].push({ codigo, descricao });
+    }
+
+    salvarCadastros();
+    cancelarEdicao(tipo);
+    renderTudo();
+}
+
+function editarItem(tipo, index) {
+    const cfg = TIPOS[tipo];
+    const item = cadastros[tipo][index];
+    if (!item) return;
+
+    document.getElementById(cfg.codigoInput).value = item.codigo;
+    document.getElementById(cfg.descInput).value = item.descricao;
+    document.getElementById(cfg.editIndexInput).value = index;
+    document.getElementById(cfg.btnAcao).textContent = "Atualizar";
+    document.getElementById(cfg.btnCancelar).style.display = "inline-block";
+    document.getElementById(cfg.codigoInput).focus();
+}
+
+function cancelarEdicao(tipo) {
+    const cfg = TIPOS[tipo];
+    document.getElementById(cfg.codigoInput).value = "";
+    document.getElementById(cfg.descInput).value = "";
+    document.getElementById(cfg.editIndexInput).value = "";
+    document.getElementById(cfg.btnAcao).textContent = "Adicionar";
+    document.getElementById(cfg.btnCancelar).style.display = "none";
+}
+
+function excluirItem(tipo, index) {
+    const item = cadastros[tipo][index];
+    if (!item) return;
+    if (!confirm(`Excluir o código "${item.codigo}"?`)) return;
+
+    cadastros[tipo].splice(index, 1);
+    salvarCadastros();
+    cancelarEdicao(tipo);
+    renderTudo();
+}
+
+function renderLista(tipo) {
+    const cfg = TIPOS[tipo];
+    const tbody = document.getElementById(cfg.listaBody);
+    const itens = cadastros[tipo];
+
+    if (itens.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="cad-empty">Nenhum código cadastrado.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = itens.map((item, index) => `
+        <tr>
+            <td>${escapeHtml(item.codigo)}</td>
+            <td class="desc">${escapeHtml(item.descricao || "—")}</td>
+            <td class="acoes">
+                <button class="mini-btn" onclick="editarItem('${tipo}', ${index})">Editar</button>
+                <button class="mini-btn danger" onclick="excluirItem('${tipo}', ${index})">Excluir</button>
+            </td>
+        </tr>
+    `).join("");
+}
+
+function renderSelect(tipo) {
+    const cfg = TIPOS[tipo];
+    const select = document.getElementById(cfg.selectId);
+    const valorAtual = select.value;
+    const itens = cadastros[tipo];
+
+    select.innerHTML = '<option value="">Selecione...</option>' + itens.map(item => {
+        const label = item.descricao ? `${item.codigo} — ${item.descricao}` : item.codigo;
+        return `<option value="${escapeHtml(item.codigo)}">${escapeHtml(label)}</option>`;
+    }).join("");
+
+    if (itens.some(item => item.codigo === valorAtual)) {
+        select.value = valorAtual;
+    }
+}
+
+function renderTudo() {
+    renderLista("productCodes");
+    renderLista("mediaQualities");
+    renderSelect("productCodes");
+    renderSelect("mediaQualities");
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function mostrarStatusCadastro(mensagem) {
+    const el = document.getElementById("statusCadastro");
+    el.textContent = mensagem;
+    el.classList.add("show");
+    clearTimeout(window._statusCadastroTimeout);
+    window._statusCadastroTimeout = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+/* ---- Exportar / Importar JSON ---- */
+function exportarJSON() {
+    const blob = new Blob([JSON.stringify(cadastros, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const data = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `cadastros_hf_${data}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    mostrarStatusCadastro("✓ JSON exportado!");
+}
+
+function itemValido(item) {
+    return item && typeof item.codigo === "string" && item.codigo.trim() !== "";
+}
+
+function importarJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        let data;
+        try {
+            data = JSON.parse(e.target.result);
+        } catch (err) {
+            alert("Arquivo JSON inválido.");
+            event.target.value = "";
+            return;
+        }
+
+        const novo = {
+            productCodes: Array.isArray(data.productCodes) ? data.productCodes.filter(itemValido) : [],
+            mediaQualities: Array.isArray(data.mediaQualities) ? data.mediaQualities.filter(itemValido) : []
+        };
+
+        const substituir = confirm(
+            "Importar vai substituir todos os cadastros atuais (Product Code e Media Quality). Deseja continuar?"
+        );
+        if (!substituir) {
+            event.target.value = "";
+            return;
+        }
+
+        cadastros = novo;
+        salvarCadastros();
+        cancelarEdicao("productCodes");
+        cancelarEdicao("mediaQualities");
+        renderTudo();
+        mostrarStatusCadastro("✓ Cadastros importados com sucesso!");
+        event.target.value = "";
+    };
+    reader.readAsText(file);
+}
+
+/* ---- Inicialização ---- */
+renderTudo();
 
 </script>
 

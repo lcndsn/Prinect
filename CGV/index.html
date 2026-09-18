@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cálculos Gráficos Variados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #eeece4;
+    --panel: #fbfaf6;
+    --ink: #1c2226;
+    --ink-soft: #55605f;
+    --line: #c9c3b4;
+    --line-strong: #9d968a;
+    --accent: #1c4b52;
+    --accent-soft: #dfe8e6;
+    --amber: #c98a1b;
+    --amber-soft: #f4e6c8;
+    --ok: #2f6d3f;
+    --ok-soft: #e2ede2;
+    --bad: #a3372b;
+    --bad-soft: #f4e0dd;
+    --display-bg: #17211f;
+    --display-fg: #d7f2e4;
+    --grid-line: rgba(28,34,38,0.05);
+    --font-display: 'Big Shoulders Display', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --paper: #14181a;
+      --panel: #1c2225;
+      --ink: #e9ece9;
+      --ink-soft: #a4aca8;
+      --line: #333c3e;
+      --line-strong: #4a5658;
+      --accent: #6fb8ae;
+      --accent-soft: #223330;
+      --amber: #e0aa4d;
+      --amber-soft: #362a13;
+      --ok: #7ac98d;
+      --ok-soft: #1c2f21;
+      --bad: #e08076;
+      --bad-soft: #33201d;
+      --display-bg: #0c1211;
+      --display-fg: #8fe8bd;
+      --grid-line: rgba(255,255,255,0.04);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #14181a;
+    --panel: #1c2225;
+    --ink: #e9ece9;
+    --ink-soft: #a4aca8;
+    --line: #333c3e;
+    --line-strong: #4a5658;
+    --accent: #6fb8ae;
+    --accent-soft: #223330;
+    --amber: #e0aa4d;
+    --amber-soft: #362a13;
+    --ok: #7ac98d;
+    --ok-soft: #1c2f21;
+    --bad: #e08076;
+    --bad-soft: #33201d;
+    --display-bg: #0c1211;
+    --display-fg: #8fe8bd;
+    --grid-line: rgba(255,255,255,0.04);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      var(--paper);
+    background-size: 28px 28px, 28px 28px;
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+
+  .wrap{max-width:980px; margin:0 auto; padding:0 20px;}
+
+  header.masthead{
+    padding:38px 0 22px;
+    border-bottom:3px solid var(--ink);
+    margin-bottom: 28px;
+  }
+  .masthead-row{
+    display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap;
+  }
+  .kicker{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:clamp(38px, 6vw, 62px);
+    line-height:0.92;
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  .masthead-note{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:right;
+    max-width:220px;
+    line-height:1.5;
+  }
+
+  nav.tabs{
+    display:flex;
+    gap:2px;
+    margin-bottom:30px;
+    border:2px solid var(--ink);
+    width:fit-content;
+  }
+  nav.tabs button{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:19px;
+    letter-spacing:.02em;
+    background:var(--panel);
+    color:var(--ink);
+    border:none;
+    padding:10px 26px 8px;
+    cursor:pointer;
+    border-right:2px solid var(--ink);
+  }
+  nav.tabs button:last-child{border-right:none;}
+  nav.tabs button.active{
+    background:var(--accent);
+    color:#fbfaf6;
+  }
+
+  section.category{display:none;}
+  section.category.active{display:block;}
+
+  .category-head{
+    display:flex; align-items:baseline; gap:12px; margin: 6px 0 22px;
+  }
+  .category-head .idx{
+    font-family:var(--font-mono);
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+  .category-head h2{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:28px;
+    margin:0;
+    border-bottom: 2px solid var(--line-strong);
+    padding-bottom:4px;
+    flex:1;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1.5px solid var(--line-strong);
+    margin-bottom:26px;
+    position:relative;
+  }
+  .card-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px;
+    border-bottom:1.5px solid var(--line-strong);
+    background: var(--accent-soft);
+  }
+  .card-head h3{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:20px;
+    margin:0;
+    letter-spacing:.01em;
+  }
+  .card-head .tag{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    border:1px solid var(--line-strong);
+    padding:2px 8px;
+    white-space:nowrap;
+  }
+  .card-body{padding:18px;}
+  .card-note{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+    line-height:1.55;
+    max-width:64ch;
+  }
+  .formula-strip{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--ink);
+    background:var(--amber-soft);
+    border:1px dashed var(--amber);
+    padding:8px 12px;
+    margin:0 0 18px;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width:640px){ .grid{grid-template-columns:1fr;} }
+
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .input-unit{
+    display:flex;
+    border:1.5px solid var(--line-strong);
+    background: var(--paper);
+  }
+  .input-unit input, .input-unit select{
+    flex:1;
+    border:none;
+    background:transparent;
+    font-family:var(--font-mono);
+    font-size:15px;
+    padding:9px 10px;
+    color:var(--ink);
+    min-width:0;
+  }
+  .input-unit input:focus, .input-unit select:focus{
+    outline: 2px solid var(--accent);
+    outline-offset:-2px;
+  }
+  .input-unit .unit{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    padding:9px 10px;
+    border-left:1.5px solid var(--line-strong);
+    background: var(--panel);
+    white-space:nowrap;
+  }
+
+  .divider-lbl{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    margin: 22px 0 12px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+  }
+
+  .readout{
+    background:var(--display-bg);
+    color:var(--display-fg);
+    font-family:var(--font-mono);
+    padding:16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    justify-content:center;
+    min-height:78px;
+  }
+  .readout .r-label{
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.72;
+  }
+  .readout .r-value{
+    font-size:26px;
+    font-weight:700;
+    line-height:1.15;
+  }
+  .readout .r-sub{
+    font-size:12px;
+    opacity:.75;
+  }
+  .readout.stack{gap:14px;}
+
+  .verdict{
+    margin-top:14px;
+    padding:12px 16px;
+    font-family:var(--font-mono);
+    font-size:14px;
+    font-weight:600;
+    border:1.5px solid;
+  }
+  .verdict.ok{ background:var(--ok-soft); color:var(--ok); border-color:var(--ok); }
+  .verdict.bad{ background:var(--bad-soft); color:var(--bad); border-color:var(--bad); }
+  .verdict .v-detail{
+    display:block;
+    font-weight:400;
+    font-size:12.5px;
+    margin-top:4px;
+    opacity:.85;
+  }
+
+  .two-col-result{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:2px;
+    background:var(--line-strong);
+    margin-bottom:0;
+  }
+  .two-col-result .readout{background:var(--display-bg);}
+
+  .column-block{
+    border:1px dashed var(--line-strong);
+    padding:16px;
+    margin-bottom:18px;
+  }
+  .column-block h4{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+  }
+
+  select.fiber{
+    appearance:none;
+    cursor:pointer;
+  }
+
+  footer.foot{
+    max-width:980px;
+    margin: 40px auto 0;
+    padding: 18px 20px 0;
+    border-top:1.5px solid var(--line-strong);
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="masthead-row">
+      <div>
+        <p class="kicker">FERRAMENTA DE REFERÊNCIA TÉCNICA · PRÉ-IMPRESSÃO E ACABAMENTO</p>
+        <h1>Cálculos Gráficos<br>Variados</h1>
+      </div>
+      <p class="masthead-note">Calculadoras vivas — os resultados são recalculados a cada alteração de valor. Novas fórmulas podem ser adicionadas por categoria.</p>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="active" data-cat="embalagem">Embalagem</button>
+    <button data-cat="editorial">Editorial</button>
+  </nav>
+
+  <!-- ===================== EMBALAGEM ===================== -->
+  <section class="category active" id="cat-embalagem">
+    <div class="category-head"><span class="idx">01</span><h2>Embalagem</h2></div>
+
+    <!-- Distorção da Blanqueta -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Distorção da Blanqueta</h3>
+        <span class="tag">CILINDRO / BLANQUETA</span>
+      </div>
+      <div class="card-body">
+        <p class="card-note">Distorção percentual causada pela espessura da blanqueta em relação ao diâmetro do cilindro porta-blanqueta.</p>
+        <div class="formula-strip">Distorção (%) = (Espessura da Blanqueta² ÷ Ø do Cilindro) × 100</div>
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label for="db-diam">Ø do Cilindro</label>
+              <div class="input-unit">
+                <input type="number" id="db-diam" value="205" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="db-esp">Espessura da Blanqueta</label>
+              <div class="input-unit">
+                <input type="number" id="db-esp" value="1.95" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+          </div>
+          <div class="readout">
+            <span class="r-label">Distorção</span>
+            <span class="r-value" id="db-out">—</span>
+            <span class="r-sub">percentual de encolhimento a compensar na imagem</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Altura da Lâmina de Vinco -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Altura da Lâmina de Vinco</h3>
+        <span class="tag">FORMA DE CORTE E VINCO</span>
+      </div>
+      <div class="card-body">
+        <p class="card-note">Define a altura da lâmina de vinco a partir da lâmina de corte utilizada no mesmo forme, descontando a espessura do cartão.</p>
+        <div class="formula-strip">Lâmina de Vinco (mm) = Lâmina de Corte − Espessura do Cartão</div>
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label for="av-corte">Lâmina de Corte</label>
+              <div class="input-unit">
+                <input type="number" id="av-corte" value="23.8" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="av-cartao">Espessura do Cartão</label>
+              <div class="input-unit">
+                <input type="number" id="av-cartao" value="0.4" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+          </div>
+          <div class="readout">
+            <span class="r-label">Altura da Lâmina de Vinco</span>
+            <span class="r-value" id="av-out">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canaleta -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Canaleta</h3>
+        <span class="tag">CONTRAFORMA / VINCO</span>
+      </div>
+      <div class="card-body">
+        <p class="card-note">A altura da canaleta (A) deve ser igual ou menor que a espessura do cartão (C). O tamanho do vão (B) é calculado a partir da espessura do cartão e da lâmina de vinco utilizada (d).</p>
+        <div class="formula-strip">A ≤ C &nbsp;·&nbsp; B (a favor da fibra) = (C × 1,5) + d &nbsp;·&nbsp; B (contra a fibra) = B − 0,1</div>
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label for="cn-cartao">Espessura do Cartão (C)</label>
+              <div class="input-unit">
+                <input type="number" id="cn-cartao" value="0.4" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="cn-vinco">Espessura da Lâmina de Vinco (d)</label>
+              <div class="input-unit">
+                <input type="number" id="cn-vinco" value="0.7" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="cn-altura">Altura da Canaleta (A) — opcional, para conferência</label>
+              <div class="input-unit">
+                <input type="number" id="cn-altura" placeholder="ex.: 0,38" step="0.01" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="two-col-result">
+              <div class="readout">
+                <span class="r-label">A favor da fibra (C × B)</span>
+                <span class="r-value" id="cn-favor">—</span>
+              </div>
+              <div class="readout">
+                <span class="r-label">Contra a fibra (C × B)</span>
+                <span class="r-value" id="cn-contra">—</span>
+              </div>
+            </div>
+            <div class="verdict ok" id="cn-verdict" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cálculo de Coluna -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Cálculo de Coluna (Box Compression)</h3>
+        <span class="tag">RESISTÊNCIA AO EMPILHAMENTO</span>
+      </div>
+      <div class="card-body">
+        <p class="card-note">Estimativa de resistência ao empilhamento para embalagens cartonadas quando não há ensaio físico (BCT) disponível. Compara a carga necessária, obtida pelo peso empilhado com fator de segurança, com a resistência teórica da coluna, obtida pela tensão de compressão do cartão. A fibra paralela à altura da embalagem favorece a resistência à coluna; a fibra transversal reduz essa resistência entre 20% e 50%.</p>
+
+        <div class="column-block">
+          <h4>1 · Carga necessária — peso empilhado × fator de segurança</h4>
+          <div class="formula-strip">Carga (kgf) = (Nº de Caixas − 1) × Peso Total da Caixa × Fator de Segurança</div>
+          <div class="grid">
+            <div>
+              <div class="field">
+                <label for="cc-peso-prod">Peso do Produto</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-peso-prod" value="500" step="1" inputmode="decimal">
+                  <span class="unit">g</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-peso-emb">Peso da Embalagem</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-peso-emb" value="50" step="1" inputmode="decimal">
+                  <span class="unit">g</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-qtd">Quantidade de Caixas Empilhadas</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-qtd" value="20" step="1" inputmode="numeric">
+                  <span class="unit">caixas</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-fs">Fator de Segurança</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-fs" value="5" step="0.5" inputmode="decimal">
+                  <span class="unit">×</span>
+                </div>
+              </div>
+            </div>
+            <div class="readout stack">
+              <div>
+                <span class="r-label">Carga sobre a caixa inferior</span>
+                <span class="r-value" id="cc-carga-inferior" style="font-size:19px;">—</span>
+              </div>
+              <div>
+                <span class="r-label">Carga necessária (com fator de segurança)</span>
+                <span class="r-value" id="cc-carga-necessaria">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column-block">
+          <h4>2 · Resistência teórica da coluna — F = σ × A</h4>
+          <div class="formula-strip">Área = Nº de Colunas × Largura da Coluna × Espessura do Cartão &nbsp;·&nbsp; F = σ × Área &nbsp;·&nbsp; F ajustada = F × Fator de Fibra</div>
+          <div class="grid">
+            <div>
+              <div class="field">
+                <label for="cc-sigma">Resistência à Compressão do Cartão (σ)</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-sigma" value="20" step="0.5" inputmode="decimal">
+                  <span class="unit">MPa</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-colunas">Número de Colunas</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-colunas" value="4" step="1" inputmode="numeric">
+                  <span class="unit">colunas</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-largura">Largura de Cada Coluna</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-largura" value="20" step="0.5" inputmode="decimal">
+                  <span class="unit">mm</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-espessura">Espessura do Cartão</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-espessura" value="0.5" step="0.01" inputmode="decimal">
+                  <span class="unit">mm</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="cc-fibra">Orientação da Fibra</label>
+                <div class="input-unit">
+                  <select id="cc-fibra" class="fiber">
+                    <option value="1.0">Paralela à altura (fator 1,0)</option>
+                    <option value="0.7" selected>Transversal (fator 0,7)</option>
+                    <option value="0.6">Transversal conservador (fator 0,6)</option>
+                    <option value="custom">Personalizado…</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" id="cc-fibra-custom-wrap" style="display:none;">
+                <label for="cc-fibra-custom">Fator Personalizado</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-fibra-custom" value="0.7" step="0.05" min="0" max="1" inputmode="decimal">
+                  <span class="unit">×</span>
+                </div>
+              </div>
+            </div>
+            <div class="readout stack">
+              <div>
+                <span class="r-label">Força teórica (sem fator de fibra)</span>
+                <span class="r-value" id="cc-forca-bruta" style="font-size:19px;">—</span>
+              </div>
+              <div>
+                <span class="r-label">Resistência ajustada pela fibra</span>
+                <span class="r-value" id="cc-forca-ajustada">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="verdict" id="cc-verdict"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===================== EDITORIAL ===================== -->
+  <section class="category" id="cat-editorial">
+    <div class="category-head"><span class="idx">02</span><h2>Editorial</h2></div>
+
+    <!-- Lombada de Livro -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Lombada de Livro</h3>
+        <span class="tag">MIOLO / ENCADERNAÇÃO</span>
+      </div>
+      <div class="card-body">
+        <p class="card-note">Estimativa da espessura da lombada com base no número de páginas do miolo e na espessura do papel utilizado.</p>
+        <div class="formula-strip">Lombada (mm) = (Número de Páginas × Espessura do Papel) ÷ 2</div>
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label for="lb-paginas">Número de Páginas</label>
+              <div class="input-unit">
+                <input type="number" id="lb-paginas" value="400" step="1" inputmode="numeric">
+                <span class="unit">pág.</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="lb-papel">Espessura do Papel</label>
+              <div class="input-unit">
+                <input type="number" id="lb-papel" value="0.1" step="0.001" inputmode="decimal">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+          </div>
+          <div class="readout">
+            <span class="r-label">Espessura da Lombada</span>
+            <span class="r-value" id="lb-out">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="foot">CÁLCULOS GRÁFICOS VARIADOS · REFERÊNCIA INTERNA · VALORES ESTIMADOS — SEMPRE CONFIRMAR COM ENSAIO FÍSICO QUANDO DISPONÍVEL</footer>
+</div>
+
+<script>
+function fmt(n, dec){
+  if(!isFinite(n)) return "—";
+  return n.toLocaleString('pt-BR', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+function num(id){
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? null : v;
+}
+
+// Tabs
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section.category').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('cat-'+btn.dataset.cat).classList.add('active');
+  });
+});
+
+// Distorção da Blanqueta
+function calcDistorcao(){
+  const diam = num('db-diam');
+  const esp = num('db-esp');
+  const out = document.getElementById('db-out');
+  if(diam===null || esp===null || diam===0){ out.textContent='—'; return; }
+  const pct = ((esp*esp)/diam)*100;
+  out.textContent = fmt(pct,4) + ' %';
+}
+['db-diam','db-esp'].forEach(id=>document.getElementById(id).addEventListener('input',calcDistorcao));
+
+// Altura da Lâmina de Vinco
+function calcVinco(){
+  const corte = num('av-corte');
+  const cartao = num('av-cartao');
+  const out = document.getElementById('av-out');
+  if(corte===null || cartao===null){ out.textContent='—'; return; }
+  out.textContent = fmt(corte-cartao,2) + ' mm';
+}
+['av-corte','av-cartao'].forEach(id=>document.getElementById(id).addEventListener('input',calcVinco));
+
+// Canaleta
+function calcCanaleta(){
+  const c = num('cn-cartao');
+  const d = num('cn-vinco');
+  const a = num('cn-altura');
+  const favorEl = document.getElementById('cn-favor');
+  const contraEl = document.getElementById('cn-contra');
+  const verdict = document.getElementById('cn-verdict');
+  if(c===null || d===null){ favorEl.textContent='—'; contraEl.textContent='—'; verdict.style.display='none'; return; }
+  const bFavor = (c*1.5)+d;
+  const bContra = bFavor - 0.1;
+  favorEl.textContent = fmt(c,2)+' × '+fmt(bFavor,2)+' mm';
+  contraEl.textContent = fmt(c,2)+' × '+fmt(bContra,2)+' mm';
+  if(a!==null){
+    verdict.style.display='block';
+    if(a<=c){
+      verdict.className='verdict ok';
+      verdict.innerHTML = 'A ≤ C — altura da canaleta compatível com o cartão.<span class="v-detail">A = '+fmt(a,2)+' mm · C = '+fmt(c,2)+' mm</span>';
+    } else {
+      verdict.className='verdict bad';
+      verdict.innerHTML = 'A > C — altura da canaleta maior que a espessura do cartão. Risco de marcação/ruptura na face oposta.<span class="v-detail">A = '+fmt(a,2)+' mm · C = '+fmt(c,2)+' mm</span>';
+    }
+  } else {
+    verdict.style.display='none';
+  }
+}
+['cn-cartao','cn-vinco','cn-altura'].forEach(id=>document.getElementById(id).addEventListener('input',calcCanaleta));
+
+// Cálculo de Coluna
+const G = 9.80665;
+function calcColuna(){
+  const pesoProd = num('cc-peso-prod');
+  const pesoEmb = num('cc-peso-emb');
+  const qtd = num('cc-qtd');
+  const fs = num('cc-fs');
+  const cargaInfEl = document.getElementById('cc-carga-inferior');
+  const cargaNecEl = document.getElementById('cc-carga-necessaria');
+  let cargaNecessaria = null;
+
+  if(pesoProd!==null && pesoEmb!==null && qtd!==null && fs!==null && qtd>=1){
+    const pesoTotalKg = (pesoProd+pesoEmb)/1000;
+    const cargaInferior = (qtd-1)*pesoTotalKg;
+    cargaNecessaria = cargaInferior*fs;
+    cargaInfEl.textContent = fmt(cargaInferior,2)+' kgf';
+    cargaNecEl.textContent = fmt(cargaNecessaria,2)+' kgf';
+  } else {
+    cargaInfEl.textContent='—'; cargaNecEl.textContent='—';
+  }
+
+  const sigma = num('cc-sigma');
+  const colunas = num('cc-colunas');
+  const largura = num('cc-largura');
+  const espessura = num('cc-espessura');
+  const fibraSelect = document.getElementById('cc-fibra');
+  const fibraCustomWrap = document.getElementById('cc-fibra-custom-wrap');
+  let fator;
+  if(fibraSelect.value==='custom'){
+    fibraCustomWrap.style.display='block';
+    fator = num('cc-fibra-custom');
+  } else {
+    fibraCustomWrap.style.display='none';
+    fator = parseFloat(fibraSelect.value);
+  }
+
+  const forcaBrutaEl = document.getElementById('cc-forca-bruta');
+  const forcaAjustadaEl = document.getElementById('cc-forca-ajustada');
+  let forcaAjustadaKgf = null;
+
+  if(sigma!==null && colunas!==null && largura!==null && espessura!==null && fator!==null){
+    const area = colunas*largura*espessura; // mm²
+    const forcaN = sigma*area; // N (MPa = N/mm²)
+    const forcaKgf = forcaN/G;
+    forcaAjustadaKgf = forcaKgf*fator;
+    forcaBrutaEl.textContent = fmt(forcaKgf,2)+' kgf';
+    forcaAjustadaEl.textContent = fmt(forcaAjustadaKgf,2)+' kgf';
+  } else {
+    forcaBrutaEl.textContent='—'; forcaAjustadaEl.textContent='—';
+  }
+
+  const verdict = document.getElementById('cc-verdict');
+  if(cargaNecessaria!==null && forcaAjustadaKgf!==null){
+    const margem = ((forcaAjustadaKgf-cargaNecessaria)/cargaNecessaria)*100;
+    if(forcaAjustadaKgf>=cargaNecessaria){
+      verdict.className='verdict ok';
+      verdict.innerHTML = 'APROVADO — resistência ajustada acima da carga necessária.<span class="v-detail">Margem de '+fmt(margem,1)+'% · '+fmt(forcaAjustadaKgf,2)+' kgf disponíveis vs. '+fmt(cargaNecessaria,2)+' kgf necessários</span>';
+    } else {
+      verdict.className='verdict bad';
+      verdict.innerHTML = 'REPROVADO — resistência ajustada abaixo da carga necessária.<span class="v-detail">Déficit de '+fmt(Math.abs(margem),1)+'% · '+fmt(forcaAjustadaKgf,2)+' kgf disponíveis vs. '+fmt(cargaNecessaria,2)+' kgf necessários</span>';
+    }
+  } else {
+    verdict.className='verdict';
+    verdict.innerHTML='';
+  }
+}
+['cc-peso-prod','cc-peso-emb','cc-qtd','cc-fs','cc-sigma','cc-colunas','cc-largura','cc-espessura','cc-fibra-custom'].forEach(id=>document.getElementById(id).addEventListener('input',calcColuna));
+document.getElementById('cc-fibra').addEventListener('change',calcColuna);
+
+// Lombada de Livro
+function calcLombada(){
+  const paginas = num('lb-paginas');
+  const papel = num('lb-papel');
+  const out = document.getElementById('lb-out');
+  if(paginas===null || papel===null){ out.textContent='—'; return; }
+  out.textContent = fmt((paginas*papel)/2,2) + ' mm';
+}
+['lb-paginas','lb-papel'].forEach(id=>document.getElementById(id).addEventListener('input',calcLombada));
+
+// Initial calc
+calcDistorcao();
+calcVinco();
+calcCanaleta();
+calcColuna();
+calcLombada();
+</script>
+</body>
+</html>

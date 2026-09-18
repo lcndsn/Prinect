@@ -3391,7 +3391,11 @@ function restoreProductionJobSnapshot(snap) {
   });
 
   updateCellIndexGrid();
-  (snap.cellData||[]).forEach(c => { sv('cell_art_'+c.index, c.articleid); sv('cell_ori_'+c.index, c.orientation); });
+  (snap.cellData||[]).forEach(c => {
+    sv('cell_art_'+c.index, c.articleid);
+    sv('cell_ori_'+c.index, c.orientation);
+    updateCellColor(c.index); // ⚠️ sv() não dispara onchange — sem isso a cor de fundo ficava presa no default
+  });
 
   setSpotColors('pr', snap.spotColors || []);
   syncProductionColorsFromArticles();

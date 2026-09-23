@@ -939,6 +939,9 @@
       <div class="section-body">
         <div class="db-selector"><label>📚 Carregar Impressora:</label><select id="pr_db_printer_select"><option value="">— Selecione —</option></select><button onclick="loadFromDB('printer','pr')">Carregar</button></div>
         <input type="hidden" id="pr_printer_dbid" value=""/>
+        <input type="hidden" id="pr_plate_brand" value=""/>
+        <input type="hidden" id="pr_plate_productid" value=""/>
+        <input type="hidden" id="pr_plate_thickness" value=""/>
         <div class="info-box"><strong>⚠️ Atenção:</strong> O <strong>Device ID</strong> deve corresponder exatamente ao valor cadastrado no Prinect Cockpit.</div>
         <div class="field"><label>Device ID <span class="badge badge-important">IMPORTANTE</span></label><input type="text" id="pr_deviceid" placeholder="Ex.: 3451"/></div>
         <div class="field"><label>Device Name <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="pr_devicename" placeholder="Ex.: XL106-7-LX"/></div>
@@ -1105,6 +1108,15 @@
       </div>
     </div>
 
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">💧 Verniz e Anilox<span class="toggle-icon">▼</span></div>
+      <div class="section-body">
+        <div class="info-box"><strong>ℹ️ Como funciona:</strong> cada verniz usado no trabalho vira uma <strong>Separation</strong> própria (FLS1, FLS2...), com seu Anilox correspondente (opcional) e a <strong>Torre Física</strong> (ex.: L1, L2) onde a prensa vai aplicá-lo. Isso é o que faz o Prinect alocar o verniz numa torre de verdade, em vez de só cadastrar a separação sem enviar ao Press Center. Deixe sem nenhum card se este trabalho não usa verniz.</div>
+        <div id="varnishes-container" style="grid-column:1/-1;"></div>
+        <button type="button" class="btn btn-secondary" onclick="addVarnish()" style="grid-column:1/-1;margin-top:8px;width:fit-content;">+ Adicionar Verniz</button>
+      </div>
+    </div>
+
     <div class="preview-section">
       <div class="preview-header">👁️ Preview do JDF<button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="previewJDF('production')">Atualizar Preview</button></div>
       <div class="info-box" style="border-radius:0;margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -1258,6 +1270,18 @@
       <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome</th><th>Device ID</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="db-tbody-finishing"></tbody></table></div>
     </div>
 
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>💧 Vernizes</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('varnish')">+ Novo Verniz</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome, MIS ID ou tipo de coating..." oninput="dbSearch('varnish', this.value)"/></div>
+      <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome (InkName)</th><th>MIS ID</th><th>Tipo de Coating</th><th>Ações</th></tr></thead><tbody id="db-tbody-varnish"></tbody></table></div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-section-header" onclick="toggleSection(this)"><span>🌀 Anilox (Screening Roller)</span><button class="db-btn db-btn-primary" onclick="event.stopPropagation();openModal('screeningroller')">+ Novo Anilox</button><span class="toggle-icon">▼</span></div>
+      <div class="db-search-bar"><input type="text" placeholder="🔍 Buscar por nome ou MIS ID..." oninput="dbSearch('screeningroller', this.value)"/></div>
+      <div class="db-table-wrap"><table class="db-table"><thead><tr><th>Nome (DescriptiveName)</th><th>MIS ID</th><th>Ações</th></tr></thead><tbody id="db-tbody-screeningroller"></tbody></table></div>
+    </div>
+
     <div class="db-section db-io-bar">
       <span>💾 Base de Dados:</span>
       <button class="db-btn db-btn-secondary" onclick="exportDB()">⬇️ Exportar .json</button>
@@ -1278,6 +1302,7 @@
 <script>
 let activeTab = 'product';
 let articleCount = 0;
+let varnishCount = 0;
 let modalType = '';
 let modalEditId = null;
 let modalSpotColors = []; // spot colors do campo colorintent, enquanto o modal de Artigo está aberto
@@ -1536,13 +1561,15 @@ function getDB() {
       printers:  db.printers  || [],
       finishing: db.finishing || [],
       colors:    db.colors    || [],
+      varnishes:       db.varnishes       || [],
+      screeningrollers: db.screeningrollers || [],
       scheduleBoard:  db.scheduleBoard  || [],
       productJobs:    db.productJobs    || [],
       productionJobs: db.productionJobs || [],
       settings:  Object.assign({}, SETTINGS_DEFAULTS, db.settings || {})
     };
   } catch(e) {
-    return { customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) };
+    return { customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], varnishes:[], screeningrollers:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) };
   }
 }
 
@@ -1564,6 +1591,31 @@ function saveSettings() {
 
 function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
+
+// ⚠️ NOVO: pré-cadastra os Vernizes e Aniloxes de referência do catálogo HEIDELBERG Portal —
+// roda só uma vez (marca settings.varnishSeeded); se o usuário apagar os registros depois,
+// não volta a inserir de novo.
+function seedVarnishDefaultsIfNeeded() {
+  const db = getDB();
+  if (db.settings.varnishSeeded) return;
+  if (!db.varnishes.length) {
+    db.varnishes = [
+      { id: genId(), inkname:'Saphira Coating AQ Satin W7335-4', productid:'110587', coatingtype:'Dispersion' },
+      { id: genId(), inkname:'W14424-40 SemiMatt LM',            productid:'104004', coatingtype:'Dispersion' },
+      { id: genId(), inkname:'W14426-40 Gloss LM',                productid:'104005', coatingtype:'Dispersion' },
+      { id: genId(), inkname:'U7411-B Satin Coating',             productid:'104234', coatingtype:'UV' },
+    ];
+  }
+  if (!db.screeningrollers.length) {
+    db.screeningrollers = [
+      { id: genId(), name:'Perfectscreen-3,0/90', productid:'100080' },
+      { id: genId(), name:'Perfectscreen-4,0/90', productid:'100067' },
+      { id: genId(), name:'Näpfchen-10,0/80',     productid:'100081' },
+    ];
+  }
+  db.settings.varnishSeeded = true;
+  saveDB(db);
+}
 
 // Caixa "Pasta de importação no Prinect" — usa o Servidor Padrão configurado em Configurações Gerais,
 // exibida no Preview do Product Job e do Production Job (ambos caem na mesma pasta JDFImport).
@@ -1923,6 +1975,8 @@ function renderDB() {
   renderMedia(db.media);
   renderPrinters(db.printers);
   renderFinishing(db.finishing);
+  renderVarnishes(db.varnishes);
+  renderScreeningRollers(db.screeningrollers);
   refreshAllSelectors();
   refreshGlobalColorsDatalist(db.colors);
   updateImportPathDisplay();
@@ -1944,7 +1998,7 @@ function formatSavedAt(iso) {
 // BUSCA NOS CADASTROS DA BASE DE DADOS
 // ══════════════════════════════════════════════════════════════
 
-let dbSearchTerms = { customer:'', article:'', tool:'', media:'', printer:'', finishing:'', color:'', productjob:'', productionjob:'' };
+let dbSearchTerms = { customer:'', article:'', tool:'', media:'', printer:'', finishing:'', color:'', varnish:'', screeningroller:'', productjob:'', productionjob:'' };
 
 function applySearch(list, term, textFn) {
   if (!term) return list;
@@ -1967,6 +2021,8 @@ function dbSearch(type, term) {
     printer:       () => renderPrinters(db.printers),
     finishing:     () => renderFinishing(db.finishing),
     color:         () => renderColors(db.colors),
+    varnish:         () => renderVarnishes(db.varnishes),
+    screeningroller: () => renderScreeningRollers(db.screeningrollers),
     productjob:    () => renderProductJobs(db.productJobs),
     productionjob: () => renderProductionJobs(db.productionJobs),
   };
@@ -2114,6 +2170,32 @@ function renderFinishing(rawList) {
     <td><div class="actions-cell">
       <button class="db-btn db-btn-warning" onclick="openModal('finishing','${r.id}')">✏️</button>
       <button class="db-btn db-btn-danger" onclick="deleteRecord('finishing','${r.id}')">🗑️</button>
+    </div></td></tr>`).join('');
+}
+
+function renderVarnishes(rawList) {
+  const term = dbSearchTerms.varnish;
+  const list = applySearch(rawList, term, r => `${r.inkname} ${r.productid} ${r.coatingtype}`);
+  const tbody = document.getElementById('db-tbody-varnish');
+  if (!list.length) { tbody.innerHTML = emptyRowFor(4, term, 'Nenhum verniz cadastrado.'); return; }
+  tbody.innerHTML = list.map(r => `<tr>
+    <td><strong>${r.inkname||'—'}</strong></td><td>${r.productid||'—'}</td><td>${r.coatingtype||'—'}</td>
+    <td><div class="actions-cell">
+      <button class="db-btn db-btn-warning" onclick="openModal('varnish','${r.id}')">✏️</button>
+      <button class="db-btn db-btn-danger" onclick="deleteRecord('varnish','${r.id}')">🗑️</button>
+    </div></td></tr>`).join('');
+}
+
+function renderScreeningRollers(rawList) {
+  const term = dbSearchTerms.screeningroller;
+  const list = applySearch(rawList, term, r => `${r.name} ${r.productid}`);
+  const tbody = document.getElementById('db-tbody-screeningroller');
+  if (!list.length) { tbody.innerHTML = emptyRowFor(3, term, 'Nenhum anilox cadastrado.'); return; }
+  tbody.innerHTML = list.map(r => `<tr>
+    <td><strong>${r.name||'—'}</strong></td><td>${r.productid||'—'}</td>
+    <td><div class="actions-cell">
+      <button class="db-btn db-btn-warning" onclick="openModal('screeningroller','${r.id}')">✏️</button>
+      <button class="db-btn db-btn-danger" onclick="deleteRecord('screeningroller','${r.id}')">🗑️</button>
     </div></td></tr>`).join('');
 }
 
@@ -2338,6 +2420,7 @@ function loadFromDB(type, prefix) {
   } else if (type==='printer') {
     sv('pr_printer_dbid',r.id);
     sv('pr_deviceid',r.deviceid); sv('pr_devicename',r.devicename);
+    sv('pr_plate_brand',r.platebrand); sv('pr_plate_productid',r.plateproductid); sv('pr_plate_thickness',r.platethickness);
   }
   showToast('✅ Dados carregados com sucesso!');
 }
@@ -2903,6 +2986,10 @@ const modalConfigs = {
       { id:'deviceid',        label:'Device ID',                            placeholder:'Ex.: 3451' },
       { id:'setupminutes',    label:'Tempo de Acerto / Setup (minutos)',    placeholder:'Ex.: 35', type:'number' },
       { id:'speedsheetshour', label:'Velocidade de Produção (folhas/hora)', placeholder:'Ex.: 8000', type:'number' },
+      { id:'platebrand',      label:'Chapa (Plate) — Nome/Brand',           placeholder:'Ex.: XL 106 Saphira Thermal Plate', full:true,
+        hint:'Usado só quando o trabalho tem Verniz (ExposedMedia) — cada impressora normalmente usa um tipo de chapa próprio. Deixe em branco se este device não for usado em trabalhos com verniz.' },
+      { id:'plateproductid',  label:'Chapa — MIS ID (ProductID)',           placeholder:'Ex.: 100011' },
+      { id:'platethickness',  label:'Chapa — Espessura (µm)',               placeholder:'Ex.: 300', type:'number' },
     ]
   },
   finishing: {
@@ -2919,6 +3006,24 @@ const modalConfigs = {
       { id:'setupminutes',    label:'Tempo de Acerto / Setup (minutos)', placeholder:'Ex.: 50', type:'number' },
       { id:'speedsheetshour', label:'Velocidade de Produção (folhas/hora p/ Shape Cutting; unid./hora p/ Box Folding e Packing)', placeholder:'Ex.: 6000', type:'number' },
     ]
+  },
+  varnish: {
+    title: '💧 Verniz',
+    fields: [
+      { id:'inkname',     label:'Nome do Verniz (InkName)', placeholder:'Ex.: Saphira Coating AQ Satin W7335-4', full:true },
+      { id:'productid',   label:'MIS ID (ProductID)',       placeholder:'Ex.: 110587' },
+      { id:'coatingtype', label:'Tipo de Coating',          type:'select', options:[
+        {v:'Dispersion', l:'Dispersion'},
+        {v:'UV',         l:'UV'},
+      ]},
+    ]
+  },
+  screeningroller: {
+    title: '🌀 Anilox (Screening Roller)',
+    fields: [
+      { id:'name',      label:'Nome do Anilox (DescriptiveName)', placeholder:'Ex.: Perfectscreen-3,0/90', full:true },
+      { id:'productid', label:'MIS ID (ProductID)',               placeholder:'Ex.: 100080' },
+    ]
   }
 };
 
@@ -2926,7 +3031,7 @@ function openModal(type, editId=null, prefillRecord=null) {
   modalType = type; modalEditId = editId;
   const cfg = modalConfigs[type];
   const db  = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors', varnish:'varnishes', screeningroller:'screeningrollers' }[type];
   const record  = editId ? db[listKey].find(r=>r.id===editId) : prefillRecord;
   const titlePrefix = editId ? '✏️ Editar ' : (prefillRecord ? '📋 Duplicar ' : '➕ Novo ');
   document.getElementById('modal-title').textContent = titlePrefix + cfg.title;
@@ -3055,7 +3160,7 @@ function removeModalSpotColor(idx) {
 function saveModalRecord() {
   const cfg     = modalConfigs[modalType];
   const db      = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[modalType];
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors', varnish:'varnishes', screeningroller:'screeningrollers' }[modalType];
   const record  = {};
   cfg.fields.forEach(f => {
     if (f.type === 'colorintent') {
@@ -3068,7 +3173,7 @@ function saveModalRecord() {
     }
     const el = document.getElementById('mf_'+f.id); if (el) record[f.id] = el.value.trim();
   });
-  const required = { customer:'name', article:'articleid', tool:'toolid', media:'mediaquality', printer:'deviceid', finishing:'deviceid' };
+  const required = { customer:'name', article:'articleid', tool:'toolid', media:'mediaquality', printer:'deviceid', finishing:'deviceid', varnish:'inkname', screeningroller:'name' };
   if (!record[required[modalType]]) { showToast('⚠️ Preencha o campo obrigatório!','error'); return; }
   if (modalEditId) {
     const idx = db[listKey].findIndex(r=>r.id===modalEditId);
@@ -3088,15 +3193,15 @@ function saveModalRecord() {
 // tipo é limpo para forçar um identificador novo, evitando duplicar Article ID / Tool ID sem querer.
 function duplicateRecord(type, id) {
   const db = getDB();
-  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
+  const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors', varnish:'varnishes', screeningroller:'screeningrollers' }[type];
   const src = db[listKey].find(r=>r.id===id);
   if (!src) return;
   const copy = { ...src };
   delete copy.id;
   if (Array.isArray(src.spotColors)) copy.spotColors = src.spotColors.map(c => typeof c === 'string' ? { name:c, hex:lookupColorHex(c) } : { ...c });
-  const requiredField = { customer:'name', article:'articleid', tool:'toolid', media:'mediaquality', printer:'deviceid', finishing:'deviceid' }[type];
+  const requiredField = { customer:'name', article:'articleid', tool:'toolid', media:'mediaquality', printer:'deviceid', finishing:'deviceid', varnish:'inkname', screeningroller:'name' }[type];
   if (requiredField) copy[requiredField] = '';
-  const nameField = { customer:'name', article:'articlename', tool:'toolname', media:'mediaquality', printer:'devicename', finishing:'devicename' }[type];
+  const nameField = { customer:'name', article:'articlename', tool:'toolname', media:'mediaquality', printer:'devicename', finishing:'devicename', varnish:'inkname', screeningroller:'name' }[type];
   if (nameField && copy[nameField]) copy[nameField] = copy[nameField] + ' (cópia)';
   openModal(type, null, copy);
   showToast('📋 Registro duplicado — defina um novo identificador e salve.');
@@ -3106,7 +3211,7 @@ function deleteRecord(type, id) {
   customConfirm('Deseja excluir este registro?').then(ok => {
     if (!ok) return;
     const db = getDB();
-    const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors' }[type];
+    const listKey = { customer:'customers', article:'articles', tool:'tools', media:'media', printer:'printers', finishing:'finishing', color:'colors', varnish:'varnishes', screeningroller:'screeningrollers' }[type];
     db[listKey] = db[listKey].filter(r=>r.id!==id);
     saveDB(db); renderDB();
     showToast('🗑️ Registro excluído.');
@@ -3148,7 +3253,7 @@ function importDB(event) {
 function clearDB() {
   customConfirm('Deseja apagar TODA a base de dados? Isso também limpa o Quadro de Alocação (Gantt) e o histórico de Trabalhos (Product/Production Job).').then(ok => {
     if (!ok) return;
-    saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
+    saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], varnishes:[], screeningrollers:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
     renderDB();
     refreshScheduleViews();
     showToast('🗑️ Base de dados apagada.');
@@ -3305,6 +3410,7 @@ function clearForm() {
             .forEach(i => i.value = '');
     document.querySelectorAll('.pt-display').forEach(d => { d.textContent='— pt'; d.style.color='#888'; });
     document.getElementById('articles-container').innerHTML = '';
+    document.getElementById('varnishes-container').innerHTML = '';
     document.getElementById('cell-index-grid').innerHTML =
       '<span style="color:#888;font-size:13px;">Adicione artigos com Station Amount para configurar o layout da chapa.</span>';
     document.getElementById('cell-index-toolbar').style.display = 'none';
@@ -3315,6 +3421,7 @@ function clearForm() {
     const summaryEl = document.getElementById('pr_schedule_summary');
     summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
     articleCount = 0;
+    varnishCount = 0;
     if (activeTab === 'production') {
       sv('pr_jobid', getNextProductionJobId());
       onJobIdChangeProduction();
@@ -3366,12 +3473,15 @@ function buildProductionJobSnapshot() {
     spotColors: getSpotColors('pr'),
     articles:   getArticles(),
     cellData:   getCellData(),
+    varnishes:  getVarnishes(),
   };
 }
 
 function restoreProductionJobSnapshot(snap) {
   document.getElementById('articles-container').innerHTML = '';
   articleCount = 0;
+  document.getElementById('varnishes-container').innerHTML = '';
+  varnishCount = 0;
   restoreFields(snap.fields);
   ['pr_trimbottom','pr_trimtop','pr_trimleft','pr_trimright','pr_sheetwidth','pr_sheetheight','pr_finishedwidth','pr_finishedheight']
     .forEach(base => { if (document.getElementById(base+'_mm')) convertMmToPt(base+'_mm', base+'_pt'); });
@@ -3399,6 +3509,20 @@ function restoreProductionJobSnapshot(snap) {
 
   setSpotColors('pr', snap.spotColors || []);
   syncProductionColorsFromArticles();
+
+  (snap.varnishes||[]).forEach(vn => {
+    addVarnish();
+    const idx = varnishCount;
+    sv('varn_'+idx+'_dbid',            vn.dbid);
+    sv('varn_'+idx+'_inkname',         vn.inkname);
+    sv('varn_'+idx+'_productid',       vn.inkproductid);
+    sv('varn_'+idx+'_anilox_dbid',     vn.aniloxdbid);
+    sv('varn_'+idx+'_aniloxname',      vn.aniloxname);
+    sv('varn_'+idx+'_aniloxproductid', vn.aniloxproductid);
+    sv('varn_'+idx+'_side',            vn.side);
+    sv('varn_'+idx+'_tower',           vn.tower);
+  });
+
   const summaryEl = document.getElementById('pr_schedule_summary');
   summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
 }
@@ -3593,6 +3717,130 @@ function removeArticle(idx) {
   if (card) card.remove();
   updateCellIndexGrid();
   syncProductionColorsFromArticles();
+}
+
+// ══════════════════════════════════════════════════════════════
+// VERNIZ E ANILOX (Production Job) — cada card = uma Separation (FLS1, FLS2...)
+// ══════════════════════════════════════════════════════════════
+
+function addVarnish() {
+  varnishCount++;
+  const idx = varnishCount;
+  const separation = 'FLS' + idx;
+  const db = getDB();
+  const varnOpts = '<option value="">— Selecione —</option>' +
+    db.varnishes.map(r=>`<option value="${r.id}">${r.inkname||'Verniz'} (${r.productid||'—'})${r.coatingtype?' — '+r.coatingtype:''}</option>`).join('');
+  const aniloxOpts = '<option value="">— Selecione —</option>' +
+    db.screeningrollers.map(r=>`<option value="${r.id}">${r.name||'Anilox'} (${r.productid||'—'})</option>`).join('');
+
+  const card = document.createElement('div');
+  card.className = 'article-card';
+  card.id = 'varnish-' + idx;
+  card.innerHTML = `
+    <div class="article-card-header">
+      <span>💧 Verniz ${idx} — Separation "${separation}"</span>
+      <button class="btn-remove-article" onclick="removeVarnish(${idx})">✕ Remover</button>
+    </div>
+    <div class="article-card-body">
+      <input type="hidden" id="varn_${idx}_dbid" value=""/>
+      <input type="hidden" id="varn_${idx}_anilox_dbid" value=""/>
+      <div class="db-selector" style="grid-column:1/-1;">
+        <label>💧 Carregar Verniz:</label>
+        <select id="varn_${idx}_db_select">${varnOpts}</select>
+        <button onclick="loadVarnishFromDB(${idx})">Carregar</button>
+      </div>
+      <div class="field">
+        <label>Nome do Verniz (InkName) <span class="badge badge-required">OBRIGATÓRIO</span></label>
+        <input type="text" id="varn_${idx}_inkname" placeholder="Ex.: Saphira Coating AQ Satin W7335-4"/>
+      </div>
+      <div class="field">
+        <label>MIS ID do Verniz (ProductID) <span class="badge badge-optional">OPCIONAL</span></label>
+        <input type="text" id="varn_${idx}_productid" placeholder="Ex.: 110587"/>
+      </div>
+      <div class="db-selector" style="grid-column:1/-1;">
+        <label>🌀 Carregar Anilox:</label>
+        <select id="varn_${idx}_anilox_db_select">${aniloxOpts}</select>
+        <button onclick="loadAniloxFromDB(${idx})">Carregar</button>
+      </div>
+      <div class="field">
+        <label>Nome do Anilox (DescriptiveName) <span class="badge badge-important">IMPORTANTE</span></label>
+        <input type="text" id="varn_${idx}_aniloxname" placeholder="Ex.: Perfectscreen-3,0/90"/>
+        <span class="field-hint">Este fluxo é sempre por unidade de Pintura (blanket + anilox) — verniz de chapa via cor spot já é tratado pela seção de Cores Especiais, não por aqui.</span>
+      </div>
+      <div class="field">
+        <label>MIS ID do Anilox (ProductID) <span class="badge badge-optional">OPCIONAL</span></label>
+        <input type="text" id="varn_${idx}_aniloxproductid" placeholder="Ex.: 100080"/>
+      </div>
+      <div class="field">
+        <label>Lado (Side)</label>
+        <select id="varn_${idx}_side">
+          <option value="Front">Front (frente)</option>
+          <option value="Back">Back (verso)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Torre Física (ColorantAlias) <span class="badge badge-important">IMPORTANTE</span></label>
+        <input type="text" id="varn_${idx}_tower" placeholder="Ex.: L1" value="L${idx}"/>
+        <span class="field-hint">Já vem preenchido em sequência (L1, L2, L3...) conforme você adiciona vernizes — mude aqui se a torre real da prensa for outra.</span>
+      </div>
+    </div>`;
+  document.getElementById('varnishes-container').appendChild(card);
+  enhanceSearchableSelect('varn_'+idx+'_db_select');
+  enhanceSearchableSelect('varn_'+idx+'_anilox_db_select');
+}
+
+function removeVarnish(idx) {
+  const card = document.getElementById('varnish-' + idx);
+  if (card) card.remove();
+}
+
+function loadVarnishFromDB(idx) {
+  const db = getDB();
+  const sel = document.getElementById('varn_'+idx+'_db_select');
+  if (!sel||!sel.value) { showToast('⚠️ Selecione um verniz antes de carregar.','error'); return; }
+  const r = db.varnishes.find(x=>x.id===sel.value);
+  if (!r) return;
+  sv('varn_'+idx+'_dbid',      r.id);
+  sv('varn_'+idx+'_inkname',   r.inkname);
+  sv('varn_'+idx+'_productid', r.productid);
+  showToast('✅ Verniz carregado! Informe a Torre Física (ex.: L1) e, se usar anilox, carregue-o abaixo.');
+}
+
+function loadAniloxFromDB(idx) {
+  const db = getDB();
+  const sel = document.getElementById('varn_'+idx+'_anilox_db_select');
+  if (!sel||!sel.value) { showToast('⚠️ Selecione um anilox antes de carregar.','error'); return; }
+  const r = db.screeningrollers.find(x=>x.id===sel.value);
+  if (!r) return;
+  sv('varn_'+idx+'_anilox_dbid',        r.id);
+  sv('varn_'+idx+'_aniloxname',         r.name);
+  sv('varn_'+idx+'_aniloxproductid',    r.productid);
+  showToast('✅ Anilox carregado!');
+}
+
+// Lê todos os cards de Verniz/Anilox atualmente na tela do Production Job.
+function getVarnishes() {
+  const varnishes = [];
+  for (let i = 1; i <= varnishCount + 20; i++) {
+    if (!document.getElementById('varnish-' + i)) continue;
+    const inkname = v('varn_'+i+'_inkname');
+    if (!inkname) continue; // card existe mas está vazio — ignora
+    varnishes.push({
+      idx: i,
+      separation:      'FLS' + i,
+      dbid:            v('varn_'+i+'_dbid'),
+      inkname:         inkname,
+      inkproductid:    v('varn_'+i+'_productid'),
+      aniloxdbid:      v('varn_'+i+'_anilox_dbid'),
+      aniloxname:      v('varn_'+i+'_aniloxname'),
+      aniloxproductid: v('varn_'+i+'_aniloxproductid'),
+      side:            v('varn_'+i+'_side') || 'Front',
+      area:            'Spot',    // fluxo único suportado por aqui: unidade de Pintura (blanket + anilox)
+      method:          'Blanket', // verniz de chapa via cor spot é tratado pela seção de Cores Especiais
+      tower:           v('varn_'+i+'_tower'),
+    });
+  }
+  return varnishes;
 }
 
 function getArticles() {
@@ -4136,6 +4384,10 @@ function generateProductionJDF() {
   if (document.getElementById('pr_color_black').checked)   colors.push('Black');
   getSpotColors('pr').forEach(c => colors.push(c.name));
 
+  // ⚠️ Verniz e Anilox — cada card vira uma Separation própria (FLS1, FLS2...)
+  const varnishes   = getVarnishes();
+  const hasVarnish  = varnishes.length > 0;
+
   if (!jobid)              { showToast('⚠️ Job ID é obrigatório!','error'); return null; }
   if (articles.length===0) { showToast('⚠️ Adicione ao menos um artigo!','error'); return null; }
   if (articles.find(a=>!a.articleid))    { showToast('⚠️ Article ID é obrigatório em todos os artigos!','error'); return null; }
@@ -4247,7 +4499,7 @@ function generateProductionJDF() {
       cellsXml += `\n\t\t\t\t\t\t<StrippingParams AssemblyIDs="${c.articleid}" CellIndex="${c.index}"${orientAttr}/>`;
     });
 
-    const mRef = (sheetw&&sheeth) ? `\n\t\t\t\t\t<MediaRef rRef="MEDIA_1"/>` : '';
+    const mRef = (sheetw&&sheeth) ? `\n\t\t\t\t\t<MediaRef rRef="MEDIA_1"/>${hasVarnish?`\n\t\t\t\t\t<MediaRef rRef="Plates"/>`:''}` : '';
     const dRef = deviceid ? `\n\t\t\t\t\t<DeviceRef rRef="Device-Press"/>` : '';
 
     // Resumo das orientações para o comentário
@@ -4340,32 +4592,129 @@ function generateProductionJDF() {
   }
 
   let colorPoolXml = '';
-  if (colors.length > 0) {
+  if (colors.length > 0 || hasVarnish) {
+    const regularColorEntries = colors.map(c=>`<Color Name="${c}"/>`);
+    const varnishColorEntries = varnishes.map(vn=>`<Color Name="${vn.separation}" ColorType="Transparent" Lab="96.7 5.2 -4.9"/>`);
     colorPoolXml = `\n\t\t<ColorPool ID="ColorPool" Class="Parameter" Locked="false" Status="Available" DescriptiveName="Colors for Job">
-\t\t\t${colors.map(c=>`<Color Name="${c}"/>`).join('\n\t\t\t')}
+\t\t\t${regularColorEntries.concat(varnishColorEntries).join('\n\t\t\t')}
 \t\t</ColorPool>`;
   }
 
+  // ⚠️ ColorantControl: sem verniz, comportamento idêntico a antes (só gera com 2 lados + cores).
+  // Com verniz, passa a gerar também em trabalhos de 1 lado (Simplex) — é o recurso que diz ao
+  // Prinect em qual torre física (ColorantAlias) o verniz deve ser aplicado; sem ele, a separação
+  // fica cadastrada mas não é alocada numa torre (Target "Varnish (no output)").
+  function buildColorantSideBlock(side) {
+    const sideVarnishes = varnishes.filter(vn => vn.side === side);
+    const paramsSeps = colors.map(c=>`<SeparationSpec Name="${c}"/>`)
+      .concat(sideVarnishes.map(vn=>`<SeparationSpec Name="${vn.separation}"/>`))
+      .join('\n\t\t\t\t\t\t\t');
+    const deviceOrderXml = (hasVarnish && colors.length>0) ? `
+\t\t\t\t\t\t<DeviceColorantOrder>
+\t\t\t\t\t\t\t${colors.map(c=>`<SeparationSpec Name="${c}"/>`).join('\n\t\t\t\t\t\t\t')}
+\t\t\t\t\t\t</DeviceColorantOrder>` : '';
+    const aliasXml = sideVarnishes.filter(vn=>vn.tower).map(vn => `
+\t\t\t\t\t\t<ColorantAlias ReplacementColorantName="${vn.separation}">
+\t\t\t\t\t\t\t<SeparationSpec Name="${vn.tower}"/>
+\t\t\t\t\t\t</ColorantAlias>`).join('');
+    return `
+\t\t\t\t\t<ColorantControl Side="${side}">
+\t\t\t\t\t\t<ColorantParams>
+\t\t\t\t\t\t\t${paramsSeps}
+\t\t\t\t\t\t</ColorantParams>${deviceOrderXml}${aliasXml}
+\t\t\t\t\t</ColorantControl>`;
+  }
+
   let colorantControlXml = '';
-  if (isTwoSided && colors.length > 0) {
-    const seps = colors.map(c=>`\n\t\t\t\t\t\t\t<SeparationSpec Name="${c}"/>`).join('');
+  const needColorantControl = (isTwoSided && colors.length > 0) || hasVarnish;
+  if (needColorantControl) {
+    const sidesXml = isTwoSided
+      ? buildColorantSideBlock('Back') + buildColorantSideBlock('Front')
+      : buildColorantSideBlock('Front');
     colorantControlXml = `\n\t\t<ColorantControl ID="ColorantControl" Class="Parameter" Locked="false" Status="Available"
 \t\t    PartUsage="Implicit" PartIDKeys="SignatureName SheetName Side"
 \t\t    DescriptiveName="Color for Job">
 \t\t\t<ColorPoolRef rRef="ColorPool"/>
 \t\t\t<ColorantControl SignatureName="Sig1">
-\t\t\t\t<ColorantControl SheetName="BG1">
-\t\t\t\t\t<ColorantControl Side="Back">
-\t\t\t\t\t\t<ColorantParams>${seps}
-\t\t\t\t\t\t</ColorantParams>
-\t\t\t\t\t</ColorantControl>
-\t\t\t\t\t<ColorantControl Side="Front">
-\t\t\t\t\t\t<ColorantParams>${seps}
-\t\t\t\t\t\t</ColorantParams>
-\t\t\t\t\t</ColorantControl>
+\t\t\t\t<ColorantControl SheetName="BG1">${sidesXml}
 \t\t\t\t</ColorantControl>
 \t\t\t</ColorantControl>
 \t\t</ColorantControl>`;
+  }
+
+  // ⚠️ Verniz e Anilox — Ink (Passo 1), Tool ScreeningRoller (Passo 2) e VarnishingParams (Passo 3)
+  const inkVarnishXml = varnishes.map(vn => `
+\t\t<Ink Class="Consumable" ID="INK_${vn.separation}" PartIDKeys="SignatureName SheetName Side Separation" Status="Available">
+\t\t\t<Ink SignatureName="Sig1">
+\t\t\t\t<Ink SheetName="BG1">
+\t\t\t\t\t<Ink Side="${vn.side}">
+\t\t\t\t\t\t<Ink InkName="${vn.inkname}"${vn.inkproductid?` ProductID="${vn.inkproductid}"`:''} Family="Varnish" Separation="${vn.separation}" SpecialInk="Varnish"/>
+\t\t\t\t\t</Ink>
+\t\t\t\t</Ink>
+\t\t\t</Ink>
+\t\t</Ink>`).join('');
+
+  const toolAniloxXml = varnishes.filter(vn=>vn.aniloxname).map(vn => `
+\t\t<Tool Class="Handling" ID="TOOL_${vn.separation}" PartIDKeys="SignatureName SheetName Side Separation" Status="Available" ToolType="ScreeningRoller">
+\t\t\t<Tool SignatureName="Sig1">
+\t\t\t\t<Tool SheetName="BG1">
+\t\t\t\t\t<Tool Side="${vn.side}">
+\t\t\t\t\t\t<Tool DescriptiveName="${vn.aniloxname}"${vn.aniloxproductid?` ProductID="${vn.aniloxproductid}"`:''} Separation="${vn.separation}" ToolType="ScreeningRoller"/>
+\t\t\t\t\t</Tool>
+\t\t\t\t</Tool>
+\t\t\t</Tool>
+\t\t</Tool>`).join('');
+
+  const varnishingParamsXml = varnishes.map(vn => `
+\t\t<VarnishingParams Class="Parameter" ID="VP_${vn.separation}" PartIDKeys="SignatureName SheetName Side Separation" Status="Available">
+\t\t\t<VarnishingParams SignatureName="Sig1">
+\t\t\t\t<VarnishingParams SheetName="BG1">
+\t\t\t\t\t<VarnishingParams Side="${vn.side}">
+\t\t\t\t\t\t<VarnishingParams ModuleType="CoatingModule" Separation="${vn.separation}" VarnishArea="${vn.area}" VarnishMethod="${vn.method}"/>
+\t\t\t\t\t</VarnishingParams>
+\t\t\t\t</VarnishingParams>
+\t\t\t</VarnishingParams>
+\t\t</VarnishingParams>`).join('');
+
+  const varnishSeparationsList = varnishes.map(vn=>vn.separation).join(' ');
+  const inkLinksXml       = varnishes.map(vn=>`\n\t\t\t<InkLink rRef="INK_${vn.separation}" Usage="Input"/>`).join('');
+  const toolAniloxLinksXml= varnishes.filter(vn=>vn.aniloxname).map(vn=>`\n\t\t\t<ToolLink rRef="TOOL_${vn.separation}" Usage="Input"/>`).join('');
+  const varnishingLinksXml= varnishes.map(vn=>`\n\t\t\t<VarnishingParamsLink rRef="VP_${vn.separation}" Usage="Input"/>`).join('');
+  const colorantControlLinkXml = needColorantControl ? `\n\t\t\t<ColorantControlLink rRef="ColorantControl" Usage="Input"/>` : '';
+
+  // ⚠️ ExposedMedia + Media (Plates) — a "chapa dedicada" do verniz. Sem isso o Prinect cadastra a
+  // separação mas não conclui a alocação (achado comparando com o JDF_Verniz.jdf que funcionou de fato).
+  let exposedMediaXml = '', platesMediaXml = '', exposedMediaLinksXml = '';
+  if (hasVarnish) {
+    const varnishSides = Array.from(new Set(varnishes.map(vn=>vn.side)));
+    const exposedBySide = varnishSides.map(side => `
+\t\t\t\t\t<ExposedMedia Side="${side}">${varnishes.filter(vn=>vn.side===side).map(vn=>`
+\t\t\t\t\t\t<ExposedMedia ProductID="PLATE_${vn.separation}" Separation="${vn.separation}"/>`).join('')}
+\t\t\t\t\t</ExposedMedia>`).join('');
+    exposedMediaXml = `
+\t\t<ExposedMedia ID="ExposedMedia" Class="Handling" Locked="false" Status="Unavailable"
+\t\t    PartUsage="Explicit" PartIDKeys="SignatureName SheetName Side Separation" DescriptiveName="Plates">
+\t\t\t<MediaRef rRef="Plates"/>
+\t\t\t<ExposedMedia SignatureName="Sig1">
+\t\t\t\t<ExposedMedia SheetName="BG1">${exposedBySide}
+\t\t\t\t</ExposedMedia>
+\t\t\t</ExposedMedia>
+\t\t</ExposedMedia>`;
+    const plateBrand     = v('pr_plate_brand')     || 'XL 106 Saphira Thermal Plate';
+    const plateProductId = v('pr_plate_productid') || '100011';
+    const plateThickness = v('pr_plate_thickness') || '300';
+    platesMediaXml = `
+\t\t<Media Class="Consumable" DescriptiveName="Partitioned Plates" ID="Plates" MediaType="Plate"
+\t\t    PartIDKeys="SignatureName SheetName" PartUsage="Sparse" Status="Available">
+\t\t\t<Media SignatureName="Sig1">
+\t\t\t\t<Media Brand="${plateBrand}" DescriptiveName="${plateBrand}"
+\t\t\t\t    MediaType="Plate" ProductID="${plateProductId}" SheetName="BG1" Status="Available" Thickness="${plateThickness}"/>
+\t\t\t</Media>
+\t\t</Media>`;
+    exposedMediaLinksXml = varnishSides.map(side => `
+\t\t\t<ExposedMediaLink rRef="ExposedMedia" Usage="Input" ProcessUsage="Plate">
+\t\t\t\t<Part Side="${side}" SheetName="BG1" SignatureName="Sig1"/>
+\t\t\t</ExposedMediaLink>`).join('');
   }
 
   let conventionalPrintingXml = '';
@@ -4462,7 +4811,7 @@ function generateProductionJDF() {
   const nodeInfoLink  = (startAttr||endAttr) ? `\n\t\t<NodeInfoLink rRef="NI_ID1380" Usage="Input"/>` : '';
   const mediaLink     = (sheetw&&sheeth)     ? `\n\t\t\t<MediaLink rRef="MEDIA_1" Usage="Input"/>` : '';
   const strippingLink = totalStationAmt>0    ? `\n\t\t\t<StrippingParamsLink rRef="Link97777_000047" Usage="Input"/>` : '';
-  const colorantLink  = (isTwoSided&&colors.length>0) ? `\n\t\t\t<ColorantControlLink rRef="ColorantControl" Usage="Input"/>` : '';
+  const colorantLink  = colorantControlLinkXml;
   const cppLink       = isTwoSided ? `\n\t\t\t<ConventionalPrintingParamsLink rRef="PRO-1344.20-CPP" Usage="Input"/>` : '';
 
   const artSides = isTwoSided ? 'TwoSidedHeadToHead' : 'OneSided';
@@ -4475,18 +4824,34 @@ function generateProductionJDF() {
     const artShapeXml = artSID ? `\n\t\t\t<ShapeCuttingIntent ID="ID_ShapeDef${i+1}" Class="Intent" Status="Available">
 \t\t\t\t<GeneralID IDUsage="ShapeID" DataType="NMTOKEN" IDValue="${artSID}"/>${artSNXml}
 \t\t\t</ShapeCuttingIntent>` : '';
-    const artColorXml = colors.length>0 ? `\n\t\t\t<ColorIntent ID="CIL4${i+1}" Class="Intent" Locked="false" Status="Available">
+    const artColorsUsedXml = colors.length>0 ? `\n\t\t\t\t\t<ColorsUsed>\n\t\t\t\t\t\t${colors.map(c=>`<SeparationSpec Name="${c}"/>`).join('\n\t\t\t\t\t\t')}\n\t\t\t\t\t</ColorsUsed>` : '';
+    let artColorXml = '';
+    if (hasVarnish) {
+      // ⚠️ Com verniz, o ColorIntent precisa ser particionado por Side (mesma estrutura do
+      // JDF_Verniz.jdf que funcionou) — Coatings entra dentro do Side correspondente, não solto.
+      const varnishSidesUsed = Array.from(new Set(varnishes.map(vn=>vn.side)));
+      const sideBlocks = varnishSidesUsed.map(side => {
+        const sideSeps = varnishes.filter(vn=>vn.side===side).map(vn=>vn.separation).join(' ');
+        const sideCoatings = sideSeps ? `\n\t\t\t\t\t<Coatings Preferred="${sideSeps}" DataType="StringSpan" Actual="${sideSeps}"/>` : '';
+        return `\n\t\t\t\t<ColorIntent Side="${side}">${artColorsUsedXml}${sideCoatings}\n\t\t\t\t</ColorIntent>`;
+      }).join('');
+      artColorXml = `\n\t\t\t<ColorIntent ID="CIL4${i+1}" Class="Intent" Locked="false" PartIDKeys="Side" Status="Available">
+\t\t\t\t<ColorPoolRef rRef="ColorPool"/>${sideBlocks}
+\t\t\t</ColorIntent>`;
+    } else if (colors.length > 0) {
+      artColorXml = `\n\t\t\t<ColorIntent ID="CIL4${i+1}" Class="Intent" Locked="false" Status="Available">
 \t\t\t\t<ColorPoolRef rRef="ColorPool"/>
 \t\t\t\t<ColorsUsed>
 \t\t\t\t\t${colors.map(c=>`<SeparationSpec Name="${c}"/>`).join('\n\t\t\t\t\t')}
 \t\t\t\t</ColorsUsed>
-\t\t\t</ColorIntent>` : '';
+\t\t\t</ColorIntent>`;
+    }
     const artLayoutXml = (fw&&fh) ? `\n\t\t\t<LayoutIntent ID="LIL4${i+1}" Class="Intent" Status="Available" Sides="${artSides}">
 \t\t\t\t<Pages Actual="${npagesPerArt}" DataType="IntegerSpan" Preferred="${npagesPerArt}"/>
 \t\t\t\t<FinishedDimensions Actual="${fw} ${fh} 0" DataType="ShapeSpan" Preferred="${fw} ${fh} 0"/>
 \t\t\t</LayoutIntent>` : '';
     const amtAttr     = a.amount ? ` Amount="${a.amount}"` : '';
-    const colorLink2  = colors.length>0 ? `\n\t\t\t<ColorIntentLink rRef="CIL4${i+1}" Usage="Input"/>` : '';
+    const colorLink2  = (colors.length>0 || hasVarnish) ? `\n\t\t\t<ColorIntentLink rRef="CIL4${i+1}" Usage="Input"/>` : '';
     const layoutLink2 = (fw&&fh) ? `\n\t\t\t<LayoutIntentLink rRef="LIL4${i+1}" Usage="Input"/>` : '';
     const shapeLink2  = artSID  ? `\n\t\t\t<ShapeCuttingIntentLink Usage="Input" rRef="ID_ShapeDef${i+1}"/>` : '';
     const artNameAttr = a.articlename ? ` DescriptiveName="${a.articlename}"` : '';
@@ -4530,7 +4895,7 @@ function generateProductionJDF() {
 \t     Category="PrePressPreparation" Types="PrePressPreparation">
 \t\t<ResourceLinkPool>
 \t\t\t<RunListLink Usage="Input"  rRef="Link97487_000043"/>
-\t\t\t<RunListLink Usage="Output" rRef="Link974787_000044"/>${niPP.link}
+\t\t\t<RunListLink Usage="Output" rRef="Link974787_000044"/>${hasVarnish?colorantControlLinkXml:''}${niPP.link}
 \t\t</ResourceLinkPool>
 \t\t<ResourcePool>${niPP.xml}
 \t\t</ResourcePool>
@@ -4549,12 +4914,13 @@ function generateProductionJDF() {
 \t</JDF>`;
 
   const printingDeviceLink = deviceid ? `\n\t\t\t<DeviceLink rRef="Device-Press" Usage="Input"/>` : '';
+  const printingTypesAttr = hasVarnish ? 'InkZoneCalculation ConventionalPrinting Varnishing' : 'InkZoneCalculation ConventionalPrinting';
   const printingNodeXml = `
 \t<JDF ID="PRO-1344.20" Type="ProcessGroup" Status="Waiting"
 \t     JobPartID="1344.20" DescriptiveName="Printing"
-\t     Category="Printing" Types="InkZoneCalculation ConventionalPrinting">
+\t     Category="Printing" Types="${printingTypesAttr}">
 \t\t<ResourceLinkPool>${printingDeviceLink}
-\t\t\t<ComponentLink rRef="${hasShapeCut?'HF-1344.25':'COMP.1344.F'}" Usage="Output"/>${mediaLink}${niPR.link}
+\t\t\t<ComponentLink rRef="${hasShapeCut?'HF-1344.25':'COMP.1344.F'}" Usage="Output"/>${mediaLink}${hasVarnish?colorantControlLinkXml:''}${inkLinksXml}${toolAniloxLinksXml}${varnishingLinksXml}${exposedMediaLinksXml}${niPR.link}
 \t\t</ResourceLinkPool>
 \t\t<ResourcePool>${niPR.xml}
 \t\t</ResourcePool>
@@ -4644,6 +5010,11 @@ ${intermediateComponents}
 ${customerInfoXml}
 ${colorPoolXml}
 ${colorantControlXml}
+${inkVarnishXml}
+${toolAniloxXml}
+${varnishingParamsXml}
+${exposedMediaXml}
+${platesMediaXml}
 ${conventionalPrintingXml}
 ${mediaXml}
 ${deviceXml}
@@ -4705,6 +5076,7 @@ async function generateJDF() {
 window.addEventListener('DOMContentLoaded', () => {
   applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
   addArticle();
+  seedVarnishDefaultsIfNeeded();
   renderDB();
   renderScheduleBoard();
   [

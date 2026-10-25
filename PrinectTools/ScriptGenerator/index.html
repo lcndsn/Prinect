@@ -623,13 +623,13 @@ bul(`Realizar a configuração necessária no Prinect Cockpit para que os arquiv
 bul('Entregar o pacote do script (translator.ps1, template e tarefa agendada) com as instruções de instalação e orientar o TI da gráfica na instalação.');
 bul('Prestar suporte sobre o conteúdo gerado (modelo de saída, mapeamento e configuração do Prinect). Ajustes de modelo ou de mapeamento pedidos depois deste termo serão tratados como nova solicitação.');
 h2('4. Dados enviados pelo MIS e utilizados pela automação');
-para('A tabela abaixo reproduz o mapeamento definido para a gráfica '+S.gr+'. São os dados que o MIS pode enviar e que a automação lê em cada arquivo.');
-tbl([150,CW-150-70-110,70,110],['Campo no '+ext,'Fonte no arquivo do MIS','Obrigatório','Valor padrão'],S.rows.map(r=>[r.n.replace('Prinect_',''),r.src.trim()||'(não mapeado)',r.req?'Sim':'Não',r.def.trim()||'-']),8.5);
+para('A tabela abaixo reproduz os dados obrigatórios do mapeamento definido para a gráfica '+S.gr+'. São os dados que o MIS deve enviar e que a automação lê em cada arquivo.');
+tbl([150,CW-150-110,110],['Campo no '+ext,'Fonte no arquivo do MIS','Valor padrão'],S.rows.filter(r=>r.req).map(r=>[r.n.replace('Prinect_',''),r.src.trim()||'(não mapeado)',r.def.trim()||'-']),8.5);
 bul('Os dados obrigatórios devem constar em todo arquivo exportado pelo MIS. Se algum faltar, vier vazio ou fora do formato esperado, a automação não cria o trabalho e move o arquivo para _error. Isso não é falha da automação: corrigir o dado ou a exportação é responsabilidade da gráfica.');
 bul('Quando um dado com valor padrão vier vazio, a automação usa o valor padrão da tabela. A gráfica deve conferir se esse valor atende ao seu processo.');
 bul('A automação usa os dados como o MIS os envia e não valida o conteúdo comercial ou técnico (por exemplo, cadastros e medidas).');
 if(S.fmt=='csv'&&S.grp)bul('Em lote, cada trabalho é processado isoladamente: se um trabalho tiver dado obrigatório ausente, só ele é rejeitado, e suas linhas são gravadas, com o motivo, em um arquivo na pasta _error. Corrigir e reenviar essas linhas é responsabilidade da gráfica.');
-bul('Dados que não estão na tabela não são lidos nem enviados ao Prinect. Incluir novos dados exige nova solicitação de ajuste do modelo e do mapeamento.');
+bul('Dados que não foram mapeados no modelo não são lidos nem enviados ao Prinect. Incluir novos dados exige nova solicitação de ajuste do modelo e do mapeamento.');
 h2('5. Condições gerais');
 bul('Qualquer alteração no MIS que mude o formato, os nomes dos campos, a codificação, o local de exportação ou o nome do servidor deve ser comunicada previamente à Heidelberg. Os ajustes necessários no mapeamento ou no modelo serão tratados como nova solicitação.');
 bul('A Heidelberg não se responsabiliza por falhas decorrentes da infraestrutura da gráfica (rede, servidor, permissões, antivírus e sistemas de segurança, tarefa agendada), da exportação do MIS ou de dados ausentes ou incorretos enviados pelo MIS.');

@@ -624,7 +624,7 @@ bul('Entregar o pacote do script (translator.ps1, template e tarefa agendada) co
 bul('Prestar suporte sobre o conteúdo gerado (modelo de saída, mapeamento e configuração do Prinect). Ajustes de modelo ou de mapeamento pedidos depois deste termo serão tratados como nova solicitação.');
 h2('4. Dados enviados pelo MIS e utilizados pela automação');
 para('A tabela abaixo reproduz os dados obrigatórios do mapeamento definido para a gráfica '+S.gr+'. São os dados que o MIS deve enviar e que a automação lê em cada arquivo.');
-tbl([CW/3,CW/3,CW/3],['Campo no '+ext,'Fonte no arquivo do MIS','Valor padrão'],S.rows.filter(r=>r.req).map(r=>[r.n.replace('Prinect_',''),r.src.trim()||'(não mapeado)',r.def.trim()||'-']),8.5,0,1);
+tbl([CW/3,CW/3,CW/3],['Campo no '+ext,'Fonte no arquivo do MIS','Valor padrão'],S.rows.filter(r=>r.req).map(r=>[r.n.replace('Prinect_',''),r.src.trim()||'(não mapeado)',r.def.trim()||'-']),8.5);
 bul('Os dados obrigatórios devem constar em todo arquivo exportado pelo MIS. Se algum faltar, vier vazio ou fora do formato esperado, a automação não cria o trabalho e move o arquivo para _error. Isso não é falha da automação: corrigir o dado ou a exportação é responsabilidade da gráfica.');
 bul('Quando um dado com valor padrão vier vazio, a automação usa o valor padrão da tabela. A gráfica deve conferir se esse valor atende ao seu processo.');
 bul('A automação usa os dados como o MIS os envia e não valida o conteúdo comercial ou técnico (por exemplo, cadastros e medidas).');

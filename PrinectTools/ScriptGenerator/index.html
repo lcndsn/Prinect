@@ -584,11 +584,11 @@ const t=l?l+' '+w0:w0;if(!l||tw(t,z,b)<=w)l=t;else{o.push(l);l=w0}}o.push(l)}ret
 const para=(s,z=10,b=0,col)=>{for(const l of wrap(s,CW,z,b)){if(y+z*1.4>LIM)np();txt(l,M,y+z,z,b,col);y+=z*1.4}y+=4};
 const h2=t=>{if(y+80>LIM)np();y+=10;txt(t,M,y+12,12,1,ACC);y+=17;ops.push(`${ACC} RG 0.8 w ${M} ${f2(Ht-y)} m ${f2(Wd-M)} ${f2(Ht-y)} l S`);y+=9};
 const bul=s=>{wrap(s,CW-18,10,0).forEach((l,i)=>{if(y+14>LIM)np();if(!i)txt('•',M+5,y+10,10,0);txt(l,M+18,y+10,10,0);y+=14});y+=4};
-const tbl=(cols,head,rows,z,kv)=>{const xs=[M],lh=z*1.35,pd=4;cols.forEach(c=>xs.push(xs[xs.length-1]+c));
+const tbl=(cols,head,rows,z,kv,ctr)=>{const xs=[M],lh=z*1.35,pd=4;cols.forEach(c=>xs.push(xs[xs.length-1]+c));
 const row=(cells,b,fill)=>{const L=cells.map((c,i)=>wrap(c,cols[i]-2*pd,z,b||(kv&&i==0))),h=Math.max(...L.map(l=>l.length))*lh+2*pd;
 if(y+h>LIM){np();if(head&&!b)row(head,1,HD)}
 if(fill)ops.push(`${fill} rg ${M} ${f2(Ht-y-h)} ${f2(CW)} ${f2(h)} re f`);
-L.forEach((ls,i)=>ls.forEach((l,k)=>txt(l,xs[i]+pd,y+pd+z+k*lh-1,z,b||(kv&&i==0)?1:0)));
+L.forEach((ls,i)=>ls.forEach((l,k)=>{const bb=b||(kv&&i==0)?1:0;txt(l,ctr?xs[i]+(cols[i]-tw(l,z,bb))/2:xs[i]+pd,y+pd+z+k*lh-1,z,bb)}));
 ops.push(`0.80 0.84 0.88 RG 0.5 w ${M} ${f2(Ht-y-h)} m ${f2(Wd-M)} ${f2(Ht-y-h)} l S`);y+=h};
 if(head)row(head,1,HD);rows.forEach(r=>row(r,0));y+=8};
 const kind=S.kind=='Product'?'Produto':'Produção',ext=S.p.ext.toUpperCase(),fm=S.fmt.toUpperCase(),fo=folder(S.kind),srv=S.srv;
@@ -624,7 +624,7 @@ bul('Entregar o pacote do script (translator.ps1, template e tarefa agendada) co
 bul('Prestar suporte sobre o conteúdo gerado (modelo de saída, mapeamento e configuração do Prinect). Ajustes de modelo ou de mapeamento pedidos depois deste termo serão tratados como nova solicitação.');
 h2('4. Dados enviados pelo MIS e utilizados pela automação');
 para('A tabela abaixo reproduz os dados obrigatórios do mapeamento definido para a gráfica '+S.gr+'. São os dados que o MIS deve enviar e que a automação lê em cada arquivo.');
-tbl([150,CW-150-110,110],['Campo no '+ext,'Fonte no arquivo do MIS','Valor padrão'],S.rows.filter(r=>r.req).map(r=>[r.n.replace('Prinect_',''),r.src.trim()||'(não mapeado)',r.def.trim()||'-']),8.5);
+tbl([CW/3,CW/3,CW/3],['Campo no '+ext,'Fonte no arquivo do MIS','Valor padrão'],S.rows.filter(r=>r.req).map(r=>[r.n.replace('Prinect_',''),r.src.trim()||'(não mapeado)',r.def.trim()||'-']),8.5,0,1);
 bul('Os dados obrigatórios devem constar em todo arquivo exportado pelo MIS. Se algum faltar, vier vazio ou fora do formato esperado, a automação não cria o trabalho e move o arquivo para _error. Isso não é falha da automação: corrigir o dado ou a exportação é responsabilidade da gráfica.');
 bul('Quando um dado com valor padrão vier vazio, a automação usa o valor padrão da tabela. A gráfica deve conferir se esse valor atende ao seu processo.');
 bul('A automação usa os dados como o MIS os envia e não valida o conteúdo comercial ou técnico (por exemplo, cadastros e medidas).');

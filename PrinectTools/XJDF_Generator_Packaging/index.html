@@ -243,6 +243,10 @@ footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font
       <div class="field"><label>Customer ID</label><input id="Prinect_CustomerID"></div>
       <div class="field"><label>Customer Name</label><input id="Prinect_CustomerName"></div>
       <div class="field"><label>Product ID</label><input id="Prinect_ProductID"></div>
+      <div class="field"><label>Rua / Street</label><input id="Prinect_Street"></div>
+      <div class="field"><label>Cidade / City</label><input id="Prinect_City"></div>
+      <div class="field"><label>CEP / Postal Code</label><input id="Prinect_PostalCode"></div>
+      <div class="field"><label>País (ISO) / Country Code</label><input id="Prinect_CountryCode" value="BR"></div>
     </div>
 
     <div class="section-title"><span class="n">3</span><h3>Estrutural (recorte)</h3></div>
@@ -286,6 +290,13 @@ footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font
 
 <script>
 function v(id){return document.getElementById(id).value.trim();}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function e(i){return esc(v(i));}
+function addressXml(){
+  let at=[["Street","Prinect_Street"],["City","Prinect_City"],["PostalCode","Prinect_PostalCode"],["CountryCode","Prinect_CountryCode"]]
+    .filter(a=>v(a[1])!=="").map(a=>a[0]+'="'+e(a[1])+'"').join(" ");
+  return at?'<Address '+at+'/>':"";
+}
 function copiar(){
  let p="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";
  navigator.clipboard.writeText(p);
@@ -293,35 +304,37 @@ function copiar(){
 }
 function gerar(){
  let articleId = v("Prinect_ArticleID");
+ let aid = esc(articleId);
  let xml=`<?xml version="1.0" encoding="UTF-8"?>
-<XJDF Category="Printing" DescriptiveName="${v("Prinect_JobName")}" JobID="${v("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
-<GeneralID IDUsage="CatalogID" IDValue="${v("Prinect_ProductCode")}"/>
+<XJDF Category="Printing" DescriptiveName="${e("Prinect_JobName")}" JobID="${e("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
+<GeneralID IDUsage="CatalogID" IDValue="${e("Prinect_ProductCode")}"/>
 <ProductList>
-<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_CustomerName")}" ExternalID="100031" ID="p_root_001" IsRoot="true" ProductID="${v("Prinect_ProductID")}">
-<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${v("X")}mm ${v("Y")}mm" Pages="${v("Prinect_NumberPages")}" Sides="${v("Prinect_Sides")}"/></Intent>
-<Intent Name="MediaIntent"><MediaIntent MediaQuality="${v("Prinect_MediaQuality")}"/></Intent>
+<Product Amount="${e("Prinect_Quantity")}" DescriptiveName="${e("Prinect_CustomerName")}" ExternalID="100031" ID="p_root_001" IsRoot="true" ProductID="${e("Prinect_ProductID")}">
+<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${e("X")}mm ${e("Y")}mm" Pages="${e("Prinect_NumberPages")}" Sides="${e("Prinect_Sides")}"/></Intent>
+<Intent Name="MediaIntent"><MediaIntent MediaQuality="${e("Prinect_MediaQuality")}"/></Intent>
 <Intent Name="ColorIntent"><ColorIntent><SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front"/></ColorIntent></Intent>
 <Intent Name="ProductionIntent"><ProductionIntent PrintProcess="Lithography"/></Intent>
 <Intent Name="BindingIntent"><BindingIntent BindingType="LooseBinding"/></Intent>
 </Product>
-<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${articleId}" ExternalID="${articleId}" ID="p_part_001" IsRoot="false" ProductType="FlatBox" ProductID="${articleId}">
-<GeneralID IDUsage="ArticleID" IDValue="${articleId}"/>
-<Intent Name="ShapeCuttingIntent"><ShapeCuttingIntent><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/></ShapeCuttingIntent></Intent>
+<Product Amount="${e("Prinect_Quantity")}" DescriptiveName="${aid}" ExternalID="${aid}" ID="p_part_001" IsRoot="false" ProductType="FlatBox" ProductID="${aid}">
+<GeneralID IDUsage="ArticleID" IDValue="${aid}"/>
+<Intent Name="ShapeCuttingIntent"><ShapeCuttingIntent><GeneralID IDUsage="ShapeID" IDValue="${e("Prinect_ShapeID")}"/></ShapeCuttingIntent></Intent>
 </Product>
 </ProductList>
-<ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${v("Prinect_CustomerID")}" CustomerName="${v("Prinect_CustomerName")}"/></Resource></ResourceSet>
+<ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${e("Prinect_CustomerID")}"/></Resource></ResourceSet>
+<ResourceSet Name="Contact" Usage="Input"><Resource><Part ContactType="Customer"/><Contact><Company CompanyID="${e("Prinect_CustomerID")}" OrganizationName="${e("Prinect_CustomerName")}"/>${addressXml()}</Contact></Resource></ResourceSet>
 <ResourceSet Name="RunList" Usage="Input">
 <Resource Status="Available">
-<Part ProductPart="${articleId}" Run="1"/>
-<RunList ContentRefs="RS_PageList_001" NPage="1"><FileSpec URL="//${v("Prinect_Server")}/PTTransfer/Files/${articleId}.pdf" UserFileName="${articleId}.pdf"/></RunList>
+<Part ProductPart="${aid}" Run="1"/>
+<RunList ContentRefs="RS_PageList_001" NPage="1"><FileSpec URL="//${e("Prinect_Server")}/PTTransfer/Files/${aid}.pdf" UserFileName="${aid}.pdf"/></RunList>
 </Resource>
 </ResourceSet>
 <ResourceSet ID="RS_PageList_001" Name="PageList" Usage="Input">
 <Resource>
-<PageList><PageData AssemblyIDs="${articleId}" PageIndex="0" ProductID="${articleId}" DescriptiveName="${articleId}"><GeneralID IDUsage="ShapeID" IDValue="${v("Prinect_ShapeID")}"/><GeneralID IDUsage="ArticleID" IDValue="${articleId}"/></PageData></PageList>
+<PageList><PageData AssemblyIDs="${aid}" PageIndex="0" ProductID="${aid}" DescriptiveName="${aid}"><GeneralID IDUsage="ShapeID" IDValue="${e("Prinect_ShapeID")}"/><GeneralID IDUsage="ArticleID" IDValue="${aid}"/></PageData></PageList>
 </Resource>
 </ResourceSet>
-<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><Part Product="100031"/><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${v("Prinect_DurationDays")}D"/></Resource></ResourceSet>
+<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><Part Product="100031"/><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${e("Prinect_DurationDays")}D"/></Resource></ResourceSet>
 </XJDF>`;
  let blob=new Blob([xml],{type:"application/xml"});
  let a=document.createElement("a");

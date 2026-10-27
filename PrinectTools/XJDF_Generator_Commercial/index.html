@@ -233,6 +233,10 @@ footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font
       <div class="field"><label>Customer Name</label><input id="Prinect_CustomerName"></div>
       <div class="field"><label>Product ID</label><input id="Prinect_ProductID"></div>
       <div class="field"><label>Prinect FileName</label><input id="Prinect_FileName"></div>
+      <div class="field"><label>Rua / Street</label><input id="Prinect_Street"></div>
+      <div class="field"><label>Cidade / City</label><input id="Prinect_City"></div>
+      <div class="field"><label>CEP / Postal Code</label><input id="Prinect_PostalCode"></div>
+      <div class="field"><label>País (ISO) / Country Code</label><input id="Prinect_CountryCode" value="BR"></div>
     </div>
 
     <div class="section-title"><span class="n">3</span><h3>Especificações de produção</h3></div>
@@ -268,25 +272,33 @@ footer{max-width:980px;margin:0 auto 40px;padding:0 24px;color:var(--muted);font
 
 <script>
 function v(i){return document.getElementById(i).value.trim();}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function e(i){return esc(v(i));}
+function addressXml(){
+  let at=[["Street","Prinect_Street"],["City","Prinect_City"],["PostalCode","Prinect_PostalCode"],["CountryCode","Prinect_CountryCode"]]
+    .filter(a=>v(a[1])!=="").map(a=>a[0]+'="'+e(a[1])+'"').join(" ");
+  return at?'<Address '+at+'/>':"";
+}
 function copiar(){let p="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";navigator.clipboard.writeText(p);alert("Caminho copiado.");}
 function gerar(){
 // Workaround temporário: o Prinect só monta o layout corretamente se o XJDF
 // informar o dobro das páginas reais. O campo na tela mostra o valor real.
 let pagesForXjdf = (parseFloat(v("Prinect_NumberPages")) || 0) * 2;
 let xml=`<?xml version="1.0" encoding="UTF-8"?>
-<XJDF Category="Printing" DescriptiveName="${v("Prinect_JobName")}" JobID="${v("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
-<GeneralID IDUsage="CatalogID" IDValue="${v("Prinect_ProductCode")}"/>
+<XJDF Category="Printing" DescriptiveName="${e("Prinect_JobName")}" JobID="${e("Prinect_JobID")}" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0">
+<GeneralID IDUsage="CatalogID" IDValue="${e("Prinect_ProductCode")}"/>
 <ProductList>
-<Product Amount="${v("Prinect_Quantity")}" DescriptiveName="${v("Prinect_CustomerName")}" ExternalID="${v("Prinect_ProductID")}" ID="root" IsRoot="true" ProductID="${v("Prinect_ProductID")}">
-<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${v("X")}mm ${v("Y")}mm" Pages="${pagesForXjdf}" Sides="${v("Prinect_Sides")}"/></Intent>
-<Intent Name="MediaIntent"><MediaIntent MediaQuality="${v("Prinect_MediaQuality")}"/></Intent>
+<Product Amount="${e("Prinect_Quantity")}" DescriptiveName="${e("Prinect_CustomerName")}" ExternalID="${e("Prinect_ProductID")}" ID="root" IsRoot="true" ProductID="${e("Prinect_ProductID")}">
+<Intent Name="LayoutIntent"><LayoutIntent FinishedDimensions="${e("X")}mm ${e("Y")}mm" Pages="${pagesForXjdf}" Sides="${e("Prinect_Sides")}"/></Intent>
+<Intent Name="MediaIntent"><MediaIntent MediaQuality="${e("Prinect_MediaQuality")}"/></Intent>
 <Intent Name="ColorIntent"><ColorIntent><SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front"/></ColorIntent></Intent>
 <Intent Name="ProductionIntent"><ProductionIntent PrintProcess="Lithography"/></Intent>
 <Intent Name="BindingIntent"><BindingIntent BindingType="SaddleStitch"/></Intent>
 </Product></ProductList>
-<ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${v("Prinect_CustomerID")}" CustomerName="${v("Prinect_CustomerName")}"/></Resource></ResourceSet>
-<ResourceSet Name="RunList" Usage="Input"><Resource><RunList><FileSpec URL="//${v("Prinect_Server")}/PTTransfer/Files/${v("Prinect_FileName")}.pdf" UserFileName="${v("Prinect_FileName")}.pdf"/></RunList></Resource></ResourceSet>
-<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${v("Prinect_DurationDays")}D"/></Resource></ResourceSet>
+<ResourceSet Name="CustomerInfo" Usage="Input"><Resource><CustomerInfo CustomerID="${e("Prinect_CustomerID")}"/></Resource></ResourceSet>
+<ResourceSet Name="Contact" Usage="Input"><Resource><Part ContactType="Customer"/><Contact><Company CompanyID="${e("Prinect_CustomerID")}" OrganizationName="${e("Prinect_CustomerName")}"/>${addressXml()}</Contact></Resource></ResourceSet>
+<ResourceSet Name="RunList" Usage="Input"><Resource><RunList><FileSpec URL="//${e("Prinect_Server")}/PTTransfer/Files/${e("Prinect_FileName")}.pdf" UserFileName="${e("Prinect_FileName")}.pdf"/></RunList></Resource></ResourceSet>
+<ResourceSet Name="NodeInfo" Usage="Input"><Resource Status="Available"><NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${e("Prinect_DurationDays")}D"/></Resource></ResourceSet>
 </XJDF>`;
 let b=new Blob([xml],{type:"application/xml"});let a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=v("Prinect_FileName")+".xjdf";a.click();
 document.getElementById("path").textContent="\\\\"+v("Prinect_Server")+"\\PTConfig\\Connector\\JDFImport";

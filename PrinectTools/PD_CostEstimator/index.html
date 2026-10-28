@@ -1950,7 +1950,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         [['Aproveitamento de papel de '], [txt('vAproveitamento'), true]],
         [['Prazo de produção sob consulta']]
       ]);
-      receipt(rowsFrom('#dashboard'));
+      receipt(rowsFrom('#dashboard').map(r => r.total ? Object.assign(r, {bold:'Orçamento Faca'}) : r));
       first = false;
     }
 
@@ -1963,6 +1963,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         [['Produzido em '], [txt('ctNSheets')]]
       ]);
       receipt(rowsFrom('#ctDashboard'));
+    }
+
+    if (state.faca && state.cartucho){
+      sectionTitle('Resumo do orçamento');
+      receipt([
+        {bold:'Orçamento Faca', rest:'· investimento único na ferramenta', val: fmtBRL(state.faca.total), total:false},
+        {bold:'Orçamento Cartucho', rest:'· lote de ' + Math.round(state.cartucho.numberBoxes).toLocaleString('pt-BR') + ' caixas', val: fmtBRL(state.cartucho.total), total:false},
+        {bold:'Total do orçamento', rest:'', val: fmtBRL(state.faca.total + state.cartucho.total), total:true}
+      ]);
     }
 
     // rodapé + paginação
@@ -1981,7 +1990,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     const d = new Date();
     const stamp = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     const nome = state.faca && state.cartucho ? 'Faca_e_Cartucho' : (state.faca ? 'Faca' : 'Cartucho');
-    doc.setProperties({title:'Orçamento — ' + nome.replace(/_/g,' '), subject:'Orçamento Package Designer'});
+    doc.setProperties({title:'Package Designer - Cost Estimator · ' + nome.replace(/_/g,' '), subject:'Orçamento Package Designer'});
     doc.save('Orcamento_' + nome + '_' + stamp + '.pdf');
   }
 

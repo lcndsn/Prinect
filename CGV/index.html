@@ -29,27 +29,29 @@
     --font-display: 'Big Shoulders Display', sans-serif;
     --font-body: 'IBM Plex Sans', sans-serif;
     --font-mono: 'IBM Plex Mono', monospace;
+    color-scheme: light;
   }
+  @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    @media (prefers-color-scheme: dark){
-      --paper: #14181a;
-      --panel: #1c2225;
-      --ink: #e9ece9;
-      --ink-soft: #a4aca8;
-      --line: #333c3e;
-      --line-strong: #4a5658;
-      --accent: #6fb8ae;
-      --accent-soft: #223330;
-      --amber: #e0aa4d;
-      --amber-soft: #362a13;
-      --ok: #7ac98d;
-      --ok-soft: #1c2f21;
-      --bad: #e08076;
-      --bad-soft: #33201d;
-      --display-bg: #0c1211;
-      --display-fg: #8fe8bd;
-      --grid-line: rgba(255,255,255,0.04);
-    }
+    --paper: #14181a;
+    --panel: #1c2225;
+    --ink: #e9ece9;
+    --ink-soft: #a4aca8;
+    --line: #333c3e;
+    --line-strong: #4a5658;
+    --accent: #6fb8ae;
+    --accent-soft: #223330;
+    --amber: #e0aa4d;
+    --amber-soft: #362a13;
+    --ok: #7ac98d;
+    --ok-soft: #1c2f21;
+    --bad: #e08076;
+    --bad-soft: #33201d;
+    --display-bg: #0c1211;
+    --display-fg: #8fe8bd;
+    --grid-line: rgba(255,255,255,0.04);
+    color-scheme: dark;
+  }
   }
   :root[data-theme="dark"]{
     --paper: #14181a;
@@ -69,6 +71,7 @@
     --display-bg: #0c1211;
     --display-fg: #8fe8bd;
     --grid-line: rgba(255,255,255,0.04);
+    color-scheme: dark;
   }
 
   *{box-sizing:border-box;}
@@ -336,10 +339,129 @@
     margin:0 0 14px;
   }
 
-  select.fiber{
-    appearance:none;
+
+  /* Dropdown legível (claro e escuro) */
+  .input-unit select{
+    background-color:var(--paper);
+    color:var(--ink);
     cursor:pointer;
   }
+  .input-unit select option{
+    background-color:var(--panel);
+    color:var(--ink);
+  }
+
+  /* ---- Cálculo de Coluna didático ---- */
+  .intro-box{
+    background:var(--accent-soft);
+    border-left:4px solid var(--accent);
+    padding:14px 18px;
+    margin-bottom:22px;
+    font-size:14px;
+    line-height:1.6;
+  }
+  .intro-box ol{margin:8px 0 10px 20px;padding:0;}
+  .intro-box .intro-small{display:block;color:var(--ink-soft);font-size:13px;}
+
+  .step{
+    border:1.5px solid var(--line-strong);
+    margin-bottom:20px;
+  }
+  .step-head{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 16px;
+    border-bottom:1.5px solid var(--line-strong);
+    background:var(--paper);
+  }
+  .step-num{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:22px;
+    background:var(--ink);
+    color:var(--panel);
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+  }
+  .step-title{font-family:var(--font-display);font-weight:700;font-size:19px;line-height:1.1;}
+  .step-sub{font-size:12.5px;color:var(--ink-soft);display:block;font-family:var(--font-body);font-weight:400;margin-top:2px;}
+  .step-body{padding:16px;}
+  .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+  @media (max-width:640px){ .fields-grid{grid-template-columns:1fr;} }
+  .hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:6px 0 0;
+  }
+  .hint b{color:var(--ink);font-weight:600;}
+  .fiber-hint{
+    background:var(--amber-soft);
+    border-left:3px solid var(--amber);
+    padding:8px 12px;
+    font-size:13px;
+    line-height:1.5;
+    margin-top:8px;
+  }
+
+  details.advanced, details.glossary, details.steps{
+    border:1.5px dashed var(--line-strong);
+    margin-bottom:20px;
+  }
+  details summary{
+    cursor:pointer;
+    padding:12px 16px;
+    font-weight:600;
+    font-size:14px;
+    list-style:none;
+  }
+  details summary::-webkit-details-marker{display:none;}
+  details summary::before{content:"▸ ";font-family:var(--font-mono);}
+  details[open] > summary::before{content:"▾ ";}
+  details summary span{font-weight:400;color:var(--ink-soft);font-size:13px;}
+  .adv-body{padding:4px 16px 16px;}
+  .btn{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    background:var(--panel);
+    color:var(--ink);
+    border:1.5px solid var(--ink);
+    padding:7px 14px;
+    cursor:pointer;
+  }
+  .btn:hover{background:var(--accent-soft);}
+
+  .result-block{border:2px solid var(--ink);padding:18px;margin-bottom:20px;background:var(--panel);}
+  .res-title{font-family:var(--font-display);font-weight:800;font-size:24px;margin:0 0 10px;}
+  .res-text{font-size:14.5px;line-height:1.7;margin:0 0 16px;}
+  .res-text b{font-family:var(--font-mono);font-weight:600;}
+
+  .gauge{margin-bottom:6px;}
+  .bar-row{display:grid;grid-template-columns:130px 1fr 110px;gap:10px;align-items:center;margin-bottom:8px;font-size:13px;}
+  .bar-track{background:var(--paper);border:1.5px solid var(--line-strong);height:22px;}
+  .bar-fill{height:100%;width:0;transition:width .25s;}
+  .bar-fill.need{background:var(--amber);}
+  .bar-fill.have.ok{background:var(--ok);}
+  .bar-fill.have.bad{background:var(--bad);}
+  .bar-val{font-family:var(--font-mono);font-size:13px;text-align:right;}
+  @media (max-width:640px){ .bar-row{grid-template-columns:1fr;gap:4px;} .bar-val{text-align:left;} }
+
+  .extra-box{margin-top:18px;font-size:13.5px;line-height:1.6;}
+  .extra-box h5{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:0 0 8px;}
+  table.fibras{border-collapse:collapse;width:100%;font-family:var(--font-mono);font-size:13px;margin-bottom:12px;}
+  table.fibras th, table.fibras td{border:1px solid var(--line-strong);padding:7px 10px;text-align:left;}
+  table.fibras th{background:var(--paper);font-weight:600;}
+  .tag-ok{color:var(--ok);font-weight:600;}
+  .tag-bad{color:var(--bad);font-weight:600;}
+  .tips{margin:6px 0 0 18px;padding:0;}
+
+  .calc-lines{padding:4px 16px 16px;font-family:var(--font-mono);font-size:13px;line-height:1.9;}
+  .calc-lines .cl-h{color:var(--ink-soft);text-transform:uppercase;font-size:11.5px;letter-spacing:.06em;margin-top:10px;}
+
+  details.glossary dl{margin:0;padding:4px 16px 16px;font-size:13.5px;line-height:1.55;}
+  details.glossary dt{font-weight:600;margin-top:10px;}
+  details.glossary dd{margin:2px 0 0;color:var(--ink-soft);}
+
 
   footer.foot{
     max-width:980px;
@@ -497,125 +619,183 @@
     <!-- Cálculo de Coluna -->
     <div class="card">
       <div class="card-head">
-        <h3>Cálculo de Coluna (Box Compression)</h3>
-        <span class="tag">RESISTÊNCIA AO EMPILHAMENTO</span>
+        <h3>Cálculo de Coluna (Empilhamento)</h3>
+        <span class="tag">QUANTAS CAIXAS POSSO EMPILHAR?</span>
       </div>
       <div class="card-body">
-        <p class="card-note">Estimativa de resistência ao empilhamento para embalagens cartonadas quando não há ensaio físico (BCT) disponível. Compara a carga necessária, obtida pelo peso empilhado com fator de segurança, com a resistência teórica da coluna, obtida pela tensão de compressão do cartão. A fibra paralela à altura da embalagem favorece a resistência à coluna; a fibra transversal reduz essa resistência entre 20% e 50%.</p>
 
-        <div class="column-block">
-          <h4>1 · Carga necessária — peso empilhado × fator de segurança</h4>
-          <div class="formula-strip">Carga (kgf) = (Nº de Caixas − 1) × Peso Total da Caixa × Fator de Segurança</div>
-          <div class="grid">
-            <div>
+        <div class="intro-box">
+          <strong>Para que serve?</strong> Responde à pergunta: <em>"a caixa que fica embaixo da pilha aguenta o peso das de cima sem amassar?"</em> A ferramenta compara dois números:
+          <ol>
+            <li><b>Quanto a caixa de baixo precisa aguentar</b> — depende do peso de cada caixa e de quantas ficam empilhadas;</li>
+            <li><b>Quanto a embalagem realmente aguenta</b> — depende do cartão e da direção da fibra.</li>
+          </ol>
+          <span class="intro-small">Você só precisa preencher os <b>Passos 1 e 2</b>. Tudo que está em "Ajustes avançados" já vem preenchido com valores padrão. As dimensões do cartucho (largura × profundidade × altura) <b>não entram</b> nesta conta simplificada — só o peso.</span>
+        </div>
+
+        <!-- PASSO 1 -->
+        <div class="step">
+          <div class="step-head">
+            <span class="step-num">1</span>
+            <span class="step-title">O que será empilhado<span class="step-sub">Você preenche</span></span>
+          </div>
+          <div class="step-body">
+            <div class="fields-grid">
               <div class="field">
-                <label for="cc-peso-prod">Peso do Produto</label>
+                <label for="cc-peso-prod">Peso do produto</label>
                 <div class="input-unit">
-                  <input type="number" id="cc-peso-prod" value="500" step="1" inputmode="decimal">
+                  <input type="number" id="cc-peso-prod" value="500" step="1" min="0" inputmode="decimal">
                   <span class="unit">g</span>
                 </div>
+                <p class="hint">Só o conteúdo, sem a embalagem. Ex.: 500 g.</p>
               </div>
               <div class="field">
-                <label for="cc-peso-emb">Peso da Embalagem</label>
+                <label for="cc-peso-emb">Peso da embalagem vazia</label>
                 <div class="input-unit">
-                  <input type="number" id="cc-peso-emb" value="50" step="1" inputmode="decimal">
+                  <input type="number" id="cc-peso-emb" value="50" step="1" min="0" inputmode="decimal">
                   <span class="unit">g</span>
                 </div>
+                <p class="hint">Um cartucho sozinho (pese numa balança). Ex.: 50 g.</p>
               </div>
               <div class="field">
-                <label for="cc-qtd">Quantidade de Caixas Empilhadas</label>
+                <label for="cc-qtd">Quantas caixas ficam na pilha</label>
                 <div class="input-unit">
-                  <input type="number" id="cc-qtd" value="20" step="1" inputmode="numeric">
+                  <input type="number" id="cc-qtd" value="20" step="1" min="1" inputmode="numeric">
                   <span class="unit">caixas</span>
                 </div>
-              </div>
-              <div class="field">
-                <label for="cc-fs">Fator de Segurança</label>
-                <div class="input-unit">
-                  <input type="number" id="cc-fs" value="5" step="0.5" inputmode="decimal">
-                  <span class="unit">×</span>
-                </div>
-              </div>
-            </div>
-            <div class="readout stack">
-              <div>
-                <span class="r-label">Carga sobre a caixa inferior</span>
-                <span class="r-value" id="cc-carga-inferior" style="font-size:19px;">—</span>
-              </div>
-              <div>
-                <span class="r-label">Carga necessária (com fator de segurança)</span>
-                <span class="r-value" id="cc-carga-necessaria">—</span>
+                <p class="hint">Conte todas, inclusive a de baixo. Ex.: 20 caixas empilhadas na altura da paleta.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="column-block">
-          <h4>2 · Resistência teórica da coluna — F = σ × A</h4>
-          <div class="formula-strip">Área = Nº de Colunas × Largura da Coluna × Espessura do Cartão &nbsp;·&nbsp; F = σ × Área &nbsp;·&nbsp; F ajustada = F × Fator de Fibra</div>
-          <div class="grid">
-            <div>
+        <!-- PASSO 2 -->
+        <div class="step">
+          <div class="step-head">
+            <span class="step-num">2</span>
+            <span class="step-title">O cartão e a fibra<span class="step-sub">Você preenche</span></span>
+          </div>
+          <div class="step-body">
+            <div class="fields-grid">
               <div class="field">
-                <label for="cc-sigma">Resistência à Compressão do Cartão (σ)</label>
+                <label for="cc-espessura">Espessura do cartão</label>
                 <div class="input-unit">
-                  <input type="number" id="cc-sigma" value="20" step="0.5" inputmode="decimal">
-                  <span class="unit">MPa</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="cc-colunas">Número de Colunas</label>
-                <div class="input-unit">
-                  <input type="number" id="cc-colunas" value="4" step="1" inputmode="numeric">
-                  <span class="unit">colunas</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="cc-largura">Largura de Cada Coluna</label>
-                <div class="input-unit">
-                  <input type="number" id="cc-largura" value="20" step="0.5" inputmode="decimal">
+                  <input type="number" id="cc-espessura" value="0.5" step="0.01" min="0" inputmode="decimal">
                   <span class="unit">mm</span>
                 </div>
+                <p class="hint">Está na ficha técnica do cartão ou pode ser medida com micrômetro. Ex.: 0,5 mm.</p>
               </div>
               <div class="field">
-                <label for="cc-espessura">Espessura do Cartão</label>
+                <label for="cc-fibra">Direção da fibra do cartão</label>
                 <div class="input-unit">
-                  <input type="number" id="cc-espessura" value="0.5" step="0.01" inputmode="decimal">
-                  <span class="unit">mm</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="cc-fibra">Orientação da Fibra</label>
-                <div class="input-unit">
-                  <select id="cc-fibra" class="fiber">
-                    <option value="1.0">Paralela à altura (fator 1,0)</option>
-                    <option value="0.7" selected>Transversal (fator 0,7)</option>
-                    <option value="0.6">Transversal conservador (fator 0,6)</option>
+                  <select id="cc-fibra">
+                    <option value="1.0">Fibra em pé — paralela à altura (melhor)</option>
+                    <option value="0.7" selected>Fibra deitada — transversal (pior)</option>
+                    <option value="0.6">Não sei / quero ser conservador</option>
                     <option value="custom">Personalizado…</option>
                   </select>
                 </div>
-              </div>
-              <div class="field" id="cc-fibra-custom-wrap" style="display:none;">
-                <label for="cc-fibra-custom">Fator Personalizado</label>
-                <div class="input-unit">
-                  <input type="number" id="cc-fibra-custom" value="0.7" step="0.05" min="0" max="1" inputmode="decimal">
-                  <span class="unit">×</span>
+                <div class="fiber-hint" id="cc-fibra-hint"></div>
+                <div id="cc-fibra-custom-wrap" style="display:none;margin-top:10px;">
+                  <label for="cc-fibra-custom">Fator de fibra personalizado (0 a 1)</label>
+                  <div class="input-unit">
+                    <input type="number" id="cc-fibra-custom" value="0.7" step="0.05" min="0" max="1" inputmode="decimal">
+                    <span class="unit">×</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div class="readout stack">
-              <div>
-                <span class="r-label">Força teórica (sem fator de fibra)</span>
-                <span class="r-value" id="cc-forca-bruta" style="font-size:19px;">—</span>
-              </div>
-              <div>
-                <span class="r-label">Resistência ajustada pela fibra</span>
-                <span class="r-value" id="cc-forca-ajustada">—</span>
+                <p class="hint"><b>Como saber?</b> Veja o sentido da fibra na folha impressa. Se ela corre na mesma direção da altura do cartucho montado (de baixo para cima), é "em pé".</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="verdict" id="cc-verdict"></div>
+        <!-- AVANÇADO -->
+        <details class="advanced">
+          <summary>Ajustes avançados <span>— já vêm preenchidos; normalmente não precisa mexer</span></summary>
+          <div class="adv-body">
+            <div class="fields-grid">
+              <div class="field">
+                <label for="cc-fs">Fator de segurança</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-fs" value="5" step="0.5" min="1" inputmode="decimal">
+                  <span class="unit">×</span>
+                </div>
+                <p class="hint"><b>O que é:</b> uma folga para cobrir umidade, tempo parado empilhado e vibração no transporte. <b>Padrão: 5.</b> <b>Altere só se</b> sua empresa ou o cliente definir outro valor.</p>
+              </div>
+              <div class="field">
+                <label for="cc-sigma">Resistência à compressão do cartão (σ)</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-sigma" value="20" step="0.5" min="0" inputmode="decimal">
+                  <span class="unit">MPa</span>
+                </div>
+                <p class="hint"><b>O que é:</b> quanto esforço o cartão suporta por mm² antes de ceder. <b>Padrão: 20 MPa</b> (valor típico de FBB 350 g/m²). <b>Altere só se</b> o fornecedor informar o valor real do seu cartão.</p>
+              </div>
+              <div class="field">
+                <label for="cc-colunas">Número de colunas</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-colunas" value="4" step="1" min="1" inputmode="numeric">
+                  <span class="unit">colunas</span>
+                </div>
+                <p class="hint"><b>O que é:</b> os cantos verticais da caixa, que seguram o peso. <b>Padrão: 4</b> (cartucho retangular). <b>Altere só</b> para formatos diferentes.</p>
+              </div>
+              <div class="field">
+                <label for="cc-largura">Largura de cada coluna</label>
+                <div class="input-unit">
+                  <input type="number" id="cc-largura" value="20" step="0.5" min="0" inputmode="decimal">
+                  <span class="unit">mm</span>
+                </div>
+                <p class="hint"><b>O que é:</b> a faixa de cartão em cada canto que efetivamente sustenta a carga (estimativa de projeto). <b>Padrão: 20 mm.</b></p>
+              </div>
+            </div>
+            <button type="button" class="btn" id="cc-reset">Restaurar valores padrão</button>
+          </div>
+        </details>
+
+        <!-- RESULTADO -->
+        <div class="result-block">
+          <h4 class="res-title">Resultado</h4>
+          <p class="res-text" id="cc-resumo">Preencha os campos dos Passos 1 e 2 para ver o resultado.</p>
+          <div class="gauge" id="cc-gauge" style="display:none;">
+            <div class="bar-row">
+              <span>Precisa aguentar</span>
+              <div class="bar-track"><div class="bar-fill need" id="cc-bar-need"></div></div>
+              <span class="bar-val" id="cc-bar-need-val"></span>
+            </div>
+            <div class="bar-row">
+              <span>Embalagem aguenta</span>
+              <div class="bar-track"><div class="bar-fill have" id="cc-bar-have"></div></div>
+              <span class="bar-val" id="cc-bar-have-val"></span>
+            </div>
+          </div>
+          <div class="verdict" id="cc-verdict" style="display:none;"></div>
+          <div class="extra-box" id="cc-extra"></div>
+        </div>
+
+        <details class="steps">
+          <summary>Ver a conta passo a passo <span>— para conferir ou explicar o resultado</span></summary>
+          <div class="calc-lines" id="cc-steps">—</div>
+        </details>
+
+        <details class="glossary">
+          <summary>Glossário <span>— o que significa cada termo</span></summary>
+          <dl>
+            <dt>kgf (quilograma-força)</dt>
+            <dd>Unidade de força equivalente ao peso de 1 kg. 10 kgf ≈ o peso de 10 kg parados em cima da caixa.</dd>
+            <dt>MPa (megapascal)</dt>
+            <dd>Unidade de resistência do material: 1 MPa = 1 N por mm² de cartão. Quanto maior, mais resistente.</dd>
+            <dt>Fibra (direção de fabricação)</dt>
+            <dd>O cartão é mais rígido no sentido em que foi fabricado. Com a fibra "em pé" (na altura da caixa), as fibras funcionam como colunas e a caixa suporta mais peso.</dd>
+            <dt>Fator de fibra</dt>
+            <dd>Multiplicador que reduz a resistência quando a fibra não está na altura (1,0 = sem perda; 0,7 = perde 30%; 0,6 = perde 40%).</dd>
+            <dt>Fator de segurança</dt>
+            <dd>Margem extra aplicada sobre a carga real, porque na prática há umidade, tempo de empilhamento e vibração que enfraquecem a caixa.</dd>
+            <dt>Coluna</dt>
+            <dd>Cada canto vertical da caixa. São eles que sustentam o peso da pilha.</dd>
+            <dt>BCT (Box Compression Test)</dt>
+            <dd>Ensaio físico que mede quantos newtons a embalagem aguenta até colapsar. É o método mais confiável; esta ferramenta é só uma estimativa quando não há ensaio.</dd>
+          </dl>
+        </details>
+
       </div>
     </div>
 
@@ -735,72 +915,135 @@ function calcCanaleta(){
 
 // Cálculo de Coluna
 const G = 9.80665;
+const COL_DEFAULTS = {'cc-fs':5,'cc-sigma':20,'cc-colunas':4,'cc-largura':20};
+const FIBER_HINTS = {
+  '1.0': '<b>Fibra em pé (fator 1,0):</b> as fibras do cartão trabalham como colunas. É a melhor situação para embalagens que serão paletizadas.',
+  '0.7': '<b>Fibra deitada (fator 0,7):</b> o cartão resiste menos ao peso de cima. A estimativa perde cerca de 30% da resistência.',
+  '0.6': '<b>Conservador (fator 0,6):</b> perde 40% da resistência. Use quando não tiver certeza da direção da fibra.',
+  'custom': '<b>Personalizado:</b> informe abaixo o fator que quer aplicar (1,0 = sem perda).'
+};
+
 function calcColuna(){
+  const sel = document.getElementById('cc-fibra');
+  const customWrap = document.getElementById('cc-fibra-custom-wrap');
+  document.getElementById('cc-fibra-hint').innerHTML = FIBER_HINTS[sel.value];
+  let fator;
+  if(sel.value==='custom'){
+    customWrap.style.display='block';
+    fator = num('cc-fibra-custom');
+  } else {
+    customWrap.style.display='none';
+    fator = parseFloat(sel.value);
+  }
+
   const pesoProd = num('cc-peso-prod');
   const pesoEmb = num('cc-peso-emb');
   const qtd = num('cc-qtd');
+  const esp = num('cc-espessura');
   const fs = num('cc-fs');
-  const cargaInfEl = document.getElementById('cc-carga-inferior');
-  const cargaNecEl = document.getElementById('cc-carga-necessaria');
-  let cargaNecessaria = null;
-
-  if(pesoProd!==null && pesoEmb!==null && qtd!==null && fs!==null && qtd>=1){
-    const pesoTotalKg = (pesoProd+pesoEmb)/1000;
-    const cargaInferior = (qtd-1)*pesoTotalKg;
-    cargaNecessaria = cargaInferior*fs;
-    cargaInfEl.textContent = fmt(cargaInferior,2)+' kgf';
-    cargaNecEl.textContent = fmt(cargaNecessaria,2)+' kgf';
-  } else {
-    cargaInfEl.textContent='—'; cargaNecEl.textContent='—';
-  }
-
   const sigma = num('cc-sigma');
   const colunas = num('cc-colunas');
   const largura = num('cc-largura');
-  const espessura = num('cc-espessura');
-  const fibraSelect = document.getElementById('cc-fibra');
-  const fibraCustomWrap = document.getElementById('cc-fibra-custom-wrap');
-  let fator;
-  if(fibraSelect.value==='custom'){
-    fibraCustomWrap.style.display='block';
-    fator = num('cc-fibra-custom');
-  } else {
-    fibraCustomWrap.style.display='none';
-    fator = parseFloat(fibraSelect.value);
-  }
 
-  const forcaBrutaEl = document.getElementById('cc-forca-bruta');
-  const forcaAjustadaEl = document.getElementById('cc-forca-ajustada');
-  let forcaAjustadaKgf = null;
-
-  if(sigma!==null && colunas!==null && largura!==null && espessura!==null && fator!==null){
-    const area = colunas*largura*espessura; // mm²
-    const forcaN = sigma*area; // N (MPa = N/mm²)
-    const forcaKgf = forcaN/G;
-    forcaAjustadaKgf = forcaKgf*fator;
-    forcaBrutaEl.textContent = fmt(forcaKgf,2)+' kgf';
-    forcaAjustadaEl.textContent = fmt(forcaAjustadaKgf,2)+' kgf';
-  } else {
-    forcaBrutaEl.textContent='—'; forcaAjustadaEl.textContent='—';
-  }
-
+  const resumo = document.getElementById('cc-resumo');
+  const gauge = document.getElementById('cc-gauge');
   const verdict = document.getElementById('cc-verdict');
-  if(cargaNecessaria!==null && forcaAjustadaKgf!==null){
-    const margem = ((forcaAjustadaKgf-cargaNecessaria)/cargaNecessaria)*100;
-    if(forcaAjustadaKgf>=cargaNecessaria){
-      verdict.className='verdict ok';
-      verdict.innerHTML = 'APROVADO — resistência ajustada acima da carga necessária.<span class="v-detail">Margem de '+fmt(margem,1)+'% · '+fmt(forcaAjustadaKgf,2)+' kgf disponíveis vs. '+fmt(cargaNecessaria,2)+' kgf necessários</span>';
-    } else {
-      verdict.className='verdict bad';
-      verdict.innerHTML = 'REPROVADO — resistência ajustada abaixo da carga necessária.<span class="v-detail">Déficit de '+fmt(Math.abs(margem),1)+'% · '+fmt(forcaAjustadaKgf,2)+' kgf disponíveis vs. '+fmt(cargaNecessaria,2)+' kgf necessários</span>';
-    }
-  } else {
-    verdict.className='verdict';
-    verdict.innerHTML='';
+  const extra = document.getElementById('cc-extra');
+  const steps = document.getElementById('cc-steps');
+
+  function empty(msg){
+    resumo.textContent = msg;
+    gauge.style.display='none';
+    verdict.style.display='none';
+    extra.innerHTML='';
+    steps.textContent='—';
   }
+
+  const missing = [];
+  if(pesoProd===null) missing.push('peso do produto');
+  if(pesoEmb===null) missing.push('peso da embalagem');
+  if(qtd===null || qtd<1) missing.push('quantas caixas na pilha (mínimo 1)');
+  if(esp===null || esp<=0) missing.push('espessura do cartão');
+  if(fator===null) missing.push('fator de fibra');
+  if(missing.length){ empty('Falta preencher: '+missing.join(', ')+'.'); return; }
+  if(fs===null||sigma===null||colunas===null||largura===null||fs<=0){
+    empty('Algum campo dos Ajustes avançados está vazio. Clique em "Restaurar valores padrão".'); return;
+  }
+
+  const pt = (pesoProd+pesoEmb)/1000;           // kg por caixa cheia
+  const cargaInf = (qtd-1)*pt;                  // kgf na caixa de baixo
+  const need = cargaInf*fs;                     // kgf necessários
+  const area = colunas*largura*esp;             // mm²
+  const fN = sigma*area;                        // N
+  const fKgf = fN/G;                            // kgf sem fator de fibra
+  const have = fKgf*fator;                      // kgf ajustado
+
+  resumo.innerHTML =
+    'Cada caixa cheia pesa <b>'+fmt(pt,3)+' kg</b>. Com '+fmt(qtd,0)+' caixas empilhadas, a de baixo sustenta o peso de '+fmt(qtd-1,0)+' caixas: <b>'+fmt(cargaInf,2)+' kgf</b>. '+
+    'Aplicando a margem de segurança ('+fmt(fs,1)+'×), ela precisa aguentar <b>'+fmt(need,2)+' kgf</b>. '+
+    'Pela estimativa, sua embalagem aguenta <b>'+fmt(have,2)+' kgf</b>.';
+
+  const ok = have>=need;
+  const max = Math.max(need,have);
+  gauge.style.display='block';
+  document.getElementById('cc-bar-need').style.width = (max>0? need/max*100:0)+'%';
+  const haveBar = document.getElementById('cc-bar-have');
+  haveBar.style.width = (max>0? have/max*100:0)+'%';
+  haveBar.className = 'bar-fill have '+(ok?'ok':'bad');
+  document.getElementById('cc-bar-need-val').textContent = fmt(need,2)+' kgf';
+  document.getElementById('cc-bar-have-val').textContent = fmt(have,2)+' kgf';
+
+  verdict.style.display='block';
+  if(need===0){
+    verdict.className='verdict ok';
+    verdict.innerHTML='Com apenas 1 caixa não há carga de empilhamento.';
+  } else if(ok){
+    const margem = (have-need)/need*100;
+    verdict.className='verdict ok';
+    verdict.innerHTML='APROVADO — a embalagem aguenta esta pilha.<span class="v-detail">Folga de '+fmt(margem,1)+'% acima do necessário.</span>';
+  } else {
+    const deficit = (need-have)/need*100;
+    verdict.className='verdict bad';
+    verdict.innerHTML='REPROVADO — a embalagem não aguenta esta pilha com a margem de segurança.<span class="v-detail">Faltam '+fmt(deficit,1)+'% de resistência.</span>';
+  }
+
+  // Extras: comparação de fibra + máximo de caixas
+  function row(label, f){
+    const pass = f>=need;
+    return '<tr><td>'+label+'</td><td>'+fmt(f,2)+' kgf</td><td class="'+(pass?'tag-ok':'tag-bad')+'">'+(pass?'Aprovado':'Reprovado')+'</td></tr>';
+  }
+  let html = '<h5>Veja o efeito da direção da fibra</h5>'+
+    '<table class="fibras"><tr><th>Fibra</th><th>Resistência</th><th>Resultado</th></tr>'+
+    row('Em pé (1,0)', fKgf*1.0)+row('Deitada (0,7)', fKgf*0.7)+row('Conservador (0,6)', fKgf*0.6)+'</table>';
+  if(pt>0){
+    const nMax = Math.floor(have/(fs*pt))+1;
+    html += '<p>Com a configuração atual, o máximo seguro é de <b>'+fmt(nMax,0)+' caixas</b> empilhadas.</p>';
+  }
+  if(!ok && need>0){
+    html += '<h5>Como melhorar</h5><ul class="tips">'+
+      '<li>Orientar a fibra do cartão na altura da embalagem;</li>'+
+      '<li>Usar cartão de maior espessura/gramatura;</li>'+
+      '<li>Reduzir o número de caixas na pilha;</li>'+
+      '<li>Fazer o ensaio BCT para confirmar a resistência real.</li></ul>';
+  }
+  extra.innerHTML = html;
+
+  steps.innerHTML =
+    '<div class="cl-h">Carga necessária</div>'+
+    'Peso de cada caixa = ('+fmt(pesoProd,0)+' + '+fmt(pesoEmb,0)+') ÷ 1000 = '+fmt(pt,3)+' kg<br>'+
+    'Carga na caixa de baixo = ('+fmt(qtd,0)+' − 1) × '+fmt(pt,3)+' = '+fmt(cargaInf,2)+' kgf<br>'+
+    'Com segurança = '+fmt(cargaInf,2)+' × '+fmt(fs,1)+' = <b>'+fmt(need,2)+' kgf</b>'+
+    '<div class="cl-h">Resistência da embalagem</div>'+
+    'Área resistente = '+fmt(colunas,0)+' × '+fmt(largura,1)+' × '+fmt(esp,2)+' = '+fmt(area,2)+' mm²<br>'+
+    'Força teórica = '+fmt(sigma,1)+' MPa × '+fmt(area,2)+' mm² = '+fmt(fN,1)+' N = '+fmt(fKgf,2)+' kgf<br>'+
+    'Com fator de fibra = '+fmt(fKgf,2)+' × '+fmt(fator,2)+' = <b>'+fmt(have,2)+' kgf</b>';
 }
-['cc-peso-prod','cc-peso-emb','cc-qtd','cc-fs','cc-sigma','cc-colunas','cc-largura','cc-espessura','cc-fibra-custom'].forEach(id=>document.getElementById(id).addEventListener('input',calcColuna));
+['cc-peso-prod','cc-peso-emb','cc-qtd','cc-espessura','cc-fs','cc-sigma','cc-colunas','cc-largura','cc-fibra-custom'].forEach(id=>document.getElementById(id).addEventListener('input',calcColuna));
 document.getElementById('cc-fibra').addEventListener('change',calcColuna);
+document.getElementById('cc-reset').addEventListener('click',()=>{
+  Object.keys(COL_DEFAULTS).forEach(id=>{ document.getElementById(id).value = COL_DEFAULTS[id]; });
+  calcColuna();
+});
 
 // Lombada de Livro
 function calcLombada(){

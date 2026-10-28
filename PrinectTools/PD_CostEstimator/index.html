@@ -1498,7 +1498,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       printingPlate,
       printingPrep,
       varnishBlanket,
-      varnishPrep
+      varnishPrep,
+      // partes fixas de cada linha (não escalam com o lote) — usadas só na exibição dos sub-custos
+      fixedPrint: (printingPlate + printingPrep) * numColors,
+      fixedVarnish: varnishBlanket + varnishPrep
     };
   }
 
@@ -1519,18 +1522,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     const productionCostNew = d.fixedSemDie + dieCostFinal + d.variablePerSheet * nSheetsCalc;
     const costNew           = productionCostNew + d.transport;
     const margemValor       = costNew * (d.profitPercent / 100);
-    const precoVenda        = costNew + margemValor;
-    const vatValor          = precoVenda * (d.vatPercent / 100);
+    // o Package Designer arredonda preço e IVA em centavos antes de somar; fazemos o mesmo para bater o total
+    const r2                = x => Math.round(x * 100) / 100;
+    const precoVenda        = r2(costNew + margemValor);
+    const vatValor          = r2(precoVenda * (d.vatPercent / 100));
     const totalAjustado     = precoVenda + vatValor;
     const pricePerBox       = precoVenda / numberBoxes;  // sem IVA, igual ao CustomerPricePerBox do PD
 
     // Recalcula os sub-custos proporcionalmente para exibição
     const ratio = d.nSheets > 0 ? nSheetsCalc / d.nSheets : 1;
-    const printCostNew    = d.printCost    * ratio;
+    // impressão e verniz: parte fixa (chapas/preparação) fica igual; só a parte variável escala com as folhas
+    const printCostNew    = d.fixedPrint + Math.max(0, d.printCost - d.fixedPrint) * ratio;
     const diecuttingCostNew = d.fixedSemDie > 0
       ? dieCostFinal + (d.diecuttingCost - d.dieCost) * ratio
       : d.diecuttingCost * ratio;
-    const varnishCostNew  = d.varnishCost  * ratio;
+    const varnishCostNew  = d.fixedVarnish + Math.max(0, d.varnishCost - d.fixedVarnish) * ratio;
 
     // Atualiza input de quantidade
     const qtyInput = document.getElementById('ctQtyInput');

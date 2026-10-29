@@ -182,13 +182,17 @@ h1.h1-sub{
 }
 
 .tools-grid{
-    grid-template-columns:repeat(2,1fr);
+    /* minmax(0,1fr) garante colunas sempre com a mesma largura,
+       independente do tamanho do texto de cada card */
+    grid-template-columns:repeat(2,minmax(0,1fr));
 }
 
-/* se sobrar um card sozinho na última linha, ele ocupa a largura toda
-   para não deixar um buraco ao lado */
+/* se sobrar um card sozinho na última linha, ele fica centralizado
+   com a mesma largura dos demais */
 .tools-grid .card:last-child:nth-child(odd){
     grid-column:1 / -1;
+    justify-self:center;
+    width:calc((100% - 16px) / 2);
 }
 
 .card{
@@ -314,7 +318,8 @@ footer .swatches .y{ background:var(--yellow); }
     .sheet{ padding:44px 16px 32px; }
     .reg{ display:none; }
     footer{ flex-direction:column; gap:14px; text-align:center; }
-    .tools-grid{ grid-template-columns:1fr; }
+    .tools-grid{ grid-template-columns:minmax(0,1fr); }
+    .tools-grid .card:last-child:nth-child(odd){ width:100%; }
 }
 
 @media (max-width:380px){

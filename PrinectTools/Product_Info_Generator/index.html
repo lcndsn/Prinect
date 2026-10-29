@@ -68,6 +68,23 @@ dialog::backdrop{background:rgba(28,26,23,.55)}
 .pairs tr.err td{background:var(--danger-soft)}
 .dlg-foot{padding:12px 18px;border-top:1px dashed var(--line);display:flex;justify-content:flex-end;gap:8px}
 .dlg-foot .btn-primary[disabled]{opacity:.4;cursor:not-allowed}
+
+.cfg{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:6px 0 14px}
+.cfg-bar{background:var(--paper-dark);padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.cfg-bar .on{color:var(--ink-soft)}
+.cfg-bar .val{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:3px 8px}
+.cfg-bar .chk2{color:var(--success);font-weight:600}
+.cfg dl{margin:0;padding:6px 12px;display:grid;grid-template-columns:110px 1fr;gap:6px 12px;align-items:center;font-size:13px}
+.cfg dt{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.cfg dd{margin:0;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+.cfg .pat b{color:var(--steel)}
+.cfg .pat i{color:var(--danger);font-style:normal}
+.cfg table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+.cfg th,.cfg td{padding:6px 12px;border-top:1px solid var(--line);text-align:left}
+.cfg th{background:var(--paper-dark);color:var(--ink-soft);font-size:10px;letter-spacing:.08em;text-transform:uppercase;border-top:none}
+.cfg td.mut{color:var(--ink-soft)}
+.note{font-size:12px;color:var(--ink-soft)}
+.exname{background:var(--amber-soft);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:4px 0 12px;word-break:break-all}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -84,6 +101,7 @@ dialog::backdrop{background:rgba(28,26,23,.55)}
       <button class="btn-primary" onclick="addRow(true)">+ Nova linha</button>
       <button class="btn-secondary" onclick="copyAll()">Copiar todos</button>
       <button class="btn-secondary" onclick="pickAndPreview()">Renomear PDFs da pasta</button>
+      <button class="btn-secondary" onclick="openCockpit()">Config. Cockpit</button>
       <button class="btn-secondary" onclick="resetDone()">Desmarcar feitos</button>
       <button class="btn-danger" onclick="clearAll()">Limpar lote</button>
       <span id="status"></span>
@@ -352,6 +370,37 @@ async function runRename(){
   document.getElementById("dlgBody").innerHTML = html;
   ok.style.display = "none";
   document.getElementById("dlgCancel").textContent = "Fechar";
+}
+
+/* ---- Config necessária no Cockpit ---- */
+function openCockpit(){
+  const campos = [
+    ["Article Name","#1#"],["Article Number","#2#"],["Shape ID","#3#"],["Shape Name","#4#"],["Delivery quantity",""]
+  ];
+  const html = `
+    <p>Para os nomes gerados aqui serem lidos corretamente, a sequência <b>Qualify</b> do Cockpit precisa ter o passo <b>Automatic Page Assignment</b> configurado assim:</p>
+    <div class="cfg">
+      <div class="cfg-bar"><span class="chk2">&#10003; ativo</span><span>Automatic Page Assignment</span><span class="on">on</span><span class="val">AllPreflightImports</span></div>
+      <dl>
+        <dt>Rule</dt><dd>Article Name and Number followed by Shape ID and Name</dd>
+        <dt>Pattern</dt><dd class="pat">Order4<i>#</i><b>Article</b><i>#</i>12345.01<i>#</i>123<i>#</i><b>Shape</b>.ps</dd>
+      </dl>
+      <table>
+        <thead><tr><th>Delimiter</th><th>Campo</th><th>Valor</th></tr></thead>
+        <tbody>${campos.map(c => `<tr><td>#</td><td>${c[0]}</td><td class="${c[1] ? "" : "mut"}">${c[1] || "—"}</td></tr>`).join("")}</tbody>
+      </table>
+    </div>
+    <p class="note">Delimiter <b>#</b> nas 5 linhas. A tela de referência não mostra o campo de valor de Delivery quantity, por isso ele aparece com traço acima; mantenha o que já está configurado no seu ambiente. O Pattern mostrado é o exemplo que o próprio Cockpit exibe.</p>
+    <p>Estrutura do nome gerado, na ordem dos campos do Cockpit:</p>
+    <div class="exname">#Article Name#Article Number#Shape ID#Shape Name#Delivery Quantity</div>
+    <div class="exname">#HBR_LBL_01#2345#01#Label#3200</div>`;
+  pending = null;
+  document.getElementById("dlgTitle").textContent = "Configuração do Cockpit";
+  document.getElementById("dlgBody").innerHTML = html;
+  const ok = document.getElementById("dlgOk");
+  ok.style.display = "none";
+  document.getElementById("dlgCancel").textContent = "Fechar";
+  document.getElementById("dlg").showModal();
 }
 
 render();

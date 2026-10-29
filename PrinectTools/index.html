@@ -185,6 +185,8 @@ h1.h1-sub{
     /* minmax(0,1fr) garante colunas sempre com a mesma largura,
        independente do tamanho do texto de cada card */
     grid-template-columns:repeat(2,minmax(0,1fr));
+    /* todas as linhas com a mesma altura: o card mais alto define o tamanho de todos */
+    grid-auto-rows:1fr;
 }
 
 /* se sobrar um card sozinho na última linha, ele fica centralizado

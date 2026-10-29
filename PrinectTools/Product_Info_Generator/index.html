@@ -85,6 +85,8 @@ dialog::backdrop{background:rgba(28,26,23,.55)}
 .cfg td.mut{color:var(--ink-soft)}
 .note{font-size:12px;color:var(--ink-soft)}
 .exname{background:var(--amber-soft);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:4px 0 12px;word-break:break-all}
+.tg{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.04em;color:var(--paper);cursor:pointer;margin-left:6px;user-select:none}
+.tg input{width:16px;height:16px;margin:0;accent-color:var(--amber);cursor:pointer}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -104,6 +106,7 @@ dialog::backdrop{background:rgba(28,26,23,.55)}
       <button class="btn-secondary" onclick="openCockpit()">Config. Cockpit</button>
       <button class="btn-secondary" onclick="resetDone()">Desmarcar feitos</button>
       <button class="btn-danger" onclick="clearAll()">Limpar lote</button>
+      <label class="tg" title="Marcado: ao duplicar, o Shape ID é copiado igual. Desmarcado: continua a sequência."><input type="checkbox" id="keepShape" onchange="saveOpt()"> Manter mesmo Shape ID ao duplicar</label>
       <span id="status"></span>
       <span class="count" id="count"></span>
     </div>
@@ -117,7 +120,7 @@ dialog::backdrop{background:rgba(28,26,23,.55)}
       </div>
     </div>
 
-    <p class="hint">Enter avança de campo e cria linha nova no fim. ⧉ cria uma linha no fim do lote com os dados da linha clicada, continuando a numeração do Article no. e do Shape ID da última linha. Clique no nome gerado para copiar e marcar como feito. Renomear PDFs da pasta funciona no Chrome e no Edge: você escolhe a pasta, confere a lista e confirma. O lote fica salvo neste navegador.</p>
+    <p class="hint">Enter avança de campo e cria linha nova no fim. ⧉ cria uma linha no fim do lote com os dados da linha clicada e continua o Article no. da última linha. O Shape ID também continua a sequência, a menos que “Manter mesmo Shape ID” esteja marcado. Clique no nome gerado para copiar e marcar como feito. Renomear PDFs da pasta funciona no Chrome e no Edge: você escolhe a pasta, confere a lista e confirma. O lote fica salvo neste navegador.</p>
   </div>
 </div>
 
@@ -239,7 +242,7 @@ function dupRow(i){
   const last = rows[rows.length-1];
   const c = Object.assign({}, rows[i], {done:false});
   c.n = bump(last.n);
-  c.s = bump(last.s);
+  c.s = document.getElementById("keepShape").checked ? rows[i].s : bump(last.s);
   rows.push(c); save();
   render([rows.length-1,"h"]);
 }
@@ -402,6 +405,10 @@ function openCockpit(){
   document.getElementById("dlgCancel").textContent = "Fechar";
   document.getElementById("dlg").showModal();
 }
+
+const OPT_KEY = "pig_keepshape_v1";
+function saveOpt(){ try{ localStorage.setItem(OPT_KEY, document.getElementById("keepShape").checked ? "1" : "0"); }catch(e){} }
+(function(){ try{ document.getElementById("keepShape").checked = localStorage.getItem(OPT_KEY) === "1"; }catch(e){} })();
 
 render();
 </script>

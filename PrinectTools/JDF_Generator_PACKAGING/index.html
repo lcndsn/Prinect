@@ -7,7 +7,7 @@
     // Aplica o tema salvo antes da página desenhar (padrão: escuro; claro só se o usuário escolheu).
     try { if (localStorage.getItem('hd_jdf_theme') !== 'light') document.documentElement.setAttribute('data-theme','dark'); } catch(e) { document.documentElement.setAttribute('data-theme','dark'); }
   </script>
-  <title>Heidelberg — MIS Simulator</title>
+  <title>MIS Simulator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1044,6 +1044,16 @@
     body.skin select option, body.skin select optgroup { background-color: var(--surface); color: var(--hd-dark); }
     body.skin select option:checked { background-color: var(--accent-line); color: var(--hd-dark); }
 
+    /* mm → pt: o valor convertido vai embaixo do campo (não disputa espaço lateral) */
+    body.skin .mm-pt-group { flex-direction: column; align-items: stretch; gap: 5px; }
+    body.skin .mm-pt-group input { flex: none; width: 100%; }
+    body.skin .mm-pt-group .pt-display {
+      min-width: 0; width: auto; padding: 0 4px; background: none; border: none; border-radius: 0;
+      text-align: left; font-size: 11.5px; font-weight: 600; line-height: 1.2; white-space: nowrap;
+    }
+    body.skin .orc-customer:empty { display: none; }
+    body.skin .orc-customer { margin-top: 10px; }
+
   </style>
 </head>
 <body class="skin">
@@ -1625,6 +1635,12 @@
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🎯 Seleção<span class="toggle-icon">▼</span></div>
       <div class="section-body">
+        <div class="field full">
+          <label>🏢 Cliente <span class="badge badge-optional">OPCIONAL</span></label>
+          <select id="orc_customer_select"><option value="">— Selecione —</option></select>
+          <span class="field-hint">Vem de Base de Dados → Clientes. Os dados aparecem no PDF do orçamento.</span>
+          <div class="orc-customer" id="orc_customer_info"></div>
+        </div>
         <div class="field">
           <label>📦 Artigo (Product) <span class="badge badge-required">OBRIGATÓRIO</span></label>
           <select id="orc_article_select"><option value="">— Selecione —</option></select>
@@ -2830,6 +2846,7 @@ function refreshAllSelectors() {
     { id:'pr_db_customer_select', list:db.customers, label: r=>`${r.name||r.orgname||'Cliente'} (${r.customerid||'—'})` },
     { id:'p_db_article_select',   list:db.articles,  label: r=>`${r.articlename||'Artigo'} (${r.articleid||'—'})${r.shapeid?' ['+r.shapeid+']':''}` },
     { id:'pr_db_tool_select',     list:db.tools,     label: r=>`${r.toolname||'Ferramenta'} (${r.toolid||'—'})` },
+    { id:'orc_customer_select',  list:db.customers, label: r=>`${r.name||r.orgname||'Cliente'} (${r.customerid||'—'})` },
     { id:'orc_article_select',   list:db.articles,  label: r=>`${r.articlename||'Artigo'} (${r.articleid||'—'})${r.shapeid?' ['+r.shapeid+']':''}` },
     { id:'orc_tool_select',      list:db.tools,     label: r=>`${r.toolname||'Ferramenta'} (${r.toolid||'—'})` },
     { id:'pr_db_printer_select',  list:db.printers,  label: r=>`${r.devicename||'Impressora'} (${r.deviceid||'—'})` },
@@ -5654,7 +5671,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'p_db_customer_select','pr_db_customer_select','p_db_article_select',
     'pr_db_tool_select','pr_db_media_select','pr_db_printer_select',
     'pr_db_shapecutting_select','pr_db_boxfolding_select','pr_db_packing_select',
-    'orc_article_select','orc_tool_select',
+    'orc_customer_select','orc_article_select','orc_tool_select',
   ].forEach(enhanceSearchableSelect);
   const now = new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -5929,7 +5946,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const db = getDB();
     const a = db.articles.find(x => x.id === ($('orc_article_select') || {}).value) || null;
     const t = db.tools.find(x => x.id === ($('orc_tool_select') || {}).value) || null;
-    return { a, t };
+    const c = db.customers.find(x => x.id === ($('orc_customer_select') || {}).value) || null;
+    return { a, t, c };
   }
   const jsonOf = (rec, tipo) => {
     if (!rec) return null;
@@ -6029,9 +6047,16 @@ window.addEventListener('DOMContentLoaded', () => {
     $('orc_defaults_hint').textContent = hint;
   }
 
+  function customerInfo(c) {
+    const contato = [c.firstname, c.familyname].filter(Boolean).join(' ');
+    const end = [c.street, [c.postalcode, c.city].filter(Boolean).join(' '), c.countrycode].filter(Boolean).join(', ');
+    return `<div class="kv-grid">${kv('Organização', c.orgname || c.name)}${kv('Customer ID', c.customerid)}${kv('Contato', contato)}${kv('Endereço', end)}</div>`;
+  }
+
   window.orcRender = function () {
     if (!$('orc_article_info')) return;
-    const { a, t } = selected();
+    const { a, t, c } = selected();
+    $('orc_customer_info').innerHTML = c ? customerInfo(c) : '';
     $('orc_article_info').innerHTML = a ? articleInfo(a) : emptyState('Selecione um artigo acima para ver os dados.');
     $('orc_tool_info').innerHTML    = t ? toolInfo(t)    : emptyState('Selecione uma faca acima para ver os dados.');
     $('orc_next_number').textContent = quoteNumber(nextQuoteSeq());
@@ -6066,41 +6091,51 @@ window.addEventListener('DOMContentLoaded', () => {
     const text = (t, x, y, opt) => doc.text(String(t), x, y, opt);
 
     // ── Cabeçalho ──
-    doc.setFillColor(...C.navy); doc.rect(0, 0, PW, 38, 'F');
-    gradBar(0, 38, PW, 1.6);
-    doc.setFillColor(...C.blue); doc.roundedRect(M, 10, 14, 14, 3.5, 3.5, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...C.white); text('HD', M + 7, 19, { align: 'center' });
-    doc.setFontSize(21); text('Orçamento', M + 19, 19);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.soft); text('Faca e Cartucho', M + 19, 25.5);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...C.white); text(numero, PW - M, 18, { align: 'right' });
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.soft); text(dataBR, PW - M, 25.5, { align: 'right' });
+    doc.setFillColor(...C.navy); doc.rect(0, 0, PW, 35, 'F');
+    gradBar(0, 35, PW, 1.6);
+    doc.setFillColor(...C.blue); doc.roundedRect(M, 9, 14, 14, 3.5, 3.5, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...C.white); text('HD', M + 7, 18, { align: 'center' });
+    doc.setFontSize(21); text('Orçamento', M + 19, 18);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.soft); text('Faca e Cartucho', M + 19, 24.5);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...C.white); text(numero, PW - M, 17, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.soft); text(dataBR, PW - M, 24.5, { align: 'right' });
 
-    let y = 50;
+    let y = 46;
     // ── Identificação (artigo, faca e entradas) ──
-    const box = (x, w, label, value, sub) => {
-      doc.setFillColor(...C.tile); doc.roundedRect(x, y, w, sub ? 19 : 16, 3, 3, 'F');
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...C.muted); text(label.toUpperCase(), x + 4, y + 5.5, { charSpace: 0.3 });
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...C.ink); text(doc.splitTextToSize(String(value), w - 8)[0], x + 4, y + 11.5);
-      if (sub) { doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C.muted); text(sub, x + 4, y + 16.2); }
+    const box = (x, w, label, value, subs) => {
+      subs = (subs || []).filter(Boolean);
+      const h = 14 + subs.length * 4.2 + (subs.length ? 0.6 : 0);
+      doc.setFillColor(...C.tile); doc.roundedRect(x, y, w, h, 3, 3, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...C.muted); text(label.toUpperCase(), x + 4, y + 5, { charSpace: 0.3 });
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...C.ink); text(doc.splitTextToSize(String(value), w - 8)[0], x + 4, y + 10.6);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C.muted);
+      subs.forEach((sl, i) => text(doc.splitTextToSize(String(sl), w - 8)[0], x + 4, y + 15 + i * 4.2));
+      return h;
     };
-    const a = ctx.article, t = ctx.tool, gap = 5, half = (CW - gap) / 2;
-    box(M, half, 'Artigo', a.articlename || a.articleid || '—', a.articleid ? 'ID ' + a.articleid : '');
-    box(M + half + gap, half, 'Faca', t.toolname || t.toolid || '—', t.toolid ? 'ID ' + t.toolid : '');
-    y += 23;
+    const a = ctx.article, t = ctx.tool, cu = ctx.customer, gap = 5, half = (CW - gap) / 2;
+    if (cu) {
+      const contato = [cu.firstname, cu.familyname].filter(Boolean).join(' ');
+      const end = [cu.street, [cu.postalcode, cu.city].filter(Boolean).join(' '), cu.countrycode].filter(Boolean).join(', ');
+      const l1 = [cu.customerid && 'ID ' + cu.customerid, contato].filter(Boolean).join('  ·  ');
+      y += box(M, CW, 'Cliente', cu.orgname || cu.name || '—', [l1, end]) + 4;
+    }
+    const hA = box(M, half, 'Artigo', a.articlename || a.articleid || '—', [a.articleid ? 'ID ' + a.articleid : '']);
+    box(M + half + gap, half, 'Faca', t.toolname || t.toolid || '—', [t.toolid ? 'ID ' + t.toolid : '']);
+    y += hA + 4;
     const third = (CW - 2 * gap) / 3, e = res.entradas;
-    box(M, third, 'Quantidade', fmtInt(e.quantidade) + ' caixas');
+    const hE = box(M, third, 'Quantidade', fmtInt(e.quantidade) + ' caixas');
     box(M + third + gap, third, 'Cores', String(e.cores));
     box(M + 2 * (third + gap), third, 'Verniz', e.verniz ? 'Sim' : 'Não');
-    y += 23;
+    y += hE + 8;
 
     // ── Tabelas ──
     const section = (title) => {
-      gradBar(M, y, 3, 6.5);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(12.5); doc.setTextColor(...C.ink); text(title, M + 6.5, y + 5.2);
-      y += 12;
+      gradBar(M, y, 3, 6);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12.5); doc.setTextColor(...C.ink); text(title, M + 6.5, y + 4.8);
+      y += 10.5;
     };
     const row = (label, value, opts = {}) => {
-      const h = opts.big ? 11.5 : 8.6;
+      const h = opts.big ? 11 : 7.5;
       if (opts.fill) { doc.setFillColor(...C.tile); doc.roundedRect(M, y - 1, CW, h, 2.5, 2.5, 'F'); }
       doc.setFont('helvetica', opts.bold ? 'bold' : 'normal'); doc.setFontSize(opts.big ? 11.5 : 10.5); doc.setTextColor(...C.ink);
       text(label, M + (opts.fill ? 4 : 1), y + h / 2 + 0.9);
@@ -6113,23 +6148,23 @@ window.addEventListener('DOMContentLoaded', () => {
     section('Faca');
     res.faca.itens.forEach(i => row(i.label, fmtBRL(i.valor)));
     y += 1.5; row('Total da faca', fmtBRL(res.faca.total), { fill: true, bold: true, big: true, accent: true });
-    y += 6;
+    y += 5;
 
     section('Cartucho');
     res.cartucho.itens.forEach(i => row(i.label, fmtBRL(i.valor)));
     y += 1.5; row('Preço por caixa', fmtBRL(res.cartucho.precoCaixa), { fill: true, bold: true });
     row('Total do lote', fmtBRL(res.cartucho.total), { fill: true, bold: true, big: true, accent: true });
-    y += 6;
+    y += 5;
 
     // ── Total geral ──
-    if (y + 28 > PH - 20) { doc.addPage(); y = 20; }
-    doc.setFillColor(...C.navy); doc.roundedRect(M, y, CW, 28, 4, 4, 'F');
-    gradBar(M, y + 5, 2.4, 18);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C.soft); text('TOTAL DO ORÇAMENTO', M + 9, y + 10, { charSpace: 0.4 });
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(25); doc.setTextColor(...C.white); text(fmtBRL(res.total), M + 9, y + 21.5);
+    if (y + 25 > PH - 18) { doc.addPage(); y = 20; }
+    doc.setFillColor(...C.navy); doc.roundedRect(M, y, CW, 25, 4, 4, 'F');
+    gradBar(M, y + 4.5, 2.4, 16);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...C.soft); text('TOTAL DO ORÇAMENTO', M + 9, y + 9, { charSpace: 0.4 });
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(25); doc.setTextColor(...C.white); text(fmtBRL(res.total), M + 9, y + 19.5);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.soft);
-    text('Faca  ' + fmtBRL(res.faca.total), M + CW - 8, y + 13, { align: 'right' });
-    text('Cartucho  ' + fmtBRL(res.cartucho.total), M + CW - 8, y + 19.5, { align: 'right' });
+    text('Faca  ' + fmtBRL(res.faca.total), M + CW - 8, y + 11.5, { align: 'right' });
+    text('Cartucho  ' + fmtBRL(res.cartucho.total), M + CW - 8, y + 17.5, { align: 'right' });
 
     // ── Rodapé ──
     const n = doc.getNumberOfPages();
@@ -6151,6 +6186,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!lastResult || !lastCtx) { showToast('⚠️ Selecione artigo e faca com JSON válido primeiro.', 'error'); return; }
     if (typeof window.jspdf === 'undefined') { showToast('⚠️ Biblioteca de PDF não carregou (sem internet?). Tente novamente.', 'error'); return; }
     const seq = nextQuoteSeq(), numero = quoteNumber(seq);
+    lastCtx.customer = selected().c;
     try { buildPdf(lastResult, lastCtx, numero); }
     catch (e) { console.error(e); showToast('✖ Não consegui gerar o PDF: ' + e.message, 'error'); return; }
     const db = getDB(); db.settings.quoteCounter = seq; saveDB(db);   // só consome o número se o PDF saiu
@@ -6160,7 +6196,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   /* Zera tudo para começar um novo orçamento (o número sequencial não é afetado) */
   window.orcClear = function () {
-    ['orc_article_select', 'orc_tool_select'].forEach(id => { $(id).value = ''; });
+    ['orc_customer_select', 'orc_article_select', 'orc_tool_select'].forEach(id => { $(id).value = ''; });
     document.querySelectorAll('#tab-orcamento .combo-input').forEach(i => { i.value = ''; });
     $('orc_qty').value = ''; $('orc_colors').value = '';
     const sel = $('orc_varnish'); sel.disabled = false; sel.value = 'nao';
@@ -6174,6 +6210,7 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('DOMContentLoaded', () => {
     $('orc_article_select').addEventListener('change', () => { applyArticleDefaults(); orcRender(); });
     $('orc_tool_select').addEventListener('change', orcRender);
+    $('orc_customer_select').addEventListener('change', orcRender);
     let t;
     $('orc_colors').addEventListener('input', () => { colorsDirty = true; });
     ['orc_qty', 'orc_colors'].forEach(id => $(id).addEventListener('input', () => { clearTimeout(t); t = setTimeout(recalc, 200); }));

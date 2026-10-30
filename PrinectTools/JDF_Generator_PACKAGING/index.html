@@ -1054,6 +1054,33 @@
     body.skin .orc-customer:empty { display: none; }
     body.skin .orc-customer { margin-top: 10px; }
 
+    body.skin .orc-art-row { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) 96px; gap: 14px; align-items: end; }
+    body.skin #orc_extra_articles { display: grid; gap: 14px; }
+    body.skin #orc_extra_articles:empty { display: none; }
+    body.skin .orc-art-x { min-height: 1px; }
+    body.skin .orc-art-row .btn-remove-article { height: 40px; }
+    body.skin #orc_approve_btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
+    @media (max-width: 900px) { body.skin .orc-art-row { grid-template-columns: 1fr 1fr; } body.skin .orc-art-sel { grid-column: 1 / -1; } }
+
+    /* Production Job: travado até carregar uma OP */
+    body.skin #tab-production.op-locked > .section:not(.op-gate) { display: none !important; }
+    body.skin .op-summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    body.skin .op-pill { padding: 6px 12px; border-radius: 999px; background: var(--ok-soft); color: var(--hd-green); font-size: 12px; font-weight: 700; }
+    body.skin .op-pill.muted { background: var(--hd-gray); color: var(--hd-muted); font-weight: 600; }
+    body.skin .op-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    body.skin #tab-production.op-locked > .preview-section { display: none !important; }
+
+    /* respiro entre os blocos da OP carregada */
+    body.skin #op_current { margin-top: 18px; display: flex; flex-direction: column; gap: 16px; }
+    body.skin .op-summary { row-gap: 10px; }
+    body.skin .op-actions { margin-top: 4px; }
+
+    /* Orçamento: vários artigos em "Dados do Artigo" + aviso de Product obrigatório */
+    body.skin .orc-art-card + .orc-art-card { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line, rgba(255,255,255,.12)); }
+    body.skin .orc-art-tag { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--hd-muted); margin-bottom: 10px; }
+    body.skin .pd-banner { margin-bottom: 18px; padding: 16px 18px; border-radius: 16px; background: var(--warn-soft, rgba(255,170,0,.14)); border: 1px solid rgba(255,170,0,.45); display: flex; flex-direction: column; gap: 12px; }
+    body.skin .pd-banner .pd-list { display: flex; flex-wrap: wrap; gap: 10px; }
+
   </style>
 </head>
 <body class="skin">
@@ -1067,7 +1094,7 @@
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-footer">
       <button class="db-btn db-btn-secondary" onclick="closeModal()">Cancelar</button>
-      <button class="db-btn db-btn-primary" onclick="saveModalRecord()">💾 Salvar</button>
+      <button class="db-btn db-btn-primary" id="modal-save-btn" onclick="saveModalRecord()">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -1150,6 +1177,8 @@
 
   <!-- PRODUCT JOB -->
   <div class="tab-content active" id="tab-product">
+
+    <div id="pd_banner" style="display:none"></div>
 
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">📄 Artigo e PDF<span class="toggle-icon">▼</span></div>
@@ -1280,6 +1309,20 @@
 
   <!-- PRODUCTION JOB -->
   <div class="tab-content" id="tab-production">
+
+    <input type="hidden" id="pr_opid" value=""/>
+    <div class="section op-gate" id="op_gate">
+      <div class="section-header" onclick="toggleSection(this)">📋 Ordem de Produção (OP)<span class="toggle-icon">▼</span></div>
+      <div class="section-body single">
+        <div class="info-box" id="op_gate_info"></div>
+        <div class="db-selector">
+          <label>📋 Carregar OP:</label>
+          <select id="pr_db_op_select"><option value="">— Selecione —</option></select>
+          <button onclick="opLoadSelected()">Carregar</button>
+        </div>
+        <div id="op_current"></div>
+      </div>
+    </div>
 
     <div class="section half">
       <div class="section-header" onclick="toggleSection(this)">🔖 Identificação do Trabalho<span class="toggle-icon">▼</span></div>
@@ -1635,22 +1678,41 @@
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">🎯 Seleção<span class="toggle-icon">▼</span></div>
       <div class="section-body">
-        <div class="field full">
+        <div class="field">
           <label>🏢 Cliente <span class="badge badge-optional">OPCIONAL</span></label>
           <select id="orc_customer_select"><option value="">— Selecione —</option></select>
-          <span class="field-hint">Vem de Base de Dados → Clientes. Os dados aparecem no PDF do orçamento.</span>
+          <span class="field-hint">Vem de Base de Dados → Clientes. Os dados aparecem no PDF.</span>
           <div class="orc-customer" id="orc_customer_info"></div>
-        </div>
-        <div class="field">
-          <label>📦 Artigo (Product) <span class="badge badge-required">OBRIGATÓRIO</span></label>
-          <select id="orc_article_select"><option value="">— Selecione —</option></select>
-          <span class="field-hint">Vem de Base de Dados → Artigos.</span>
         </div>
         <div class="field">
           <label>✂️ Faca (Ferramenta de Corte) <span class="badge badge-required">OBRIGATÓRIO</span></label>
           <select id="orc_tool_select"><option value="">— Selecione —</option></select>
           <span class="field-hint">Vem de Base de Dados → Ferramentas de Corte.</span>
         </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header" onclick="toggleSection(this)">📦 Artigos do Orçamento<span class="toggle-icon">▼</span></div>
+      <div class="section-body single">
+        <div class="info-box"><strong>Como funciona:</strong> o custo é calculado <strong>somente com o JSON do primeiro artigo</strong> (artigo base) e a quantidade do pedido. A quantidade e as repetições na ferramenta de cada artigo vão para o Production Job e <strong>não alteram o preço</strong>.</div>
+        <div class="orc-art-row base">
+          <div class="field orc-art-sel">
+            <label>📦 Artigo base (define o custo) <span class="badge badge-required">OBRIGATÓRIO</span></label>
+            <select id="orc_article_select"><option value="">— Selecione —</option></select>
+          </div>
+          <div class="field">
+            <label>Quantidade (Amount)</label>
+            <input type="number" id="orc_a1_amount" min="1" step="1" placeholder="= pedido"/>
+          </div>
+          <div class="field">
+            <label>Repetições na ferramenta</label>
+            <input type="number" id="orc_a1_station" min="1" step="1" placeholder="Ex.: 8"/>
+          </div>
+          <span class="orc-art-x"></span>
+        </div>
+        <div id="orc_extra_articles"></div>
+        <div><button type="button" class="btn btn-secondary" onclick="orcAddArticle()">➕ Adicionar artigo</button></div>
       </div>
     </div>
 
@@ -1687,6 +1749,7 @@
         <div class="orc-result" id="orc_result"></div>
         <div class="orc-actions">
           <button type="button" class="btn btn-primary" id="orc_pdf_btn" onclick="orcDownloadPdf()" disabled>⬇️ Baixar PDF do orçamento</button>
+          <button type="button" class="btn btn-accent" id="orc_approve_btn" onclick="orcApprove()" disabled>✅ Aprovar e gerar OP</button>
           <button type="button" class="btn btn-secondary" id="orc_clear_btn" onclick="orcClear()">🗑️ Limpar orçamento</button>
           <span class="orc-next">Próximo número: <strong id="orc_next_number">ORC-0001</strong></span>
         </div>
@@ -2128,10 +2191,12 @@ function getDB() {
       scheduleBoard:  db.scheduleBoard  || [],
       productJobs:    db.productJobs    || [],
       productionJobs: db.productionJobs || [],
+      orders:         db.orders         || [],
+      pendingProducts: db.pendingProducts || [],
       settings:  Object.assign({}, SETTINGS_DEFAULTS, db.settings || {})
     };
   } catch(e) {
-    return { customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], varnishes:[], screeningrollers:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) };
+    return { customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], varnishes:[], screeningrollers:[], scheduleBoard:[], productJobs:[], productionJobs:[], orders:[], pendingProducts:[], settings: Object.assign({}, SETTINGS_DEFAULTS) };
   }
 }
 
@@ -3771,9 +3836,11 @@ function saveModalRecord() {
     db[listKey].push(record);
   }
   saveDB(db);
+  const pdNewArt = (!modalEditId && modalType === 'article') ? record.id : null;
   if (!modalEditId && modalType === 'article') advanceArticleIdCounter(); // próximo Artigo já nasce com o número seguinte (depois de salvar, pra não perder o incremento)
   renderDB(); closeModal();
   showToast('✅ Registro salvo com sucesso!');
+  if (pdNewArt && window.pdOpenNew) window.pdOpenNew(pdNewArt);
 }
 
 // Duplica um registro existente e abre o modal já preenchido como "novo cadastro"
@@ -3828,6 +3895,8 @@ function importDB(event) {
       if (!db.scheduleBoard) db.scheduleBoard = [];
       if (!db.productJobs) db.productJobs = [];
       if (!db.productionJobs) db.productionJobs = [];
+      if (!db.orders) db.orders = [];
+      if (!db.pendingProducts) db.pendingProducts = [];
       db.settings = Object.assign({}, SETTINGS_DEFAULTS, db.settings || {});
       saveDB(db); renderDB();
       refreshScheduleViews();
@@ -3841,7 +3910,7 @@ function importDB(event) {
 function clearDB() {
   customConfirm('Deseja apagar TODA a base de dados? Isso também limpa o Quadro de Alocação (Gantt) e o histórico de Trabalhos (Product/Production Job).').then(ok => {
     if (!ok) return;
-    saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], varnishes:[], screeningrollers:[], scheduleBoard:[], productJobs:[], productionJobs:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
+    saveDB({ customers:[], articles:[], tools:[], media:[], printers:[], finishing:[], colors:[], varnishes:[], screeningrollers:[], scheduleBoard:[], productJobs:[], productionJobs:[], orders:[], pendingProducts:[], settings: Object.assign({}, SETTINGS_DEFAULTS) });
     renderDB();
     refreshScheduleViews();
     showToast('🗑️ Base de dados apagada.');
@@ -3994,7 +4063,7 @@ function showToast(msg, type='success') {
 function clearForm() {
   customConfirm('Deseja limpar todos os campos do formulário?').then(ok => {
     if (!ok) return;
-    document.querySelectorAll('input[type="text"],input[type="number"],input[type="datetime-local"],input[type="hidden"]')
+    document.querySelectorAll(['#tab-product','#tab-production'].map(t => ['text','number','datetime-local','hidden'].map(k => t+' input[type="'+k+'"]').join(',')).join(','))
             .forEach(i => i.value = '');
     document.querySelectorAll('.pt-display').forEach(d => { d.textContent='— pt'; d.style.color='#888'; });
     document.getElementById('articles-container').innerHTML = '';
@@ -4010,6 +4079,7 @@ function clearForm() {
     summaryEl.style.display = 'none'; summaryEl.innerHTML = '';
     articleCount = 0;
     varnishCount = 0;
+    if (window.opAfterClear) window.opAfterClear();
     if (activeTab === 'production') {
       sv('pr_jobid', getNextProductionJobId());
       onJobIdChangeProduction();
@@ -5655,7 +5725,7 @@ async function generateJDF() {
       finalMsg = `✅ JDF gerado: ${filename} — salvo no histórico de Trabalhos.`;
     }
   }
-  if (activeTab==='product') saveProductJobToDB(); else saveProductionJobToDB();
+  if (activeTab==='product') { saveProductJobToDB(); if (window.pdMarkGenerated) window.pdMarkGenerated(); } else { saveProductionJobToDB(); if (window.opMarkProduced) window.opMarkProduced(); }
   showToast(finalMsg, finalType);
 }
 
@@ -5921,14 +5991,20 @@ window.addEventListener('DOMContentLoaded', () => {
       : `<div class="json-state err">✖ Este JSON não parece ser de ${tipoEsperado === 'faca' ? 'faca' : 'cartucho'} (reconhecido como: ${tipo}).</div>`;
     return msg + `<details class="json-peek"><summary>Ver JSON</summary><pre>${esc(JSON.stringify(r.value, null, 2))}</pre></details>`;
   }
-  function articleInfo(a) {
+  function articleInfo(a, withJson) {
     const cores = [a.colorCyan !== false && 'C', a.colorMagenta !== false && 'M', a.colorYellow !== false && 'Y', a.colorBlack !== false && 'K'].filter(Boolean).join('');
     const spots = Array.isArray(a.spotColors) ? a.spotColors.map(c => typeof c === 'string' ? c : c.name).join(', ') : '';
     return `<div class="kv-grid">
       ${kv('Nome', a.articlename)}${kv('Article ID', a.articleid)}${kv('Shape', [a.shapeid, a.shapename].filter(Boolean).join(' — '))}
       ${kv('Dimensões (mm)', a.finishedwidth && a.finishedheight ? a.finishedwidth + ' × ' + a.finishedheight : '')}
       ${kv('Páginas', a.npages === '2' ? '2 (frente e verso)' : '1 (frente)')}${kv('Cores', cores + (spots ? ' + ' + spots : ''))}
-    </div>${jsonBlock(a, 'cartucho')}`;
+    </div>${withJson === false ? '' : jsonBlock(a, 'cartucho')}`;
+  }
+  function articlesInfo() {
+    const list = collectArticles();
+    if (!list.length) return emptyState('Selecione um artigo acima para ver os dados.');
+    if (list.length === 1) return articleInfo(list[0].rec);
+    return list.map((x, i) => `<div class="orc-art-card"><div class="orc-art-tag">Artigo ${i + 1}${i === 0 ? ' · base do custo' : ''} — ${esc(x.amount ? x.amount.toLocaleString('pt-BR') + ' un' : 'sem quantidade')}${x.station ? ' · ' + x.station + ' rep.' : ''}</div>${articleInfo(x.rec, i === 0)}</div>`).join('');
   }
   function toolInfo(t) {
     const trims = [t.trimleft, t.trimright, t.trimtop, t.trimbottom].some(Boolean)
@@ -5957,6 +6033,57 @@ window.addEventListener('DOMContentLoaded', () => {
   const check = (ok, label) => `<span class="orc-check${ok ? ' ok' : ''}">${ok ? '✔' : '○'} ${label}</span>`;
 
   let lastResult = null, lastCtx = null, colorsDirty = false;
+  let qtyDirty = false, amountDirty = false, stationDirty = false, extraSeq = 0, pdfSig = '', pdfNumero = '';
+  const artLabel = r => `${r.articlename || 'Artigo'} (${r.articleid || '—'})${r.shapeid ? ' [' + r.shapeid + ']' : ''}`;
+  const intOf = el => { const n = parseInt(el && el.value, 10); return n > 0 ? n : 0; };
+
+  /* Artigos do orçamento: o 1º (base) define o custo; os demais só levam quantidade/repetições ao Production */
+  window.orcAddArticle = function () {
+    const id = ++extraSeq, db = getDB();
+    const opts = '<option value="">— Selecione —</option>' + db.articles.map(r => `<option value="${esc(r.id)}">${esc(artLabel(r))}</option>`).join('');
+    const row = document.createElement('div');
+    row.className = 'orc-art-row'; row.dataset.n = id;
+    row.innerHTML = `<div class="field orc-art-sel"><label>📦 Artigo adicional</label><select id="orc_xa_${id}_select">${opts}</select></div>
+      <div class="field"><label>Quantidade (Amount)</label><input type="number" id="orc_xa_${id}_amount" min="1" step="1" placeholder="Ex.: 5000"/></div>
+      <div class="field"><label>Repetições na ferramenta</label><input type="number" id="orc_xa_${id}_station" min="1" step="1" placeholder="Ex.: 4"/></div>
+      <button type="button" class="btn-remove-article" onclick="orcRemoveArticle(${id})">✕ Remover</button>`;
+    $('orc_extra_articles').appendChild(row);
+    enhanceSearchableSelect('orc_xa_' + id + '_select');
+    row.querySelector('select').addEventListener('change', () => orcRender());
+    row.querySelectorAll('input[type="number"]').forEach(i => i.addEventListener('input', recalc));
+    recalc();
+  };
+  window.orcRemoveArticle = function (id) {
+    const row = document.querySelector(`#orc_extra_articles .orc-art-row[data-n="${id}"]`);
+    if (row) row.remove();
+    orcRender();
+  };
+  function collectArticles() {
+    const db = getDB(), out = [];
+    const base = db.articles.find(x => x.id === $('orc_article_select').value);
+    if (base) out.push({ rec: base, amount: intOf($('orc_a1_amount')), station: intOf($('orc_a1_station')) });
+    document.querySelectorAll('#orc_extra_articles .orc-art-row').forEach(row => {
+      const sel = row.querySelector('select'), ins = row.querySelectorAll('input[type="number"]');
+      const rec = db.articles.find(x => x.id === sel.value);
+      if (rec) out.push({ rec, amount: intOf(ins[0]), station: intOf(ins[1]) });
+    });
+    return out;
+  }
+  /* Devolve um texto de erro se faltar algo para virar OP, ou '' se estiver tudo certo */
+  function articlesProblem(arts) {
+    if (!arts.length) return 'Selecione o artigo base.';
+    const ids = new Set();
+    for (const x of arts) {
+      const nome = x.rec.articlename || x.rec.articleid || 'artigo';
+      if (ids.has(x.rec.id)) return 'O artigo "' + nome + '" foi adicionado mais de uma vez.';
+      ids.add(x.rec.id);
+      if (!x.amount)  return 'Informe a quantidade (Amount) do artigo "' + nome + '".';
+      if (!x.station) return 'Informe as repetições na ferramenta do artigo "' + nome + '".';
+    }
+    return '';
+  }
+  const signature = () => JSON.stringify([$('orc_customer_select').value, $('orc_tool_select').value,
+    collectArticles().map(x => [x.rec.id, x.amount, x.station]), $('orc_qty').value, $('orc_colors').value, $('orc_varnish').value]);
 
   /* Cores do cadastro do artigo: CMYK marcados + cores especiais (spot) */
   function registerColors(a) {
@@ -6001,6 +6128,7 @@ window.addEventListener('DOMContentLoaded', () => {
     notices.innerHTML = parts.map(p => `<div class="info-box-warning">⚠️ ${esc(p)}</div>`).join('');
     $('orc_result').innerHTML = cardFaca(r) + cardCartucho(r) + cardTotal(r);
     $('orc_pdf_btn').disabled = !r;
+    $('orc_approve_btn').disabled = !r;
   }
 
   /* Recalcula tudo ao vivo */
@@ -6016,12 +6144,21 @@ window.addEventListener('DOMContentLoaded', () => {
                              : 'A faca precisa de um JSON de faca válido do Package Designer (Base de Dados → Ferramentas de Corte).');
       return;
     }
+    // Quantidade do pedido acompanha a soma das quantidades dos artigos (a menos que você digite outra)
+    if (!qtyDirty) {
+      const soma = collectArticles().reduce((n, x) => n + (x.amount > 0 ? x.amount : 0), 0);
+      if (soma > 0) $('orc_qty').value = soma;
+    }
     const q = parseInt($('orc_qty').value, 10), c = parseInt($('orc_colors').value, 10);
     const sel = $('orc_varnish');
-    const ctx = { article: a, tool: t, articleJson: aj, toolJson: tj,
+    const ctx = { article: a, tool: t, articleJson: aj, toolJson: tj, articles: collectArticles(),
                   quantity: q > 0 ? q : null, colors: c > 0 ? c : null, varnish: sel.disabled ? false : sel.value === 'sim' };
     try {
       lastResult = window.OrcamentoEngine.calculate(ctx); lastCtx = ctx;
+      // sugestões (só se você ainda não digitou): Amount do artigo base = quantidade do pedido; repetições = bocas da faca
+      if (!amountDirty && (!$('orc_a1_amount').value || (qtyDirty && !$('orc_extra_articles').children.length))) $('orc_a1_amount').value = lastResult.entradas.quantidade;
+      if (!stationDirty && !$('orc_extra_articles').children.length && lastResult.faca.bocas) $('orc_a1_station').value = Math.round(lastResult.faca.bocas);
+      ctx.articles = collectArticles();
       renderResult(lastResult);
     } catch (e) { renderResult(null, e.message); }
   }
@@ -6032,7 +6169,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const aj = jsonOf(a, 'cartucho');
     const p = aj ? window.OrcamentoEngine.padroes(aj) : null;
     const regCores = registerColors(a);
-    colorsDirty = false;
+    colorsDirty = false; qtyDirty = false;
     $('orc_qty').value = p ? p.quantidade : '';
     $('orc_colors').value = regCores || (p ? p.cores : '');
     const sel = $('orc_varnish');
@@ -6057,7 +6194,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!$('orc_article_info')) return;
     const { a, t, c } = selected();
     $('orc_customer_info').innerHTML = c ? customerInfo(c) : '';
-    $('orc_article_info').innerHTML = a ? articleInfo(a) : emptyState('Selecione um artigo acima para ver os dados.');
+    $('orc_article_info').innerHTML = articlesInfo();
     $('orc_tool_info').innerHTML    = t ? toolInfo(t)    : emptyState('Selecione uma faca acima para ver os dados.');
     $('orc_next_number').textContent = quoteNumber(nextQuoteSeq());
     // mantém as cores em dia com o cadastro do artigo (se você não digitou outro valor)
@@ -6102,9 +6239,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     let y = 46;
     // ── Identificação (artigo, faca e entradas) ──
-    const box = (x, w, label, value, subs) => {
+    const box = (x, w, label, value, subs, minSubs) => {
       subs = (subs || []).filter(Boolean);
-      const h = 14 + subs.length * 4.2 + (subs.length ? 0.6 : 0);
+      const nSub = Math.max(subs.length, minSubs || 0);
+      const h = 14 + nSub * 4.2 + (nSub ? 0.6 : 0);
       doc.setFillColor(...C.tile); doc.roundedRect(x, y, w, h, 3, 3, 'F');
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...C.muted); text(label.toUpperCase(), x + 4, y + 5, { charSpace: 0.3 });
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...C.ink); text(doc.splitTextToSize(String(value), w - 8)[0], x + 4, y + 10.6);
@@ -6119,8 +6257,11 @@ window.addEventListener('DOMContentLoaded', () => {
       const l1 = [cu.customerid && 'ID ' + cu.customerid, contato].filter(Boolean).join('  ·  ');
       y += box(M, CW, 'Cliente', cu.orgname || cu.name || '—', [l1, end]) + 4;
     }
-    const hA = box(M, half, 'Artigo', a.articlename || a.articleid || '—', [a.articleid ? 'ID ' + a.articleid : '']);
-    box(M + half + gap, half, 'Faca', t.toolname || t.toolid || '—', [t.toolid ? 'ID ' + t.toolid : '']);
+    const outros = (ctx.articles || []).slice(1).map(x => x.rec.articlename || x.rec.articleid).filter(Boolean);
+    const minS = outros.length ? 2 : 1;
+    const hA = box(M, half, outros.length ? 'Artigos' : 'Artigo', a.articlename || a.articleid || '—',
+                   [a.articleid ? 'ID ' + a.articleid : '', outros.length ? '+ ' + outros.join(', ') : ''], minS);
+    box(M + half + gap, half, 'Faca', t.toolname || t.toolid || '—', [t.toolid ? 'ID ' + t.toolid : ''], minS);
     y += hA + 4;
     const third = (CW - 2 * gap) / 3, e = res.entradas;
     const hE = box(M, third, 'Quantidade', fmtInt(e.quantidade) + ' caixas');
@@ -6190,8 +6331,39 @@ window.addEventListener('DOMContentLoaded', () => {
     try { buildPdf(lastResult, lastCtx, numero); }
     catch (e) { console.error(e); showToast('✖ Não consegui gerar o PDF: ' + e.message, 'error'); return; }
     const db = getDB(); db.settings.quoteCounter = seq; saveDB(db);   // só consome o número se o PDF saiu
+    pdfSig = signature(); pdfNumero = numero;
     $('orc_next_number').textContent = quoteNumber(seq + 1);
     showToast('✅ ' + numero + ' gerado!');
+  };
+
+  /* Aprova o orçamento e cria a OP (o Production Job nasce dela) */
+  window.orcApprove = async function () {
+    if (!lastResult || !lastCtx) { showToast('⚠️ Calcule um orçamento válido primeiro.', 'error'); return; }
+    const arts = collectArticles(), problema = articlesProblem(arts);
+    if (problema) { showToast('⚠️ ' + problema, 'error'); return; }
+    const ok = await customConfirm('Aprovar este orçamento e gerar a Ordem de Produção (OP)?');
+    if (!ok) return;
+    const db = getDB(), res = lastResult, c = selected().c, t = selected().t;
+    let orcNum = pdfNumero;
+    if (!(pdfSig && pdfSig === signature() && pdfNumero)) {      // sem PDF deste orçamento: consome o próximo número
+      const seq = nextQuoteSeq(); orcNum = quoteNumber(seq); db.settings.quoteCounter = seq;
+    }
+    const oseq = (parseInt(db.settings.orderCounter, 10) || 0) + 1; db.settings.orderCounter = oseq;
+    const op = {
+      id: genId(), numero: 'OP-' + String(oseq).padStart(4, '0'), orcamento: orcNum, date: new Date().toISOString(),
+      status: 'Aprovada', customer: c ? JSON.parse(JSON.stringify(c)) : null,
+      tool: { id: t.id, toolid: t.toolid, toolname: t.toolname },
+      articles: arts.map(x => ({ dbid: x.rec.id, articleid: x.rec.articleid, articlename: x.rec.articlename,
+        shapeid: x.rec.shapeid, shapename: x.rec.shapename, amount: x.amount, stationamount: x.station })),
+      quantidade: res.entradas.quantidade, cores: res.entradas.cores, verniz: res.entradas.verniz,
+      facaTotal: res.faca.total, cartuchoTotal: res.cartucho.total, total: res.total, precoCaixa: res.cartucho.precoCaixa, jobs: []
+    };
+    db.orders.push(op); saveDB(db);
+    $('orc_next_number').textContent = quoteNumber(nextQuoteSeq());
+    if (window.opRefreshSelect) window.opRefreshSelect();
+    const abrir = await customConfirm(op.numero + ' criada a partir de ' + orcNum + '. Abrir agora no Production Job?');
+    if (abrir && window.opLoad) window.opLoad(op.id, true);
+    else showToast('✅ ' + op.numero + ' criada — carregue-a na aba Production Job.');
   };
 
   /* Zera tudo para começar um novo orçamento (o número sequencial não é afetado) */
@@ -6199,6 +6371,8 @@ window.addEventListener('DOMContentLoaded', () => {
     ['orc_customer_select', 'orc_article_select', 'orc_tool_select'].forEach(id => { $(id).value = ''; });
     document.querySelectorAll('#tab-orcamento .combo-input').forEach(i => { i.value = ''; });
     $('orc_qty').value = ''; $('orc_colors').value = '';
+    $('orc_extra_articles').innerHTML = ''; $('orc_a1_amount').value = ''; $('orc_a1_station').value = '';
+    amountDirty = false; stationDirty = false; qtyDirty = false; pdfSig = ''; pdfNumero = '';
     const sel = $('orc_varnish'); sel.disabled = false; sel.value = 'nao';
     $('orc_defaults_hint').textContent = '';
     colorsDirty = false;
@@ -6208,15 +6382,206 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   window.addEventListener('DOMContentLoaded', () => {
-    $('orc_article_select').addEventListener('change', () => { applyArticleDefaults(); orcRender(); });
+    $('orc_article_select').addEventListener('change', () => { amountDirty = false; stationDirty = false; $('orc_a1_amount').value = ''; applyArticleDefaults(); orcRender(); });
     $('orc_tool_select').addEventListener('change', orcRender);
     $('orc_customer_select').addEventListener('change', orcRender);
     let t;
     $('orc_colors').addEventListener('input', () => { colorsDirty = true; });
+    $('orc_qty').addEventListener('input', () => { qtyDirty = $('orc_qty').value !== ''; });
+    $('orc_a1_amount').addEventListener('input', () => { amountDirty = true; });
+    $('orc_a1_station').addEventListener('input', () => { stationDirty = true; });
+    ['orc_a1_amount', 'orc_a1_station'].forEach(id => $(id).addEventListener('input', recalc));
     ['orc_qty', 'orc_colors'].forEach(id => $(id).addEventListener('input', () => { clearTimeout(t); t = setTimeout(recalc, 200); }));
     $('orc_varnish').addEventListener('change', recalc);
     orcRender();
   });
+})();
+</script>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   ORDEM DE PRODUÇÃO (OP) — o Production Job só abre a partir de um orçamento aprovado.
+   Não altera a geração do JDF: apenas preenche os mesmos campos que antes eram manuais.
+   ═══════════════════════════════════════════════════════════════════════ */
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmtBRL = n => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  let historyUnlock = false;   // reimpressão de um trabalho do histórico não exige OP
+
+  const nome = o => (o.customer && (o.customer.name || o.customer.orgname)) || 'Sem cliente';
+  const opLabel = o => `${o.numero} · ${nome(o)} · ${o.articles.map(a => a.articlename || a.articleid).join(' + ')} · ${o.quantidade.toLocaleString('pt-BR')} cx · ${o.status}`;
+
+  /* ── Lista de OPs no seletor ── */
+  window.opRefreshSelect = function () {
+    const sel = $('pr_db_op_select'); if (!sel) return;
+    const ops = getDB().orders.slice().reverse();
+    sel.innerHTML = '<option value="">— Selecione —</option>' + ops.map(o => `<option value="${esc(o.id)}">${esc(opLabel(o))}</option>`).join('');
+    enhanceSearchableSelect('pr_db_op_select');
+    const inp = sel.parentElement.querySelector('.combo-input'); if (inp) inp.value = '';
+    sel.value = '';
+  };
+
+  /* ── Trava / destrava a aba Production ── */
+  function isLocked() { return !($('pr_opid') && $('pr_opid').value) && !historyUnlock; }
+  window.opRefreshLock = function () {
+    const tab = $('tab-production'); if (!tab) return;
+    const locked = isLocked();
+    tab.classList.toggle('op-locked', locked);
+    const op = getDB().orders.find(o => o.id === ($('pr_opid') || {}).value);
+    const info = $('op_gate_info'), cur = $('op_current');
+    if (locked) {
+      info.innerHTML = '🔒 <strong>O Production Job nasce de um orçamento aprovado.</strong> Escolha abaixo uma OP já aprovada, ou aprove um orçamento na aba <strong>Orçamento</strong> (botão “Aprovar e gerar OP”). Depois de carregar a OP, cliente, artigos, quantidades e ferramenta vêm preenchidos.';
+      cur.innerHTML = getDB().orders.length ? '' : '<div class="orc-empty">Nenhuma OP aprovada ainda.</div>';
+    } else if (op) {
+      info.innerHTML = '✅ <strong>' + esc(op.numero) + '</strong> carregada. Complete o que o orçamento não define (substrato, impressora, máquinas, prazos) e gere o JDF normalmente.';
+      const avisoVerniz = op.verniz ? '<span class="op-pill muted">Orçamento com verniz — adicione o verniz na seção Verniz e Anilox</span>' : '';
+      cur.innerHTML = `<div class="op-summary"><span class="op-pill">${esc(op.numero)}</span><span class="op-pill muted">${esc(op.orcamento)}</span><span class="op-pill muted">${esc(nome(op))}</span><span class="op-pill muted">${op.quantidade.toLocaleString('pt-BR')} caixas · ${op.cores} cores</span><span class="op-pill muted">Total ${fmtBRL(op.total)}</span><span class="op-pill muted">Status: ${esc(op.status)}</span>${avisoVerniz}</div>
+        <div class="op-actions"><button type="button" class="db-btn db-btn-danger" onclick="opDelete('${esc(op.id)}')">🗑️ Excluir esta OP</button></div>`;
+    } else {
+      info.innerHTML = '📂 Trabalho carregado do histórico (reimpressão). Para um novo Production Job, carregue uma OP.';
+      cur.innerHTML = '';
+    }
+    if (typeof activeTab !== 'undefined' && activeTab === 'production') {
+      $('main-actions').style.display = locked ? 'none' : 'flex';
+      if (window.skinDecorate) window.skinDecorate('production');
+    }
+  };
+  window.opAfterClear = function () { historyUnlock = false; window.opRefreshLock(); };
+
+  /* ── Preenchimento ── */
+  function setCombo(selectId, value) {
+    const sel = $(selectId); if (!sel) return false;
+    sel.value = value;
+    if (sel.value !== value) return false;
+    const inp = sel.parentElement.querySelector('.combo-input');
+    if (inp) inp.value = sel.options[sel.selectedIndex].text;
+    return true;
+  }
+  function clearProductionFields() {
+    $('articles-container').innerHTML = ''; articleCount = 0;
+    $('varnishes-container').innerHTML = ''; varnishCount = 0;
+    document.querySelectorAll('#tab-production input, #tab-production select').forEach(el => {
+      if (!el.id || !el.id.startsWith('pr_') || el.id.includes('_db_')) return;
+      if (el.type === 'checkbox') el.checked = /^pr_color_/.test(el.id);
+      else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    });
+    document.querySelectorAll('#tab-production .pt-display').forEach(d => { d.textContent = '— pt'; d.style.color = '#888'; });
+    setSpotColors('pr', []);
+    const s = $('pr_schedule_summary'); if (s) { s.style.display = 'none'; s.innerHTML = ''; }
+  }
+
+  window.opLoad = async function (id, skipConfirm) {
+    const db = getDB(), op = db.orders.find(o => o.id === id);
+    if (!op) { showToast('⚠️ OP não encontrada.', 'error'); return; }
+    const atual = ($('pr_opid') || {}).value;
+    if (atual && atual !== id && !skipConfirm) {
+      const ok = await customConfirm('Já existe uma OP carregada. Carregar outra substitui o preenchimento atual do Production Job. Continuar?');
+      if (!ok) return;
+    }
+    clearProductionFields();
+    historyUnlock = false;
+    sv('pr_opid', op.id);
+
+    // Cliente (dados congelados no momento da aprovação)
+    const c = op.customer;
+    if (c) {
+      sv('pr_customerid', c.customerid); sv('pr_orgname', c.orgname);
+      sv('pr_firstname', c.firstname); sv('pr_familyname', c.familyname);
+      sv('pr_street', c.street); sv('pr_city', c.city);
+      sv('pr_postalcode', c.postalcode); sv('pr_countrycode', c.countrycode);
+      sv('pr_customerjobname', c.name || c.orgname || '');
+    }
+    // Ferramenta: usa o cadastro atual (mesmo carregamento do botão "Carregar")
+    const faltando = [];
+    if (setCombo('pr_db_tool_select', op.tool.id)) loadFromDB('tool', 'pr');
+    else faltando.push('a ferramenta "' + (op.tool.toolname || op.tool.toolid) + '"');
+    // Artigos
+    op.articles.forEach(a => {
+      addArticle();
+      const idx = articleCount;
+      if (setCombo('art_' + idx + '_db_select', a.dbid)) loadArticleFromDB(idx);
+      else {
+        faltando.push('o artigo "' + (a.articlename || a.articleid) + '"');
+        sv('art_' + idx + '_articleid', a.articleid); sv('art_' + idx + '_articlename', a.articlename);
+        sv('art_' + idx + '_shapeid', a.shapeid); sv('art_' + idx + '_shapename', a.shapename);
+        onArticleIdChangeInCard(idx);
+      }
+      sv('art_' + idx + '_amount', a.amount);
+      sv('art_' + idx + '_stationamount', a.stationamount);
+    });
+    updateCellIndexGrid();
+    syncProductionColorsFromArticles();
+
+    const clean = t => String(t == null ? '' : t).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^A-Za-z0-9 -]+/g, ' ').replace(/\s+/g, ' ').trim();
+    sv('pr_jobname', op.articles.map(a => clean(a.articlename || a.articleid)).filter(Boolean).join(' - '));
+    const tl = op.tool || {};
+    sv('pr_comment', clean(op.numero + ' - ' + op.orcamento + ' - Faca ' + (tl.toolid || tl.toolname || '') + ' - ' +
+      op.articles.map((a, i) => 'Artigo ' + (i + 1) + ' ' + (a.articleid || '') + ' ' + (a.articlename || '') +
+        ' Qtd ' + a.amount + ' Rep ' + a.stationamount).join(' - ')));
+    sv('pr_jobid', getNextProductionJobId());       // Job ID segue o contador das Configurações Gerais
+    onJobIdChangeProduction();
+
+    window.switchTab('production');
+    window.opRefreshLock();
+    window.scrollTo(0, 0);
+    showToast(faltando.length ? '⚠️ ' + op.numero + ' carregada, mas não achei no cadastro: ' + faltando.join(', ') + '.' : '✅ ' + op.numero + ' carregada no Production Job.',
+              faltando.length ? 'error' : undefined);
+  };
+  window.opLoadSelected = function () {
+    const id = ($('pr_db_op_select') || {}).value;
+    if (!id) { showToast('⚠️ Selecione uma OP antes de carregar.', 'error'); return; }
+    window.opLoad(id);
+  };
+  window.opDelete = async function (id) {
+    const ok = await customConfirm('Excluir esta OP? O orçamento não é recuperável e o Production Job atual será limpo.');
+    if (!ok) return;
+    const db = getDB(); db.orders = db.orders.filter(o => o.id !== id); saveDB(db);
+    clearProductionFields(); historyUnlock = false;
+    sv('pr_jobid', getNextProductionJobId()); onJobIdChangeProduction();
+    window.opRefreshSelect(); window.opRefreshLock();
+    showToast('🗑️ OP excluída.');
+  };
+  /* Chamada depois que o JDF do Production é gerado */
+  window.opMarkProduced = function () {
+    const id = ($('pr_opid') || {}).value; if (!id) return;
+    const db = getDB(), op = db.orders.find(o => o.id === id); if (!op) return;
+    op.status = 'Production gerado';
+    const jid = ($('pr_jobid') || {}).value;
+    if (jid && !op.jobs.includes(jid)) op.jobs.push(jid);
+    saveDB(db); window.opRefreshSelect(); window.opRefreshLock();
+  };
+
+  /* ── Configurações Gerais: sempre refletem o que está salvo ── */
+  window.fillSettingsFields = function () {
+    const s = getDB().settings;
+    const set = (id, v) => { const el = $(id); if (el) el.value = v; };
+    set('settings_defaultserver', s.defaultServer || '');
+    set('settings_jobprefix', s.jobPrefix || '');
+    set('settings_productioncounter', s.productionJobCounter || SETTINGS_DEFAULTS.productionJobCounter);
+    set('settings_articleidcounter', s.articleIdCounter || '');
+  };
+
+  /* ── Ganchos ── */
+  const baseSwitch = window.switchTab;
+  window.switchTab = function (tab) {
+    const r = baseSwitch.apply(this, arguments);
+    if (tab === 'production') window.opRefreshLock();
+    if (tab === 'database') window.fillSettingsFields();
+    return r;
+  };
+  const baseHistory = window.loadProductionJobFromHistory;
+  window.loadProductionJobFromHistory = function () {
+    historyUnlock = true;                    // reimpressão: libera o formulário
+    const r = baseHistory.apply(this, arguments);
+    window.opRefreshLock();
+    return r;
+  };
+
+  window.addEventListener('DOMContentLoaded', () => { window.opRefreshSelect(); window.opRefreshLock(); window.fillSettingsFields(); });
 })();
 </script>
 
@@ -6317,6 +6682,8 @@ window.addEventListener('DOMContentLoaded', () => {
     refreshToggleAll();
   }
 
+  window.skinDecorate = decorate;
+
   // Envolve switchTab (a lógica original continua rodando por inteiro)
   const originalSwitchTab = window.switchTab;
   window.switchTab = function (tab) {
@@ -6352,5 +6719,92 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 })();
 </script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   PRODUCT OBRIGATÓRIO — artigo novo cadastrado na Base de Dados precisa ser aberto no Prinect.
+   Leva direto ao Product Job (já preenchido) e segura as demais abas até o JDF ser gerado.
+   Não altera a geração do JDF.
+   ═══════════════════════════════════════════════════════════════════════ */
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const BLOCKED = ['production', 'orcamento', 'recalc'];
+  const artOf = id => getDB().articles.find(a => a.id === id);
+  function pending() {
+    const db = getDB(), all = db.pendingProducts || [];
+    const ok = all.filter(p => artOf(p.id));
+    if (ok.length !== all.length) { db.pendingProducts = ok; saveDB(db); }
+    return ok;
+  }
+  function setCombo(selectId, value) {
+    const sel = $(selectId); if (!sel) return false;
+    sel.value = value; if (sel.value !== value) return false;
+    const inp = sel.parentElement.querySelector('.combo-input');
+    if (inp) inp.value = sel.options[sel.selectedIndex].text;
+    return true;
+  }
+
+  window.pdRefreshBanner = function () {
+    const b = $('pd_banner'); if (!b) return;
+    const l = pending();
+    if (!l.length) { b.innerHTML = ''; b.style.display = 'none'; return; }
+    b.style.display = '';
+    b.innerHTML = '<div class="pd-banner"><div><strong>📦 Falta abrir este artigo no Prinect</strong><br>Escolha o cliente e clique em <strong>Gerar e Baixar JDF</strong>. Depois disso as outras abas são liberadas.</div><div class="pd-list">' +
+      l.map(p => { const a = artOf(p.id); return `<button type="button" class="btn btn-secondary" onclick="pdOpen('${esc(p.id)}')">📦 Abrir ${esc(a.articlename || 'Artigo')} (${esc(a.articleid)})</button>`; }).join('') + '</div></div>';
+  };
+
+  /* Preenche o Product Job com o artigo (limpa o formulário do Product sem perguntar) */
+  window.pdOpen = function (id) {
+    window.switchTab('product');
+    document.querySelectorAll('#tab-product input[type="text"],#tab-product input[type="number"],#tab-product input[type="datetime-local"],#tab-product input[type="hidden"]').forEach(i => { i.value = ''; });
+    document.querySelectorAll('.pt-display').forEach(d => { d.textContent = '— pt'; d.style.color = '#888'; });
+    if ($('p_spotcolors_list')) $('p_spotcolors_list').innerHTML = '';
+    document.querySelectorAll('input[type="checkbox"][id^="p_color_"]').forEach(cb => { cb.checked = true; });
+    if (setCombo('p_db_article_select', id)) loadFromDB('article', 'p');
+    window.pdRefreshBanner();
+    window.scrollTo(0, 0);
+  };
+  window.pdOpenNew = function (id) {
+    const db = getDB(); db.pendingProducts = db.pendingProducts || [];
+    if (!db.pendingProducts.some(p => p.id === id)) db.pendingProducts.push({ id: id, date: new Date().toISOString() });
+    saveDB(db);
+    window.pdOpen(id);
+    showToast('📦 Artigo salvo — escolha o cliente e clique em Gerar e Baixar JDF.');
+  };
+  /* Chamado depois que o JDF do Product é gerado */
+  window.pdMarkGenerated = function () {
+    const aid = (($('p_articleid') || {}).value || '').trim();
+    const db = getDB(), before = (db.pendingProducts || []).length;
+    db.pendingProducts = (db.pendingProducts || []).filter(p => { const a = artOf(p.id); return a && a.articleid !== aid; });
+    if (db.pendingProducts.length !== before) {
+      saveDB(db); window.pdRefreshBanner();
+      showToast('✅ Product aberto no Prinect — demais abas liberadas.');
+    }
+  };
+
+  /* No cadastro de artigo novo, o botão de salvar já leva direto ao Product Job */
+  const baseOpenModal = window.openModal;
+  window.openModal = function (type, editId) {
+    const r = baseOpenModal.apply(this, arguments);
+    const btn = $('modal-save-btn');
+    if (btn) btn.textContent = (type === 'article' && !editId) ? '📦 Salvar e gerar Product Job →' : '💾 Salvar';
+    return r;
+  };
+
+  /* Guarda: com Product pendente, só Product Job e Base de Dados ficam acessíveis */
+  const baseSwitch = window.switchTab;
+  window.switchTab = function (tab) {
+    if (BLOCKED.indexOf(tab) !== -1 && pending().length) {
+      showToast('⚠️ Abra o novo Product no Prinect (gere o JDF do Product Job) antes de seguir.', 'error');
+      tab = 'product';
+    }
+    const r = baseSwitch.call(this, tab);
+    window.pdRefreshBanner();
+    return r;
+  };
+  window.addEventListener('DOMContentLoaded', () => window.pdRefreshBanner());
+})();
+</script>
+
 </body>
 </html>

@@ -6850,7 +6850,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const db = getDB(), keep = id => $(id).value;
     const cs = keep('com_customer_select'), ms = keep('com_media_select'), cd = keep('com_code');
     $('com_customer_select').innerHTML = '<option value="">— Selecione —</option>' + db.customers.map(c => `<option value="${esc(c.id)}">${esc(c.name || c.orgname || 'Cliente')}${c.customerid ? ' (' + esc(c.customerid) + ')' : ''}</option>`).join('');
-    $('com_media_select').innerHTML = '<option value="">— Selecione —</option>' + db.media.map(m => `<option value="${esc(m.id)}">${esc(m.mediaquality || 'Substrato')}${m.mediaweight ? ' · ' + esc(m.mediaweight) + ' g/m²' : ''}</option>`).join('');
+    $('com_media_select').innerHTML = '<option value="">— Selecione —</option>' + db.media.map(m => `<option value="${esc(m.id)}">${esc(m.mediaquality || 'Substrato')}${m.mediabrand ? ' — ' + esc(m.mediabrand) : ''}${m.mediaweight ? ' · ' + esc(m.mediaweight) + ' g/m²' : ''}</option>`).join('');
     $('com_code').innerHTML = '<option value="">— Selecione —</option>' + Object.entries(costs().codes).map(([k, v]) => `<option value="${esc(k)}">${esc(k)}${v.description ? ' — ' + esc(v.description) : ''}</option>`).join('');
     $('com_customer_select').value = cs; $('com_media_select').value = ms; $('com_code').value = cd;
     ['com_customer_select', 'com_media_select'].forEach(id => {

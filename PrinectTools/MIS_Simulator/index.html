@@ -7084,7 +7084,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const fields = {}; FIELD_IDS.forEach(id => { fields[id] = $(id).value; });
     const db = getDB();
     db.productionJobs = db.productionJobs.filter(j => j.jobId !== jobid);
-    db.productionJobs.push({ id: genId(), jobId: jobid, tipo: 'comercial', label: '📰 ' + ($('com_p_customer').value || '') + ' · ' + $('com_p_code').value,
+    db.productionJobs.push({ id: genId(), jobId: jobid, tipo: 'comercial', label: ($('com_p_desc').value || '').trim() || 'Revista_JDF',
       articleCount: 0, savedAt: new Date().toISOString(), snapshot: { tipo: 'comercial', opId: ($('pr_opid') || {}).value || '', fields } });
     saveDB(db); renderDB();
   }
@@ -7140,7 +7140,18 @@ window.addEventListener('DOMContentLoaded', () => {
     return r;
   };
 
+  /* trabalhos comerciais já gravados: o nome na lista passa a ser a descrição do trabalho */
+  function fixHistoryLabels() {
+    const db = getDB(); let ch = false;
+    db.productionJobs.forEach(j => {
+      if (j.tipo !== 'comercial') return;
+      const l = ((j.snapshot && j.snapshot.fields && j.snapshot.fields.com_p_desc) || '').trim() || 'Revista_JDF';
+      if (j.label !== l) { j.label = l; ch = true; }
+    });
+    if (ch) { saveDB(db); renderDB(); }
+  }
   window.addEventListener('DOMContentLoaded', () => {
+    fixHistoryLabels();
     fillSelects(); fillCostsUi();
     ['com_customer_select', 'com_media_select', 'com_code', 'com_sides'].forEach(id => $(id).addEventListener('change', recalc));
     ['com_w', 'com_h', 'com_pages', 'com_qty', 'com_days', 'com_desc'].forEach(id => $(id).addEventListener('input', recalc));

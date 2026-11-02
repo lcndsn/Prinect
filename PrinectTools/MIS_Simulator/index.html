@@ -1355,6 +1355,15 @@
         <div class="field"><label>Páginas <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_pages" min="1" step="1"/><span class="field-hint">No XJDF vai multiplicado por 2.</span></div>
         <div class="field"><label>Sides</label><select id="com_p_sides"><option value="TwoSidedHeadToHead">TwoSidedHeadToHead (frente e verso)</option><option value="OneSided">OneSided (só frente)</option></select></div>
         <div class="field"><label>Media Quality <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="com_p_media"/></div>
+        <div class="field com-sp-prod" style="display:none;grid-column:1/-1"><strong>📖 Miolo (Body)</strong></div>
+        <div class="field com-sp-prod" style="display:none"><label>Largura final do miolo (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_sp_bw" min="1" step="0.1"/></div>
+        <div class="field com-sp-prod" style="display:none"><label>Altura final do miolo (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_sp_bh" min="1" step="0.1"/></div>
+        <div class="field com-sp-prod" style="display:none"><label>Páginas do miolo <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_sp_bpages" min="1" step="1"/><span class="field-hint">Vai como digitado (sem ×2).</span></div>
+        <div class="field com-sp-prod" style="display:none"><label>Media Quality do miolo <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="com_p_sp_bmedia"/></div>
+        <div class="field com-sp-prod" style="display:none;grid-column:1/-1"><strong>📕 Capa (Cover) — formato aberto</strong></div>
+        <div class="field com-sp-prod" style="display:none"><label>Largura aberta da capa (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_sp_cw" min="1" step="0.1"/></div>
+        <div class="field com-sp-prod" style="display:none"><label>Altura aberta da capa (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_sp_ch" min="1" step="0.1"/></div>
+        <div class="field com-sp-prod" style="display:none"><label>Media Quality da capa <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="text" id="com_p_sp_cmedia"/></div>
         <div class="field"><label>Duração da produção (dias) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_p_days" min="1" step="1"/></div>
       </div>
     </div>
@@ -1755,7 +1764,19 @@
           <div class="field"><label>Duração da produção (dias) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_days" min="1" step="1" placeholder="Ex.: 12"/></div>
         </div>
         <div class="field" style="margin-top:14px"><label>Descrição do trabalho <span class="badge badge-optional">OPCIONAL</span></label><input type="text" id="com_desc" placeholder="Ex.: Revista Institucional 2026"/><span class="field-hint">Vai para o nome do trabalho (DescriptiveName) no Production Job.</span></div>
-        <span class="field-hint">No XJDF o número de páginas vai multiplicado por 2 (20 páginas → Pages="40"), porque o Prinect divide por 2.</span>
+        <div class="orc-inputs com-sp-box" id="com_sp_box" style="display:none;margin-top:6px">
+          <div style="grid-column:1/-1"><strong>📖 Miolo (Body)</strong></div>
+          <div class="field"><label>Largura final (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_sp_bw" min="1" step="0.1" placeholder="Ex.: 210"/></div>
+          <div class="field"><label>Altura final (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_sp_bh" min="1" step="0.1" placeholder="Ex.: 297"/></div>
+          <div class="field"><label>Páginas do miolo <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_sp_bpages" min="1" step="1" placeholder="Ex.: 48"/></div>
+          <div class="field" style="grid-column:1/-1"><label>Substrato do miolo <span class="badge badge-required">OBRIGATÓRIO</span></label><select id="com_sp_bmedia"><option value="">— Selecione —</option></select></div>
+          <div style="grid-column:1/-1;margin-top:6px"><strong>📕 Capa (Cover) — formato aberto</strong></div>
+          <div class="field"><label>Largura aberta (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_sp_cw" min="1" step="0.1" placeholder="Ex.: 426"/></div>
+          <div class="field"><label>Altura aberta (mm) <span class="badge badge-required">OBRIGATÓRIO</span></label><input type="number" id="com_sp_ch" min="1" step="0.1" placeholder="Ex.: 297"/></div>
+          <div class="field" style="grid-column:1/-1"><label>Substrato da capa <span class="badge badge-required">OBRIGATÓRIO</span></label><select id="com_sp_cmedia"><option value="">— Selecione —</option></select></div>
+        </div>
+        <span class="field-hint" id="com_sp_hint" style="display:none">COVER-SPREAD: capa (Pages=2, formato aberto digitado) e miolo (páginas exatamente como digitadas, sem ×2). Cores fixas em CMYK frente e verso.</span>
+        <span class="field-hint" id="com_pages_hint">No XJDF o número de páginas vai multiplicado por 2 (20 páginas → Pages="40"), porque o Prinect divide por 2.</span>
       </div>
     </div>
 
@@ -2298,6 +2319,7 @@ function defaultProductCodes() {
   return [
     { id: 'pc_brochure', code: 'MIS-BROCHURE', description: 'Revista / brochura (grampo canoa)', base: '250', form: '380', finish: '0.20' },
     { id: 'pc_flyer',    code: 'MIS-FLYER',    description: 'Flyer / folheto',                   base: '0',   form: '320', finish: '0.02' },
+    { id: 'pc_coverspread', code: 'COVER-SPREAD', description: 'Revista com capa aberta + miolo', base: '300', form: '380', finish: '0.35' },
   ];
 }
 const SETTINGS_DEFAULTS = { defaultServer: '', jobPrefix: 'SKU_', productionJobCounter: 1000, articleIdCounter: '', quoteCounter: 0 };
@@ -6779,6 +6801,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const c = getDB().settings.comCosts, d = (!c || c.v !== 2) ? DEFAULT_COSTS : c;
     return { v: 2, paper: d.paper, print: d.print, waste: d.waste, margin: d.margin, codes: codeCosts() };
   }
+  window.comCosts = () => costs();
   function saveCostsFromUi() {
     const f = id => { const n = parseFloat($(id).value); return n >= 0 ? n : 0; };
     const db = getDB(); db.settings.comCosts = { v: 2, paper: f('com_c_paper'), print: f('com_c_print'), waste: f('com_c_waste'), margin: f('com_c_margin') }; saveDB(db);
@@ -6820,6 +6843,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function recalc() {
+    if (window.comSpread) { const sp = window.comSpread.recalc(); if (sp !== undefined) { last = sp; return; } }   // COVER-SPREAD tem fluxo próprio
     const r = calc(); last = r.faltam ? null : r;
     const n = $('com_notices'); n.innerHTML = '';
     if (r.faltam) {
@@ -6877,7 +6901,7 @@ window.addEventListener('DOMContentLoaded', () => {
   /* ── PDF do orçamento comercial (mesmo visual do PDF de embalagem) ── */
   let pdfSig = '', pdfNumero = '';
   const signature = () => JSON.stringify([$('com_customer_select').value, $('com_media_select').value, $('com_code').value,
-    $('com_w').value, $('com_h').value, $('com_pages').value, $('com_sides').value, $('com_desc').value, $('com_qty').value, $('com_days').value, costs()]);
+    $('com_w').value, $('com_h').value, $('com_pages').value, $('com_sides').value, $('com_desc').value, $('com_qty').value, $('com_days').value, costs(), window.comSpread ? window.comSpread.sig() : '']);
   function buildPdf(r, numero) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -6913,7 +6937,18 @@ window.addEventListener('DOMContentLoaded', () => {
     const cu = r.cust, gap = 5, third = (CW - 2 * gap) / 3;
     const end = [cu.street, [cu.postalcode, cu.city].filter(Boolean).join(' '), cu.countrycode].filter(Boolean).join(', ');
     y += box(M, CW, 'Cliente', cu.name || cu.orgname || '—', [cu.customerid && 'ID ' + cu.customerid, end]) + 4;
-    let h1 = box(M, third, 'Descrição do trabalho', r.desc || r.code);
+    let h1;
+    if (r.pdfExtra) {                                   // COVER-SPREAD: capa + miolo
+      const b = r.pdfExtra.boxes;
+      h1 = box(M, third, b[0][0], b[0][1], b[0][2]);
+      box(M + third + gap, third, b[1][0], b[1][1], b[1][2]);
+      box(M + 2 * (third + gap), third, b[2][0], b[2][1], b[2][2]);
+      y += h1 + 4;
+      h1 = box(M, third, 'Quantidade', fmtInt(r.qty) + ' exemplares');
+      box(M + third + gap, third, 'Prazo', r.days + ' dias');
+      y += h1 + 8;
+    } else {
+    h1 = box(M, third, 'Descrição do trabalho', r.desc || r.code);
     box(M + third + gap, third, 'Formato final', r.w + ' × ' + r.h + ' mm');
     box(M + 2 * (third + gap), third, 'Páginas', String(r.pages));
     y += h1 + 4;
@@ -6923,6 +6958,7 @@ window.addEventListener('DOMContentLoaded', () => {
     y += h1 + 4;
     h1 = box(M, third, 'Quantidade', fmtInt(r.qty) + ' exemplares');
     y += h1 + 8;
+    }
 
     const section = title => { gradBar(M, y, 3, 6); doc.setFont('helvetica', 'bold'); doc.setFontSize(12.5); doc.setTextColor(...C.ink); text(title, M + 6.5, y + 4.8); y += 10.5; };
     const row = (label, value, o = {}) => {
@@ -6936,7 +6972,8 @@ window.addEventListener('DOMContentLoaded', () => {
       y += h + (o.fill ? 1.5 : 0);
     };
     section('Custos');
-    row('Papel', fmtBRL(r.paper)); row('Impressão', fmtBRL(r.print)); row('Acabamento', fmtBRL(r.finish)); row('Preparação', fmtBRL(r.setup));
+    if (r.pdfExtra) r.pdfExtra.rows.forEach(x => row(x[0], fmtBRL(x[1])));
+    else { row('Papel', fmtBRL(r.paper)); row('Impressão', fmtBRL(r.print)); row('Acabamento', fmtBRL(r.finish)); row('Preparação', fmtBRL(r.setup)); }
     y += 1.5; row('Custo de produção', fmtBRL(r.sub), { fill: true, bold: true, big: true });
     row('Preço por exemplar', fmtBRL(r.unit), { fill: true, bold: true, accent: true });
     y += 5;
@@ -6979,7 +7016,7 @@ window.addEventListener('DOMContentLoaded', () => {
       id: genId(), numero: 'OP-' + String(oseq).padStart(4, '0'), orcamento: orcNum, date: new Date().toISOString(),
       status: 'Aprovada', tipo: 'comercial', customer: JSON.parse(JSON.stringify(r.cust)),
       productCode: r.code, quantidade: r.qty, width: r.w, height: r.h, pages: r.pages, sides: r.two ? 'TwoSidedHeadToHead' : 'OneSided',
-      media: { id: r.media.id, mediaquality: r.media.mediaquality }, days: r.days, description: ($('com_desc').value || '').trim(), total: r.total, precoUnit: r.unit, jobs: []
+      media: { id: r.media.id, mediaquality: r.media.mediaquality }, days: r.days, description: ($('com_desc').value || '').trim(), ...(r.spread ? { spread: r.spread } : {}), total: r.total, precoUnit: r.unit, jobs: []
     };
     db.orders.push(op); saveDB(db);
     $('com_next_number').textContent = quoteNumber(nextSeq());
@@ -7003,6 +7040,7 @@ window.addEventListener('DOMContentLoaded', () => {
     set('com_p_city', c.city); set('com_p_country', c.countrycode); set('com_p_postal', c.postalcode); set('com_p_street', c.street);
     set('com_p_amount', op.quantidade); set('com_p_w', op.width); set('com_p_h', op.height); set('com_p_pages', op.pages);
     set('com_p_sides', op.sides); set('com_p_media', op.media && op.media.mediaquality); set('com_p_days', op.days);
+    if (window.comSpread) window.comSpread.fillProd(op);
     set('com_preview', '');
     $('com_preview').textContent = '';
     window.switchTab('production');
@@ -7013,6 +7051,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const mm = n => String(parseFloat(n)) + 'mm';
   function buildXJDF() {
     const g = id => (($(id) || {}).value || '').trim();
+    if (window.comSpread && g('com_p_code') === 'COVER-SPREAD') return window.comSpread.buildXJDF(g);   // modelo próprio
     const jobid = g('com_jobid'), code = g('com_p_code'), cust = g('com_p_customer'), custid = g('com_p_customerid');
     const amount = parseInt(g('com_p_amount'), 10), w = parseFloat(g('com_p_w')), h = parseFloat(g('com_p_h'));
     const pages = parseInt(g('com_p_pages'), 10), days = parseInt(g('com_p_days'), 10), media = g('com_p_media');
@@ -7077,11 +7116,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   window.comBuildXJDF = buildXJDF;
 
-  const FIELD_IDS = ['com_jobid', 'com_p_code', 'com_p_customer', 'com_p_customerid', 'com_p_street', 'com_p_city', 'com_p_postal', 'com_p_country',
+  const BASE_IDS = ['com_jobid', 'com_p_code', 'com_p_customer', 'com_p_customerid', 'com_p_street', 'com_p_city', 'com_p_postal', 'com_p_country',
     'com_p_desc', 'com_p_amount', 'com_p_w', 'com_p_h', 'com_p_pages', 'com_p_sides', 'com_p_media', 'com_p_days'];
+  const fieldIds = () => BASE_IDS.concat(window.comSpread ? window.comSpread.PROD_IDS : []);
   function saveToHistory() {
     const jobid = $('com_jobid').value.trim(); if (!jobid) return;
-    const fields = {}; FIELD_IDS.forEach(id => { fields[id] = $(id).value; });
+    const fields = {}; fieldIds().forEach(id => { fields[id] = $(id).value; });
     const db = getDB();
     db.productionJobs = db.productionJobs.filter(j => j.jobId !== jobid);
     db.productionJobs.push({ id: genId(), jobId: jobid, tipo: 'comercial', label: ($('com_p_desc').value || '').trim() || 'Revista_JDF',
@@ -7097,7 +7137,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if (window.opSetHistoryUnlock) window.opSetHistoryUnlock(true);
     sv('pr_opid', '');
     window.switchTab('production');
-    FIELD_IDS.forEach(f => { if ($(f)) $(f).value = (job.snapshot.fields || {})[f] == null ? '' : job.snapshot.fields[f]; });
+    fieldIds().forEach(f => { if ($(f)) $(f).value = (job.snapshot.fields || {})[f] == null ? '' : job.snapshot.fields[f]; });
+    if (window.comSpread) window.comSpread.prodMode();
     if (duplicate) { $('com_jobid').value = getNextProductionJobId(); showToast('📋 Trabalho duplicado com novo Job ID.'); }
     else showToast(`✅ Trabalho "${job.jobId}" carregado!`);
     $('com_preview').textContent = '';
@@ -7156,6 +7197,257 @@ window.addEventListener('DOMContentLoaded', () => {
     ['com_customer_select', 'com_media_select', 'com_code', 'com_sides'].forEach(id => $(id).addEventListener('change', recalc));
     ['com_w', 'com_h', 'com_pages', 'com_qty', 'com_days', 'com_desc'].forEach(id => $(id).addEventListener('input', recalc));
     recalc();
+  });
+})();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   PRODUCT CODE COVER-SPREAD (capa aberta + miolo) — módulo isolado.
+   Só entra em ação quando o Product Code é COVER-SPREAD; os demais Product Codes seguem o fluxo comercial normal.
+   XJDF próprio (ProductType SoftCoverBook com Cover + Body), baseado no modelo CoverSpread_XJDF.
+   ═══════════════════════════════════════════════════════════════════════ */
+(function () {
+  const CODE = 'COVER-SPREAD';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const X = esc;
+  const fmtBRL = n => 'R$ ' + (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const num = id => { const n = parseFloat(($(id) || {}).value); return n > 0 ? n : 0; };
+  const mm = n => String(parseFloat(n)) + 'mm';
+  const PROD_IDS = ['com_p_sp_bw', 'com_p_sp_bh', 'com_p_sp_bpages', 'com_p_sp_bmedia', 'com_p_sp_cw', 'com_p_sp_ch', 'com_p_sp_cmedia'];
+
+  /* O Product Code existe na Base de Dados (cadastrado uma única vez, sem recriar se você apagar) */
+  (function ensureCode() {
+    const db = getDB();
+    if (db.settings.spreadCodeSeeded) return;
+    if (!db.productcodes.some(p => p.code === CODE)) db.productcodes.push({ id: 'pc_coverspread', code: CODE, description: 'Revista com capa aberta + miolo', base: '300', form: '380', finish: '0.35' });
+    db.settings.spreadCodeSeeded = true; saveDB(db);
+  })();
+
+  const active = () => ($('com_code') || {}).value === CODE;
+
+  /* ── Mostra/oculta campos do Orçamento ── */
+  const STD = ['com_w', 'com_h', 'com_pages', 'com_sides'];
+  function applyMode() {
+    const on = active();
+    STD.forEach(id => { const f = $(id) && $(id).closest('.field'); if (f) f.style.display = on ? 'none' : ''; });
+    const mf = $('com_media_select') && $('com_media_select').closest('.field'); if (mf) mf.style.display = on ? 'none' : '';
+    $('com_sp_box').style.display = on ? '' : 'none';
+    $('com_sp_hint').style.display = on ? '' : 'none';
+    $('com_pages_hint').style.display = on ? 'none' : '';
+  }
+  const mediaLabel = m => `${esc(m.mediaquality || 'Substrato')}${m.mediabrand ? ' — ' + esc(m.mediabrand) : ''}${m.mediaweight ? ' · ' + esc(m.mediaweight) + ' g/m²' : ''}`;
+  function fillSelects() {
+    const db = getDB();
+    ['com_sp_bmedia', 'com_sp_cmedia'].forEach(id => {
+      const sel = $(id), keep = sel.value;
+      sel.innerHTML = '<option value="">— Selecione —</option>' + db.media.map(m => `<option value="${esc(m.id)}">${mediaLabel(m)}</option>`).join('');
+      sel.value = keep; enhanceSearchableSelect(id);
+      const inp = sel.parentElement.querySelector('.combo-input'); if (inp) inp.value = sel.value ? sel.options[sel.selectedIndex].text : '';
+    });
+  }
+  const SP_INPUTS = ['com_sp_bw', 'com_sp_bh', 'com_sp_bpages', 'com_sp_bmedia', 'com_sp_cw', 'com_sp_ch', 'com_sp_cmedia'];
+  const sig = () => JSON.stringify(SP_INPUTS.map(id => ($(id) || {}).value));
+
+  /* ── Orçamento (capa e miolo simulados separadamente) ── */
+  function recalc() {
+    applyMode();
+    if (!active()) return undefined;
+    const db = getDB(), c = window.comCosts(), k = c.codes[CODE] || { base: 0, form: 0, finish: 0 };
+    const bw = num('com_sp_bw'), bh = num('com_sp_bh'), bp = parseInt(($('com_sp_bpages') || {}).value, 10) || 0, cw = num('com_sp_cw'), ch = num('com_sp_ch');
+    const qty = parseInt($('com_qty').value, 10) || 0, days = parseInt($('com_days').value, 10) || 0;
+    const bm = db.media.find(m => m.id === $('com_sp_bmedia').value), cm = db.media.find(m => m.id === $('com_sp_cmedia').value);
+    const cust = db.customers.find(x => x.id === $('com_customer_select').value);
+    const faltam = [];
+    if (!cust) faltam.push('cliente'); if (!bw || !bh || !(bp > 0)) faltam.push('miolo (formato e páginas)'); if (!bm || !bm.mediaquality) faltam.push('substrato do miolo');
+    if (!cw || !ch) faltam.push('formato aberto da capa'); if (!cm || !cm.mediaquality) faltam.push('substrato da capa'); if (!(qty > 0)) faltam.push('quantidade'); if (!(days > 0)) faltam.push('duração');
+    $('com_notices').innerHTML = '';
+    const off = () => { $('com_approve_btn').disabled = true; $('com_pdf_btn').disabled = true; };
+    if (faltam.length) { $('com_result').innerHTML = '<div class="orc-empty">Preencha: ' + esc(faltam.join(', ')) + '.</div>'; off(); return null; }
+    const wt = m => parseFloat(m.mediaweight) > 0 ? parseFloat(m.mediaweight) / 90 : 1, loss = 1 + c.waste / 100;
+    const bArea = bw * bh / 1e6, cArea = cw * ch / 1e6;
+    const bodyPaper = bArea * Math.ceil(bp / 2) * c.paper * wt(bm) * loss, bodyPrint = bp * bArea * c.print;
+    const coverPaper = cArea * 1 * c.paper * wt(cm) * loss, coverPrint = 2 * cArea * c.print;       // capa: 1 folha, 2 lados
+    const forms = Math.max(1, Math.ceil(bp / 16)) + 1, setup = k.base + k.form * forms;              // cadernos do miolo + capa
+    const unitCost = bodyPaper + bodyPrint + coverPaper + coverPrint + k.finish;
+    const sub = setup + qty * unitCost, margem = sub * c.margin / 100, total = sub + margem;
+    const desc = ($('com_desc').value || '').trim();
+    const r = {
+      tipo: 'spread', cust, code: CODE, desc, media: bm, w: bw, h: bh, pages: bp, qty, days, two: true,
+      paper: (bodyPaper + coverPaper) * qty, print: (bodyPrint + coverPrint) * qty, finish: k.finish * qty, setup, sub, margem, total, unit: total / qty,
+      spread: { cw, ch, cmedia: { id: cm.id, mediaquality: cm.mediaquality }, bmedia: { id: bm.id, mediaquality: bm.mediaquality } },
+      pdfExtra: {
+        boxes: [['Descrição do trabalho', desc || CODE, [CODE]],
+                ['Capa (formato aberto)', cw + ' × ' + ch + ' mm', [cm.mediaquality + (cm.mediaweight ? ' · ' + cm.mediaweight + ' g' : '')]],
+                ['Miolo', bw + ' × ' + bh + ' mm · ' + bp + ' págs.', [bm.mediaquality + (bm.mediaweight ? ' · ' + bm.mediaweight + ' g' : '')]]],
+        rows: [['Papel da capa', coverPaper * qty], ['Papel do miolo', bodyPaper * qty], ['Impressão da capa', coverPrint * qty], ['Impressão do miolo', bodyPrint * qty],
+               ['Acabamento', k.finish * qty], ['Preparação', setup]]
+      }
+    };
+    $('com_result').innerHTML = `
+      <div class="orc-card"><div class="orc-card-title">📕 Capa + 📖 Miolo<small>${CODE} · capa ${cw}×${ch} mm · miolo ${bw}×${bh} mm · ${bp} págs.</small></div>
+        <div class="orc-line"><span>Papel (capa + miolo)</span><strong>${fmtBRL(r.paper)}</strong></div>
+        <div class="orc-line"><span>Impressão (capa + miolo)</span><strong>${fmtBRL(r.print)}</strong></div>
+        <div class="orc-line"><span>Acabamento</span><strong>${fmtBRL(r.finish)}</strong></div>
+        <div class="orc-line"><span>Preparação (${forms} cad.)</span><strong>${fmtBRL(r.setup)}</strong></div>
+        <div class="orc-total"><span>Custo</span><strong>${fmtBRL(r.sub)}</strong></div></div>
+      <div class="orc-card"><div class="orc-card-title">💼 Comercial</div>
+        <div class="orc-line"><span>Margem (${c.margin}%)</span><strong>${fmtBRL(r.margem)}</strong></div>
+        <div class="orc-line"><span>Exemplares</span><strong>${qty.toLocaleString('pt-BR')}</strong></div>
+        <div class="orc-line"><span>Duração</span><strong>${days} dias</strong></div>
+        <div class="orc-total"><span>Preço por exemplar</span><strong>${fmtBRL(r.unit)}</strong></div></div>
+      <div class="orc-card grand"><div class="orc-card-title">Total do orçamento</div>
+        <div class="orc-big">${fmtBRL(r.total)}</div></div>`;
+    $('com_approve_btn').disabled = false; $('com_pdf_btn').disabled = false;
+    return r;
+  }
+
+  /* ── Production Job: campos próprios do COVER-SPREAD ── */
+  const PSTD = ['com_p_w', 'com_p_h', 'com_p_pages', 'com_p_sides', 'com_p_media'];
+  function prodMode() {
+    const on = ($('com_p_code') || {}).value === CODE;
+    document.querySelectorAll('.com-sp-prod').forEach(f => { f.style.display = on ? '' : 'none'; });
+    PSTD.forEach(id => { const f = $(id) && $(id).closest('.field'); if (f) f.style.display = on ? 'none' : ''; });
+  }
+  function fillProd(op) {
+    const sp = op.spread, set = (id, v) => { if ($(id)) $(id).value = v == null ? '' : v; };
+    PROD_IDS.forEach(id => set(id, ''));
+    if (op.productCode === CODE && sp) {
+      set('com_p_sp_bw', op.width); set('com_p_sp_bh', op.height); set('com_p_sp_bpages', op.pages); set('com_p_sp_bmedia', sp.bmedia && sp.bmedia.mediaquality);
+      set('com_p_sp_cw', sp.cw); set('com_p_sp_ch', sp.ch); set('com_p_sp_cmedia', sp.cmedia && sp.cmedia.mediaquality);
+    }
+    prodMode();
+  }
+
+  /* ── XJDF (modelo CoverSpread) ── */
+  function buildXJDF(g, ov) {
+    const jobid = g('com_jobid'), cust = g('com_p_customer'), custid = g('com_p_customerid'), desc = g('com_p_desc') || 'Revista_JDF', code = g('com_p_code');
+    const amount = parseInt(g('com_p_amount'), 10), days = parseInt(g('com_p_days'), 10);
+    const bw = parseFloat(g('com_p_sp_bw')), bh = parseFloat(g('com_p_sp_bh')), bpages = parseInt(g('com_p_sp_bpages'), 10), bmedia = g('com_p_sp_bmedia');
+    const cw = parseFloat(g('com_p_sp_cw')), ch = parseFloat(g('com_p_sp_ch')), cmedia = g('com_p_sp_cmedia');
+    const missing = [];
+    if (!jobid) missing.push('Job ID'); if (!cust) missing.push('Customer Name'); if (!custid) missing.push('Customer ID'); if (!(amount > 0)) missing.push('Quantidade');
+    if (!(bw > 0) || !(bh > 0)) missing.push('Dimensões do miolo'); if (!(bpages > 0)) missing.push('Páginas do miolo'); if (!bmedia) missing.push('Media Quality do miolo');
+    if (!(cw > 0) || !(ch > 0)) missing.push('Dimensões da capa'); if (!cmedia) missing.push('Media Quality da capa'); if (!(days > 0)) missing.push('Duração');
+    if (missing.length) { showToast('⚠️ Preencha: ' + missing.join(', ') + '.', 'error'); return null; }
+    const n = parseInt((jobid.match(/\d+/) || ['1'])[0], 10) || 1;
+    const d = new Date(), p2 = (x, l) => String(x).padStart(l || 2, '0');
+    const ymd = p2(d.getFullYear() % 100) + p2(d.getMonth() + 1) + p2(d.getDate());
+    const hms = p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + p2(d.getMilliseconds(), 3);
+    let ext = n + 1, prodId = 'l_' + ymd + '_' + hms + '_' + p2(n + 2, 6), nodeId = 'l_' + ymd + '_' + hms + '_' + p2(n + 3, 6);
+    if (ov) { ext = ov.ext; prodId = ov.prodId; nodeId = ov.nodeId; }
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+###########
+In CR17.10: 
+
+- Requires PPT without Special Master Page
+- Requires JDF Import MIS Profile "Create product parts" set to "Never"
+- Requires declaration of Dimensions (open format) on product part Cover. FinishedDimensions is not expected. 
+
+-->
+<XJDF Category="Printing" DescriptiveName="${X(desc)}" JobID="${X(jobid)}" Types="Product" JobPartID="Part_A" xmlns="http://www.CIP4.org/JDFSchema_2_0"> <!-- ## added Types="Product" to make it more specific ## -->
+  <GeneralID IDUsage="CatalogID" IDValue="${X(code)}" />
+  <ProductList>
+    <Product Amount="${amount}" DescriptiveName="${X(cust)}" ExternalID="${ext}" ID="${prodId}" IsRoot="true" ProductType="SoftCoverBook"> <!-- ## Changed ProductType to SoftCoverBook ## -->
+      <!-- 
+	  
+	  ## You don't need this information on Endproduct level ##
+	  
+	  <Intent Name="LayoutIntent">
+        <LayoutIntent FinishedDimensions="210mm 297mm" Pages="50" Sides="TwoSidedHeadToHead"/>
+      </Intent>
+      <Intent Name="MediaIntent">
+        <MediaIntent MediaQuality="CO_01"/>
+      </Intent>
+      <Intent Name="ColorIntent">
+        <ColorIntent>
+          <SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front"/>
+          <SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Back"/>
+        </ColorIntent>
+      </Intent>
+      <Intent Name="ProductionIntent">
+        <ProductionIntent PrintProcess="Lithography"/>
+      </Intent> 
+	  
+	  -->
+      <Intent Name="BindingIntent">
+        <BindingIntent BindingType="SoftCover" ChildRefs="ID_Cover ID_Body" />
+      </Intent>
+      <ChildProduct ChildRef="ID_Cover" />
+      <ChildProduct ChildRef="ID_Body" />
+    </Product>
+    <Product DescriptiveName="Cover" ID="ID_Cover" IsRoot="false" ProductType="Cover">
+      <Intent Name="LayoutIntent">
+        <LayoutIntent Pages="2" Dimensions="${mm(cw)} ${mm(ch)}" SpreadType="Spread" Sides="TwoSidedHeadToHead" /> <!-- ## System expects Dimensions ONLY -> this will create a special master page in Signa for the Cover ## -->
+      </Intent>
+      <Intent Name="MediaIntent">
+        <MediaIntent MediaQuality="${X(cmedia)}" />
+      </Intent>
+      <Intent Name="ColorIntent">
+        <ColorIntent>
+          <SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front" />
+          <SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Back" />
+        </ColorIntent>
+      </Intent>
+    </Product>
+    <Product DescriptiveName="Body" ID="ID_Body" IsRoot="false" ProductType="Body">
+      <Intent Name="LayoutIntent">
+        <LayoutIntent FinishedDimensions="${mm(bw)} ${mm(bh)}" Pages="${bpages}" Sides="TwoSidedHeadToHead" />
+      </Intent>
+      <Intent Name="MediaIntent">
+        <MediaIntent MediaQuality="${X(bmedia)}" />
+      </Intent>
+      <Intent Name="ColorIntent">
+        <ColorIntent>
+          <SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Front" />
+          <SurfaceColor ColorsUsed="Black Cyan Magenta Yellow" Surface="Back" />
+        </ColorIntent>
+      </Intent>
+    </Product>
+  </ProductList>
+  <ResourceSet Name="CustomerInfo" Usage="Input">
+    <Resource>
+      <CustomerInfo CustomerID="${X(custid)}" />
+    </Resource>
+  </ResourceSet>
+  <ResourceSet Name="Contact" Usage="Input">
+    <Resource>
+      <Part ContactType="Customer" />
+      <Contact>
+        <Company CompanyID="${X(custid)}" OrganizationName="${X(cust)}" />
+        <Address City="${X(g('com_p_city'))}" CountryCode="${X(g('com_p_country'))}" PostalCode="${X(g('com_p_postal'))}" Street="${X(g('com_p_street'))}" />
+      </Contact>
+    </Resource>
+  </ResourceSet>
+  <ResourceSet ID="${nodeId}" Name="NodeInfo" Usage="Input">
+    <Resource Status="Available">
+      <NodeInfo JobPriority="10" NodeStatus="Waiting" Status="Waiting" TotalDuration="P${days}D" /> 
+    </Resource>
+  </ResourceSet>
+</XJDF>`;
+  }
+
+  window.comSpread = { active, recalc, sig, buildXJDF, fillProd, prodMode, PROD_IDS };
+
+  /* ── Ganchos de interface (só adicionam comportamento para o COVER-SPREAD) ── */
+  const baseSetType = window.comSetType;
+  window.comSetType = function () { const r = baseSetType.apply(this, arguments); fillSelects(); applyMode(); return r; };
+  const baseOrcRender = window.orcRender;
+  window.orcRender = function () { const r = baseOrcRender.apply(this, arguments); fillSelects(); return r; };
+  const baseClear = window.comClear;
+  window.comClear = function () {
+    SP_INPUTS.forEach(id => { $(id).value = ''; });
+    document.querySelectorAll('#com_sp_box .combo-input').forEach(i => { i.value = ''; });
+    return baseClear.apply(this, arguments);
+  };
+  window.addEventListener('DOMContentLoaded', () => {
+    fillSelects(); applyMode(); prodMode();
+    const poke = () => $('com_code').dispatchEvent(new Event('change'));           // reaproveita o recálculo do comercial
+    SP_INPUTS.forEach(id => $(id).addEventListener($(id).tagName === 'SELECT' ? 'change' : 'input', poke));
+    const pc = $('com_p_code'); if (pc) pc.addEventListener('input', prodMode);
+    poke();
   });
 })();
 </script>

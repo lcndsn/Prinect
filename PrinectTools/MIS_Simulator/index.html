@@ -1096,6 +1096,9 @@
     /* Logo do app (mesmo ícone do executável) no lugar do "HD" — fundo claro para manter contraste nos dois temas */
     body.skin .logo-box.logo-img { background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.28); }
     body.skin .logo-box.logo-img img { width: 34px; height: 34px; display: block; object-fit: contain; }
+    /* Product Job: sem artigo carregado só aparece o bloco do artigo */
+    body.skin #tab-product.pd-locked > .section:not(.pd-gate) { display: none !important; }
+    body.skin #tab-product.pd-locked > .preview-section { display: none !important; }
 
   </style>
 </head>
@@ -1195,6 +1198,19 @@
   <div class="tab-content active" id="tab-product">
 
     <div id="pd_banner" style="display:none"></div>
+
+    <div class="section pd-gate" id="pd_gate">
+      <div class="section-header" onclick="toggleSection(this)">📦 Artigo do Product Job<span class="toggle-icon">▼</span></div>
+      <div class="section-body single">
+        <div class="info-box" id="pd_gate_info"></div>
+        <div class="db-selector">
+          <label>📚 Carregar Artigo:</label>
+          <select id="pd_gate_article_select"><option value="">— Selecione —</option></select>
+          <button onclick="pdGateLoad()">Carregar</button>
+        </div>
+        <div id="pd_current"></div>
+      </div>
+    </div>
 
     <div class="section">
       <div class="section-header" onclick="toggleSection(this)">📄 Artigo e PDF<span class="toggle-icon">▼</span></div>
@@ -7778,6 +7794,10 @@ In CR17.10:
     { k: 'Máquinas de acabamento', any: true, ids: ['pr_shapecutting_deviceid', 'pr_boxfolding_deviceid', 'pr_packing_deviceid'], sels: ['pr_db_shapecutting_select', 'pr_db_boxfolding_select', 'pr_db_packing_select'] },
     { k: 'Início da impressão', ids: ['pr_printing_start'] },
   ];
+  // Product Job: tudo vem do artigo; o que fica por conta do usuário é o cliente
+  const PRODUCT = [
+    { k: 'Cliente', ids: ['p_customerid'], sels: ['p_db_customer_select'] },
+  ];
   // Comercial: opcionais que podem vir em branco do cadastro/orçamento (destaque suave)
   const COM_SOFT = [
     { k: 'Descrição do trabalho', ids: ['com_p_desc'] },
@@ -7796,24 +7816,23 @@ In CR17.10:
   }
   const mark = (el, c) => { if (el && !el.classList.contains(c)) { el.classList.add(c); } if (el) marked.push([el, c]); };
 
-  function compute(commercial) {
+  // kind: 'pack' (Production embalagem), 'com' (Production comercial) ou 'product' (Product Job)
+  function compute(kind) {
     items = []; soft = [];
     const taken = new Set();
-    if (!commercial) {
-      PACK.forEach(it => {
-        it.ids.forEach(i => taken.add(i));
-        const e = it.ids.filter(isEmpty);
-        const sels = it.sels || (it.sel ? [it.sel] : []);
-        if (it.any && e.length && e.length < it.ids.length) { soft.push({ k: it.k + ' (opcional)', ids: it.ids, empty: e }); items.push({ k: it.k, ids: it.ids, sels, empty: [] }); }
-        else items.push({ k: it.k, ids: it.ids, sels, empty: e });
-      });
-    } else {
-      COM_SOFT.forEach(it => { const e = it.ids.filter(isEmpty); if (e.length) soft.push({ k: it.k, ids: it.ids, empty: e }); it.ids.forEach(i => taken.add(i)); });
-    }
+    const curated = kind === 'pack' ? PACK : (kind === 'product' ? PRODUCT : []);
+    curated.forEach(it => {
+      it.ids.forEach(i => taken.add(i));
+      const e = it.ids.filter(isEmpty);
+      const sels = it.sels || (it.sel ? [it.sel] : []);
+      if (it.any && e.length && e.length < it.ids.length) { soft.push({ k: it.k + ' (opcional)', ids: it.ids, empty: e }); items.push({ k: it.k, ids: it.ids, sels, empty: [] }); }
+      else items.push({ k: it.k, ids: it.ids, sels, empty: e });
+    });
+    if (kind === 'com') COM_SOFT.forEach(it => { const e = it.ids.filter(isEmpty); if (e.length) soft.push({ k: it.k, ids: it.ids, empty: e }); it.ids.forEach(i => taken.add(i)); });
     // Obrigatórios/importantes (pelos selos que já existem na tela) que continuam vazios
-    const root = commercial ? $('com_production') : $('tab-production');
+    const root = kind === 'com' ? $('com_production') : (kind === 'product' ? $('tab-product') : $('tab-production'));
     if (root) root.querySelectorAll('.field').forEach(f => {
-      if (!commercial && f.closest('.com-section')) return;
+      if (kind !== 'com' && f.closest('.com-section')) return;
       const b = f.querySelector('label .badge'); if (!b) return;
       if (!/OBRIGAT|IMPORTANTE|PONTO DE PARTIDA/i.test(b.textContent)) return;
       const c = f.querySelector('input:not([type=hidden]):not([type=checkbox]), select, textarea'); if (!c || !c.id || taken.has(c.id)) return;
@@ -7825,13 +7844,9 @@ In CR17.10:
     });
   }
 
-  function refresh() {
-    const tab = $('tab-production'); const panel = $('pend_panel'); if (!tab || !panel) return;
-    clearMarks();
-    const opid = ($('pr_opid') || {}).value;
-    if (!opid || !tab.classList.contains('active')) { panel.style.display = 'none'; return; }
-    const commercial = tab.classList.contains('op-commercial');
-    compute(commercial);
+  function paint(panel, kind) {
+    compute(kind);
+    const commercial = kind === 'com';
     const todo = items.filter(i => i.empty.length), done = items.filter(i => !i.empty.length);
     const bySection = new Map();
     const addSec = f => { const s = f && f.closest('.section'); if (s) bySection.set(s, (bySection.get(s) || 0) + 1); };
@@ -7843,11 +7858,10 @@ In CR17.10:
     soft.forEach(i => i.empty.forEach(id => mark(fieldOf(id), 'pend-soft')));
     bySection.forEach((n, s) => {
       const h = s.querySelector(':scope > .section-header'); if (!h) return;
-      const sp = document.createElement('span'); sp.className = 'pend-count'; sp.textContent = n + (n === 1 ? ' a preencher' : ' a preencher');
+      const sp = document.createElement('span'); sp.className = 'pend-count'; sp.textContent = n + ' a preencher';
       const ico = h.querySelector('.toggle-icon'); h.insertBefore(sp, ico || null);
       document.querySelectorAll('.section-nav .chip').forEach(c => { if (c._sec === s) c.classList.add('has-pend'); });
     });
-    // painel
     const total = items.length, ndone = done.length;
     panel.style.display = 'block';
     panel.classList.toggle('pend-ok', !todo.length);
@@ -7862,6 +7876,15 @@ In CR17.10:
     }
     if (soft.length) html += `<div class="pend-soft-line">Opcionais em branco: ${soft.map(i => btn(i, 'soft', '·')).join(' ')}</div>`;
     if (panel._html !== html) { panel.innerHTML = html; panel._html = html; }
+  }
+
+  function refresh() {
+    clearMarks();
+    const pp = $('pend_panel'), pq = $('pend_panel_p');
+    const tPr = $('tab-production'), tP = $('tab-product');
+    if (pp) pp.style.display = 'none'; if (pq) pq.style.display = 'none';
+    if (pp && tPr && tPr.classList.contains('active') && (($('pr_opid') || {}).value)) paint(pp, tPr.classList.contains('op-commercial') ? 'com' : 'pack');
+    else if (pq && tP && tP.classList.contains('active') && !tP.classList.contains('pd-locked') && String((($('p_articleid') || {}).value) || '').trim()) paint(pq, 'product');
   }
 
   function goTo(name) {
@@ -7884,10 +7907,104 @@ In CR17.10:
     gate.parentNode.insertBefore(panel, gate.nextSibling);
     panel.addEventListener('click', e => { const b = e.target.closest('.pend-item'); if (b) goTo(b.dataset.k); });
   }
+  const pgate = $('pd_gate');
+  if (pgate) {
+    const panel = document.createElement('div'); panel.id = 'pend_panel_p'; panel.className = 'pend-panel';
+    pgate.parentNode.insertBefore(panel, pgate.nextSibling);
+    panel.addEventListener('click', e => { const b = e.target.closest('.pend-item'); if (b) goTo(b.dataset.k); });
+  }
   let t = null; const soon = () => { if (!t) t = setTimeout(() => { t = null; try { refresh(); } catch (e) {} }, 60); };
   document.addEventListener('input', soon, true); document.addEventListener('change', soon, true); document.addEventListener('click', soon, true);
   setInterval(() => { try { refresh(); } catch (e) {} }, 700);
   ['opRefreshLock', 'switchTab'].forEach(n => { const f = window[n]; if (typeof f !== 'function') return; window[n] = function () { const r = f.apply(this, arguments); soon(); return r; }; });
+})();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   PRODUCT JOB SÓ DEPOIS DE UM ARTIGO — mesma ideia da OP no Production Job.
+   Sem artigo carregado a aba mostra só o bloco "Artigo do Product Job" (escolher um cadastrado ou cadastrar novo).
+   Não altera a geração do JDF: ao escolher o artigo usa o mesmo carregamento que já existia (pdOpen).
+   ═══════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  let optSig = '', wasLocked = null;
+
+  const label = r => `${r.articlename || 'Artigo'} (${r.articleid || '—'})${r.shapeid ? ' [' + r.shapeid + ']' : ''}`;
+  function fillOptions() {
+    const sel = $('pd_gate_article_select'); if (!sel) return;
+    enhanceSearchableSelect('pd_gate_article_select');        // idempotente: garante o campo de busca mesmo sem artigos
+    const arts = getDB().articles, sig = arts.map(a => a.id + '|' + label(a)).join('¦');
+    if (sig === optSig) return; optSig = sig;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Selecione —</option>' + arts.map(a => `<option value="${esc(a.id)}">${esc(label(a))}</option>`).join('');
+    enhanceSearchableSelect('pd_gate_article_select');
+    sel.value = cur && arts.some(a => a.id === cur) ? cur : '';
+    const inp = sel.parentElement.querySelector('.combo-input'); if (inp && !sel.value) inp.value = '';
+  }
+
+  const hasArticle = () => !!String((($('p_articleid') || {}).value) || '').trim();
+  const typing = () => document.activeElement === $('p_articleid');
+  const isLocked = () => !hasArticle() && !typing();
+
+  function render(locked) {
+    const info = $('pd_gate_info'), cur = $('pd_current'); if (!info || !cur) return;
+    const arts = getDB().articles;
+    if (locked) {
+      info.innerHTML = arts.length
+        ? '🔒 <strong>O Product Job nasce de um artigo cadastrado.</strong> Escolha abaixo o artigo para abrir no Prinect. Se ele ainda não existe, cadastre primeiro — o botão <strong>“Salvar e gerar Product Job”</strong> já traz você de volta para cá com tudo preenchido.'
+        : '🔒 <strong>O Product Job nasce de um artigo cadastrado</strong>, e ainda não há nenhum artigo. Cadastre o primeiro — ao salvar, você volta para cá com o Product Job preenchido.';
+      cur.innerHTML = '<div class="op-actions"><button type="button" class="db-btn db-btn-primary" onclick="pdGateNewArticle()">➕ Cadastrar novo artigo</button></div>';
+    } else {
+      const aid = (($('p_articleid') || {}).value || '').trim(), an = (($('p_articlename') || {}).value || '').trim();
+      info.innerHTML = '✅ Artigo carregado. Confira os dados abaixo e gere o JDF do Product normalmente. Para trabalhar com outro artigo, escolha-o na lista.';
+      cur.innerHTML = `<div class="op-summary"><span class="op-pill">${esc(aid)}</span>${an ? `<span class="op-pill muted">${esc(an)}</span>` : ''}</div>`;
+    }
+  }
+
+  function refresh() {
+    const tab = $('tab-product'); if (!tab) return;
+    fillOptions();
+    const locked = isLocked();
+    tab.classList.toggle('pd-locked', locked);
+    if (locked !== wasLocked) {
+      wasLocked = locked; render(locked);
+      if (typeof activeTab !== 'undefined' && activeTab === 'product') {
+        const ma = $('main-actions'); if (ma) ma.style.display = locked ? 'none' : 'flex';
+        if (window.skinDecorate) window.skinDecorate('product');
+      }
+    } else if (!locked) { render(false); }
+  }
+  window.pdRefreshLock = refresh;
+
+  window.pdGateNewArticle = function () { openModal('article'); };
+  window.pdGateLoad = async function () {
+    const sel = $('pd_gate_article_select'), id = sel && sel.value;
+    if (!id) { showToast('⚠️ Selecione um artigo antes de carregar.', 'error'); return; }
+    if (hasArticle()) {
+      const same = (getDB().articles.find(a => a.id === id) || {}).articleid === (($('p_articleid') || {}).value || '').trim();
+      if (!same) {
+        const ok = await customConfirm('Já existe um artigo carregado. Carregar outro substitui o preenchimento atual do Product Job. Continuar?');
+        if (!ok) return;
+      }
+    }
+    window.pdOpen(id);
+    refresh();
+  };
+
+  // reavalia quando a aba é aberta, quando algo é digitado/carregado e de tempos em tempos
+  const baseSwitch = window.switchTab;
+  window.switchTab = function (tab) {
+    const r = baseSwitch.apply(this, arguments);
+    wasLocked = null; refresh();
+    return r;
+  };
+  ['input', 'change', 'focusout'].forEach(ev => document.addEventListener(ev, () => setTimeout(refresh, 0), true));
+  setInterval(() => { try { refresh(); } catch (e) {} }, 600);
+  window.addEventListener('DOMContentLoaded', () => { wasLocked = null; refresh(); });
+  setTimeout(() => { wasLocked = null; refresh(); }, 0);
 })();
 </script>
 

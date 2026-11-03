@@ -8008,6 +8008,140 @@ In CR17.10:
 })();
 </script>
 
+<style>
+/* Ordenar tabelas pelo cabeçalho + seta de recolher no fim das seções */
+.db-table th.ts-col { cursor: pointer; user-select: none; white-space: nowrap; }
+.db-table th.ts-col:hover { color: var(--hd-blue, #1768ac); }
+.db-table th.ts-col .ts-ind { display: inline-block; margin-left: 6px; font-size: 10px; opacity: 0; transition: opacity .12s; }
+.db-table th.ts-col:hover .ts-ind { opacity: .45; }
+.db-table th.ts-col.ts-asc .ts-ind, .db-table th.ts-col.ts-desc .ts-ind { opacity: 1; color: var(--hd-blue, #1768ac); }
+.sec-foot { display: none; justify-content: center; padding: 8px 0 6px; }
+.sec-foot.on { display: flex; }
+.sec-foot button { font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 16px; border-radius: 999px; border: 1.5px solid var(--hd-border, #b9c2cc); background: transparent; color: var(--hd-muted, #6b7a90); }
+.sec-foot button:hover { color: var(--hd-blue, #1768ac); border-color: var(--hd-blue, #1768ac); }
+</style>
+<script>
+/* ── ORDENAR TABELAS + RECOLHER EMBAIXO (módulo isolado, só visual) ─────────────────────────────
+   • Clique no cabeçalho de uma coluna: A→Z (ou menor→maior), 2º clique inverte, 3º volta à ordem de cadastro.
+     A escolha de cada tabela fica salva neste computador (localStorage) e volta ao reabrir o programa/HTML.
+   • Só reordena as linhas na tela; não altera o banco de dados nem nenhuma regra do programa.
+   • Seções compridas ganham um botão "Recolher" no fim, para não precisar rolar até o topo. */
+(function () {
+  'use strict';
+  const KEY = 'hd_mis_table_sort';
+  const coll = new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' });
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  const SKIP = /^(a[cç][oõ]es|amostra)$/i;
+  const isEmptyRow = tr => !!tr.querySelector('td.db-empty') || (tr.cells.length === 1 && tr.cells[0].colSpan > 1);
+  const txt = (tr, c) => { const td = tr.cells[c]; return td ? td.textContent.replace(/\s+/g, ' ').trim() : ''; };
+  const blank = s => s === '' || s === '—' || s === '-';
+  function key(s) {
+    const d = /^(\d{2})\/(\d{2})\/(\d{4})(?:[ ,]+(\d{2}):(\d{2})(?::(\d{2}))?)?/.exec(s);
+    if (d) return { n: Date.UTC(+d[3], +d[2] - 1, +d[1], +(d[4] || 0), +(d[5] || 0), +(d[6] || 0)) };
+    if (/^-?\d+([.,]\d+)?$/.test(s)) return { n: parseFloat(s.replace(',', '.')) };
+    return { s };
+  }
+  function cmp(a, b) {
+    const ka = key(a), kb = key(b);
+    if (ka.n !== undefined && kb.n !== undefined) return ka.n - kb.n;
+    return coll.compare(a, b);
+  }
+
+  function applyTo(tbody) {
+    const table = tbody.closest('table'); if (!table) return;
+    const st = state[tbody.id];
+    const rows = Array.from(tbody.children).filter(r => r.tagName === 'TR' && !isEmptyRow(r));
+    rows.forEach(r => { if (r.dataset.oi === undefined) r.dataset.oi = String(++tbody._oi || (tbody._oi = 1)); });
+    if (tbody._oiReset) { tbody._oiReset = false; }
+    let ordered;
+    if (st && st.c != null) {
+      const dir = st.d === 'desc' ? -1 : 1;
+      ordered = rows.slice().sort((r1, r2) => {
+        const a = txt(r1, st.c), b = txt(r2, st.c), ba = blank(a), bb = blank(b);
+        if (ba || bb) return ba && bb ? (+r1.dataset.oi - +r2.dataset.oi) : (ba ? 1 : -1);   // vazios sempre no fim
+        const r = cmp(a, b) * dir;
+        return r || (+r1.dataset.oi - +r2.dataset.oi);
+      });
+    } else ordered = rows.slice().sort((r1, r2) => +r1.dataset.oi - +r2.dataset.oi);
+    const same = ordered.every((r, i) => r === rows[i]);
+    if (!same) ordered.forEach(r => tbody.appendChild(r));
+    // indicadores
+    table.querySelectorAll('thead th.ts-col').forEach((th, i) => {
+      const c = +th.dataset.col, on = st && st.c === c;
+      th.classList.toggle('ts-asc', !!on && st.d !== 'desc'); th.classList.toggle('ts-desc', !!on && st.d === 'desc');
+      th.querySelector('.ts-ind').textContent = on ? (st.d === 'desc' ? '▼' : '▲') : '↕';
+    });
+  }
+
+  const observers = new Map();
+  function watch(tbody) {
+    const obs = new MutationObserver(() => {
+      obs.disconnect();
+      // linhas novas (re-render) chegam sem data-oi: a numeração recomeça na ordem de cadastro
+      const rows = Array.from(tbody.children).filter(r => r.tagName === 'TR' && !isEmptyRow(r));
+      if (rows.length && rows.every(r => r.dataset.oi === undefined)) tbody._oi = 0;
+      else if (rows.some(r => r.dataset.oi === undefined)) { rows.forEach(r => { delete r.dataset.oi; }); tbody._oi = 0; }
+      try { applyTo(tbody); } catch (e) {}
+      obs.observe(tbody, { childList: true });
+    });
+    obs.observe(tbody, { childList: true });
+    observers.set(tbody, obs);
+  }
+
+  function setup(table) {
+    const tbody = table.querySelector('tbody[id]'); if (!tbody || tbody._ts) return;
+    tbody._ts = true;
+    table.querySelectorAll('thead th').forEach((th, i) => {
+      const label = th.textContent.trim();
+      if (!label || SKIP.test(label)) return;
+      th.classList.add('ts-col'); th.dataset.col = String(i);
+      th.title = 'Clique para ordenar';
+      const ind = document.createElement('span'); ind.className = 'ts-ind'; ind.textContent = '↕'; th.appendChild(ind);
+      th.addEventListener('click', () => {
+        const cur = state[tbody.id];
+        if (!cur || cur.c !== i) state[tbody.id] = { c: i, d: 'asc' };
+        else if (cur.d === 'asc') state[tbody.id] = { c: i, d: 'desc' };
+        else delete state[tbody.id];
+        save(); applyTo(tbody);
+      });
+    });
+    watch(tbody);
+    // linhas que já estavam na tabela antes do módulo carregar
+    const rows = Array.from(tbody.children).filter(r => r.tagName === 'TR' && !isEmptyRow(r));
+    rows.forEach((r, i) => { r.dataset.oi = String(i + 1); }); tbody._oi = rows.length;
+    applyTo(tbody);
+  }
+  const init = () => document.querySelectorAll('table.db-table').forEach(setup);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+  /* ── Botão "Recolher" no fim das seções compridas ── */
+  const MIN_H = 520;
+  function addFoot(header) {
+    const sec = header.parentElement; if (!sec || sec._foot) return;
+    const foot = document.createElement('div'); foot.className = 'sec-foot';
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = '▲ Recolher seção';
+    b.addEventListener('click', () => {
+      header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      header.click();      // mesmo caminho do clique no cabeçalho (mantém "Recolher tudo" em dia)
+    });
+    foot.appendChild(b); sec.appendChild(foot); sec._foot = foot;
+    const upd = () => {
+      const collapsed = header.classList.contains('collapsed');
+      const h = sec.offsetHeight - (foot.classList.contains('on') ? foot.offsetHeight : 0);
+      foot.classList.toggle('on', !collapsed && h > MIN_H);
+    };
+    if (window.ResizeObserver) new ResizeObserver(upd).observe(sec);
+    sec.addEventListener('click', () => setTimeout(upd, 0));
+    upd();
+  }
+  const initFoot = () => document.querySelectorAll('.section-header[onclick*="toggleSection"], .db-section-header[onclick*="toggleSection"]').forEach(addFoot);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFoot); else initFoot();
+})();
+</script>
+
 <script>
 /* ── SKIN v23 — apenas camada visual/navegação. Não altera nenhuma função existente;
       só "envolve" switchTab para atualizar o cabeçalho da página e os atalhos de seção. ── */

@@ -1716,6 +1716,7 @@
       <div class="section-body">
         <div class="info-box"><strong>ℹ️ Como funciona:</strong> cada verniz usado no trabalho vira uma <strong>Separation</strong> própria (FLS1, FLS2...), com seu Anilox correspondente (opcional) e a <strong>Torre Física</strong> (ex.: L1, L2) onde a prensa vai aplicá-lo. Isso é o que faz o Prinect alocar o verniz numa torre de verdade, em vez de só cadastrar a separação sem enviar ao Press Center. Deixe sem nenhum card se este trabalho não usa verniz.</div>
         <div id="varnishes-container" style="grid-column:1/-1;"></div>
+        <div class="field" style="grid-column:1/-1;margin-top:8px;"><label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;"><input type="checkbox" id="pr_novarnish_ack" style="width:auto;"/> Este trabalho não usa verniz</label><span class="field-hint">Marque para confirmar que não há verniz/anilox neste trabalho — ou clique em “+ Adicionar Verniz” abaixo.</span></div>
         <button type="button" class="btn btn-secondary" onclick="addVarnish()" style="grid-column:1/-1;margin-top:8px;width:fit-content;">+ Adicionar Verniz</button>
       </div>
     </div>
@@ -6458,12 +6459,30 @@ window.addEventListener('DOMContentLoaded', () => {
       const l1 = [cu.customerid && 'ID ' + cu.customerid, contato].filter(Boolean).join('  ·  ');
       y += box(M, CW, 'Cliente', cu.orgname || cu.name || '—', [l1, end]) + 4;
     }
-    const outros = (ctx.articles || []).slice(1).map(x => x.rec.articlename || x.rec.articleid).filter(Boolean);
-    const minS = outros.length ? 2 : 1;
-    const hA = box(M, half, outros.length ? 'Artigos' : 'Artigo', a.articlename || a.articleid || '—',
-                   [a.articleid ? 'ID ' + a.articleid : '', outros.length ? '+ ' + outros.join(', ') : ''], minS);
-    box(M + half + gap, half, 'Faca', t.toolname || t.toolid || '—', [t.toolid ? 'ID ' + t.toolid : ''], minS);
-    y += hA + 4;
+    const lista = ctx.articles || [];
+    if (lista.length > 1) {
+      // Vários artigos: TODOS com o mesmo destaque (nome, ID, quantidade e repetições), um por linha
+      const hL = 12 + lista.length * 5.8;
+      doc.setFillColor(...C.tile); doc.roundedRect(M, y, CW, hL, 3, 3, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...C.muted); text('ARTIGOS (' + lista.length + ')', M + 4, y + 5, { charSpace: 0.3 });
+      lista.forEach((x, i) => {
+        const r = x.rec || {}, ry = y + 11.6 + i * 5.8;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...C.ink);
+        text(doc.splitTextToSize((i + 1) + '.  ' + (r.articlename || r.articleid || '—'), CW * 0.5 - 6)[0], M + 4, ry);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...C.muted);
+        text(r.articleid ? 'ID ' + r.articleid : '', M + CW * 0.52, ry);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(...C.ink);
+        text([x.amount ? fmtInt(x.amount) + ' un' : '', x.station ? x.station + ' rep.' : ''].filter(Boolean).join('  ·  '), M + CW - 4, ry, { align: 'right' });
+      });
+      y += hL + 4;
+      y += box(M, CW, 'Faca', t.toolname || t.toolid || '—', [t.toolid ? 'ID ' + t.toolid : '']) + 4;
+    } else {
+      const minS = 1;
+      const hA = box(M, half, 'Artigo', a.articlename || a.articleid || '—',
+                     [a.articleid ? 'ID ' + a.articleid : ''], minS);
+      box(M + half + gap, half, 'Faca', t.toolname || t.toolid || '—', [t.toolid ? 'ID ' + t.toolid : ''], minS);
+      y += hA + 4;
+    }
     const third = (CW - 2 * gap) / 3, e = res.entradas;
     const hE = box(M, third, 'Quantidade', fmtInt(e.quantidade) + ' caixas');
     box(M + third + gap, third, 'Cores', String(e.cores));
@@ -7776,6 +7795,7 @@ In CR17.10:
 .db-selector.pend-on { outline: 2px dashed #f59e0b; outline-offset: 3px; border-radius: 10px; background: rgba(245,158,11,0.10); }
 .pend-count { margin-left: 10px; font-size: 10.5px; font-weight: 800; letter-spacing: .3px; color: #4a2c00; background: #fcd34d; padding: 2px 8px; border-radius: 999px; }
 .section-nav .chip.has-pend::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 7px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,0.3); }
+.pend-btn { outline: 2px solid #f59e0b; outline-offset: 2px; box-shadow: 0 0 0 5px rgba(245,158,11,0.25) !important; }
 .pend-flash { animation: pendflash 1.3s ease-out 1; }
 @keyframes pendflash { 0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.9); } 100% { box-shadow: 0 0 0 16px rgba(245,158,11,0); } }
 </style>
@@ -7809,6 +7829,7 @@ In CR17.10:
   const labelOf = f => { const l = f && f.querySelector('label'); if (!l) return ''; let t = ''; l.childNodes.forEach(n => { if (n.nodeType === 3) t += n.nodeValue; }); return t.trim(); };
 
   let marked = [], items = [], soft = [];
+  const opCache = { id: null, vern: false };
   function clearMarks() {
     marked.forEach(([el, c]) => el.classList.remove(c)); marked = [];
     document.querySelectorAll('.pend-count').forEach(e => e.remove());
@@ -7828,6 +7849,15 @@ In CR17.10:
       if (it.any && e.length && e.length < it.ids.length) { soft.push({ k: it.k + ' (opcional)', ids: it.ids, empty: e }); items.push({ k: it.k, ids: it.ids, sels, empty: [] }); }
       else items.push({ k: it.k, ids: it.ids, sels, empty: e });
     });
+    if (kind === 'pack') {
+      // Verniz e Anilox: o usuário precisa decidir — adicionar um verniz OU confirmar que o trabalho não usa
+      const opid = ($('pr_opid') || {}).value;
+      if (opCache.id !== opid) { opCache.id = opid; opCache.vern = !!((getDB().orders || []).find(o => o.id === opid) || {}).verniz; }
+      const has = !!$('varnishes-container') && $('varnishes-container').children.length > 0;
+      const ack = !!$('pr_novarnish_ack') && $('pr_novarnish_ack').checked;
+      taken.add('pr_novarnish_ack');
+      items.push({ k: 'Verniz e Anilox' + (opCache.vern ? ' (orçamento com verniz)' : ''), ids: ['pr_novarnish_ack'], empty: (has || ack) ? [] : ['pr_novarnish_ack'], sels: [], vern: true });
+    }
     if (kind === 'com') COM_SOFT.forEach(it => { const e = it.ids.filter(isEmpty); if (e.length) soft.push({ k: it.k, ids: it.ids, empty: e }); it.ids.forEach(i => taken.add(i)); });
     // Obrigatórios/importantes (pelos selos que já existem na tela) que continuam vazios
     const root = kind === 'com' ? $('com_production') : (kind === 'product' ? $('tab-product') : $('tab-production'));
@@ -7853,6 +7883,7 @@ In CR17.10:
     todo.forEach(i => {
       i.empty.forEach(id => { const f = fieldOf(id); mark(f, 'pend-on'); });
       (i.sels || []).forEach(s => { if ($(s)) mark($(s).closest('.db-selector'), 'pend-on'); });
+      if (i.vern) { const bt = $('varnishes-container') && $('varnishes-container').parentElement.querySelector('button.btn'); if (bt) mark(bt, 'pend-btn'); }
       addSec(fieldOf(i.empty[0]));
     });
     soft.forEach(i => i.empty.forEach(id => mark(fieldOf(id), 'pend-soft')));

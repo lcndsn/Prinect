@@ -1100,6 +1100,10 @@
     body.skin #tab-product.pd-locked > .section:not(.pd-gate) { display: none !important; }
     body.skin #tab-product.pd-locked > .preview-section { display: none !important; }
 
+/* Orçamento: colunas Cliente / Faca com alturas independentes (dados da faca agora ficam junto do seletor) */
+body.skin .section-body:has(#orc_tool_select) { align-items: start; }
+body.skin .section-body:has(#orc_tool_select) > .field { align-self: start; }
+
   </style>
 </head>
 <body class="skin">
@@ -1844,6 +1848,7 @@
           <label>✂️ Faca (Ferramenta de Corte) <span class="badge badge-required">OBRIGATÓRIO</span></label>
           <select id="orc_tool_select"><option value="">— Selecione —</option></select>
           <span class="field-hint">Vem de Base de Dados → Ferramentas de Corte.</span>
+          <div class="orc-customer" id="orc_tool_info"></div>
         </div>
       </div>
     </div>
@@ -1872,14 +1877,9 @@
       </div>
     </div>
 
-    <div class="section half">
+    <div class="section">
       <div class="section-header" onclick="toggleSection(this)">📦 Dados do Artigo<span class="toggle-icon">▼</span></div>
       <div class="section-body single" id="orc_article_info"></div>
-    </div>
-
-    <div class="section half">
-      <div class="section-header" onclick="toggleSection(this)">✂️ Dados da Faca<span class="toggle-icon">▼</span></div>
-      <div class="section-body single" id="orc_tool_info"></div>
     </div>
 
     <div class="section">
@@ -6397,7 +6397,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const { a, t, c } = selected();
     $('orc_customer_info').innerHTML = c ? customerInfo(c) : '';
     $('orc_article_info').innerHTML = articlesInfo();
-    $('orc_tool_info').innerHTML    = t ? toolInfo(t)    : emptyState('Selecione uma faca acima para ver os dados.');
+    $('orc_tool_info').innerHTML    = t ? toolInfo(t)    : '';
     $('orc_next_number').textContent = quoteNumber(nextQuoteSeq());
     // mantém as cores em dia com o cadastro do artigo (se você não digitou outro valor)
     if (a && !colorsDirty) { const rc = registerColors(a); if (rc) $('orc_colors').value = rc; }
@@ -7607,6 +7607,13 @@ In CR17.10:
   document.addEventListener('paste', e => {
     const ov = document.getElementById('modal-overlay');
     if (!ov || ov.style.display === 'none' || !document.getElementById('prev_zone')) return;
+    // colando em um campo de texto (ex.: JSON do Package Designer)? deixa o navegador colar o texto normalmente
+    const tg = e.target, zone = document.getElementById('prev_zone');
+    const inField = tg && tg.closest && tg.closest('input, textarea, select, [contenteditable="true"]');
+    if (inField && !(zone && zone.contains(tg))) return;
+    // clipboard com texto (copiado de outro programa traz até uma "imagem" junto): o texto vence
+    const cd = e.clipboardData;
+    if (cd && !(zone && zone.contains(tg)) && (cd.getData('text/plain') || '').trim()) return;
     const items = (e.clipboardData && e.clipboardData.items) || [];
     for (const it of items) {
       if (it.kind === 'file' && /^image\//.test(it.type)) { e.preventDefault(); setFromFile(it.getAsFile()); return; }
@@ -8299,7 +8306,7 @@ body.skin .gantt-track, .gantt-track { background-image: linear-gradient(to righ
       // numeração das etapas (1, 2, 3…) no início de cada card
       pos.forEach((p, i) => {
         const t = document.createElementNS(NS, 'g');
-        t.innerHTML = `<circle class="gc-dot" cx="${p.x1 + 9}" cy="${p.y - 0 - (p.b.offsetHeight / 2) + 2}" r="8"/><text class="gc-seq" x="${p.x1 + 9}" y="${p.y - (p.b.offsetHeight / 2) + 5.5}" text-anchor="middle">${i + 1}</text>`;
+        t.innerHTML = `<circle class="gc-dot" cx="${p.x1 + 4}" cy="${p.y + (p.b.offsetHeight / 2) - 5}" r="7.5"/><text class="gc-seq" x="${p.x1 + 4}" y="${p.y + (p.b.offsetHeight / 2) - 1.5}" text-anchor="middle">${i + 1}</text>`;
         svg.appendChild(t);
       });
     });
@@ -8350,6 +8357,68 @@ body.skin .gantt-track, .gantt-track { background-image: linear-gradient(to righ
   window.addEventListener('blur', end);
   // se arrastou, o clique que se segue não deve selecionar card
   document.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+})();
+</script>
+
+<style>
+.mf-warn { grid-column: 1 / -1; margin: 8px 0 0; padding: 10px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; background: rgba(220,53,69,.14); border: 1.5px solid #dc3545; color: #e8606d; }
+.mf-warn[hidden] { display: none; }
+.mf-ok { grid-column: 1 / -1; margin: 6px 0 0; font-size: 12px; opacity: .75; }
+</style>
+<script>
+/* ── FORMATO MÁXIMO DO SUBSTRATO NA IMPRESSORA (módulo isolado, só aviso visual) ──────────────────────
+   Cadastro da impressora ganha "Formato máximo do substrato" (largura × altura, mm).
+   No Production Job, se o papel (ou o formato exigido pela faca) não couber na impressora escolhida,
+   aparece um alerta vermelho. Não altera o JDF nem bloqueia nada. */
+(function () {
+  'use strict';
+  // 1) campos no cadastro da impressora (logo depois da velocidade)
+  try {
+    const f = modalConfigs.printer.fields;
+    if (!f.some(x => x.id === 'maxsheetwidth')) {
+      const i = Math.max(0, f.findIndex(x => x.id === 'speedsheetshour') + 1);
+      f.splice(i, 0,
+        { id: 'maxsheetwidth',  label: 'Formato máximo do substrato — Largura (mm)', placeholder: 'Ex.: 1040', type: 'number' },
+        { id: 'maxsheetheight', label: 'Formato máximo do substrato — Altura (mm)',  placeholder: 'Ex.: 740',  type: 'number',
+          hint: 'Maior folha que a impressora aceita. Usado como alerta no Production Job quando o papel ou a faca não cabem. Deixe em branco para não validar.' });
+    }
+  } catch (e) { console.warn('maxfmt: cadastro', e); }
+
+  const $ = id => document.getElementById(id);
+  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) && n > 0 ? n : 0; };
+  const fits = (w, h, mw, mh) => Math.min(w, h) <= Math.min(mw, mh) + 0.01 && Math.max(w, h) <= Math.max(mw, mh) + 0.01;
+
+  function ensureBox() {
+    let b = $('mf_warn');
+    if (b) return b;
+    const anchor = $('pr_db_printer_select') && $('pr_db_printer_select').closest('.db-selector');
+    if (!anchor) return null;
+    b = document.createElement('div'); b.id = 'mf_warn'; b.className = 'mf-warn'; b.hidden = true;
+    anchor.parentNode.insertBefore(b, anchor.nextSibling);
+    return b;
+  }
+  function check() {
+    const b = ensureBox(); if (!b) return;
+    const db = getDB();
+    const pid = ($('pr_printer_dbid') || {}).value;
+    const pr = pid ? db.printers.find(x => x.id === pid) : null;
+    const mw = pr ? num(pr.maxsheetwidth) : 0, mh = pr ? num(pr.maxsheetheight) : 0;
+    if (!pr || !mw || !mh) { b.hidden = true; return; }
+    const tid = ($('pr_tool_dbid') || {}).value, tool = tid ? db.tools.find(x => x.id === tid) : null;
+    const msgs = [];
+    const sw = num(($('pr_sheetwidth_mm') || {}).value), sh = num(($('pr_sheetheight_mm') || {}).value);
+    if (sw && sh && !fits(sw, sh, mw, mh)) msgs.push(`o substrato ${sw}×${sh} mm não cabe`);
+    const tw = tool ? num(tool.reqsheetwidth) : 0, th = tool ? num(tool.reqsheetheight) : 0;
+    if (tw && th && !fits(tw, th, mw, mh) && !(sw && sh && tw === sw && th === sh)) msgs.push(`a faca exige papel ${tw}×${th} mm, que não cabe`);
+    if (msgs.length) {
+      b.textContent = `⚠️ Na impressora ${pr.devicename || pr.deviceid || ''} (máx. ${mw}×${mh} mm): ${msgs.join(' e ')}. Confira a impressora, a faca ou o substrato.`;
+      b.hidden = false;
+    } else b.hidden = true;
+  }
+  document.addEventListener('input', () => setTimeout(check, 0));
+  document.addEventListener('change', () => setTimeout(check, 0));
+  document.addEventListener('click', () => setTimeout(check, 250));
+  setInterval(check, 800);
 })();
 </script>
 
